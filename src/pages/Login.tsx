@@ -24,7 +24,7 @@ export function Login() {
     try {
       if (MOCK) {
         await new Promise(r => setTimeout(r, 600));
-        if (email === 'admin@ouonex.com' || email.includes('@')) {
+        if (email.trim().length > 0) {
           auth.login('mock_admin_token_' + Date.now(), 'owner');
           toast.success('Welcome back', 'Signed in to Ouonex Dashboard');
         } else {
@@ -82,12 +82,12 @@ export function Login() {
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="admin@ouonex.com"
                 className="input w-full pl-9"
-                autoComplete="email"
+                autoComplete="username email"
                 autoFocus
               />
             </div>
@@ -137,4 +137,6 @@ export function Login() {
     </div>
   );
 }
+
+
 

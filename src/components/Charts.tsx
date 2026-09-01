@@ -22,6 +22,13 @@ interface LineChartProps {
 }
 
 export function LineChart({ data, height = 200, color = CHART_COLORS.brand, fill = true, format }: LineChartProps) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center text-xs text-ink-500" style={{ height }}>
+        No data available
+      </div>
+    );
+  }
   const id = useId();
   const w = 800;
   const h = height;
@@ -72,6 +79,13 @@ export function LineChart({ data, height = 200, color = CHART_COLORS.brand, fill
 // ── BarChart ──────────────────────────────────────────────
 interface BarItem { label: string; value: number; color?: string; }
 export function BarChart({ data, height = 200, format }: { data: BarItem[]; height?: number; format?: (n: number) => string }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center text-xs text-ink-500" style={{ height }}>
+        No data available
+      </div>
+    );
+  }
   const max = Math.max(...data.map(d => d.value)) * 1.15;
   return (
     <div className="flex items-end gap-2 h-full" style={{ minHeight: height }}>
@@ -144,6 +158,13 @@ export function DonutChart({ data, size = 160, thickness = 22 }: { data: DonutSl
 
 // ── Sparkline ────────────────────────────────────────────
 export function Sparkline({ data, color = CHART_COLORS.brand, height = 36 }: { data: number[]; color?: string; height?: number }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center text-xs text-ink-500" style={{ height }}>
+        -
+      </div>
+    );
+  }
   const w = 100;
   const h = height;
   const max = Math.max(...data);

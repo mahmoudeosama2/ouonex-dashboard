@@ -360,7 +360,7 @@ function ProductsTab() {
                 className={`relative w-11 h-6 rounded-full transition-colors ${product.visible ? 'bg-brand-600' : 'bg-ink-700'}`}
                 title={product.visible ? 'Visible on landing page' : 'Hidden from landing page'}
               >
-                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${product.visible ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                <span className={`absolute top-1/2 -translate-y-1/2 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${product.visible ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
               <span className={`text-2xs ${product.visible ? 'text-success-400' : 'text-ink-500'}`}>
                 {product.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
@@ -426,3 +426,4 @@ function ProductsTab() {
     </div>
   );
 }
+

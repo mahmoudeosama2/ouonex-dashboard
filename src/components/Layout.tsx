@@ -90,7 +90,7 @@ export function Layout({ current, onNavigate, children, pendingCount = 0 }: Prop
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 text-2xs text-ink-500">
           <ShieldCheck className="w-3 h-3" />
-          <span>v1.0 · Mock data mode</span>
+          <span>v1.0 · Live Connected</span>
         </div>
       </div>
     </div>
@@ -214,3 +214,4 @@ export function ProductIcon({ product }: { product: string }) {
 }
 
 export { timeAgo };
+

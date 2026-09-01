@@ -436,3 +436,12 @@ export const websiteContent: WebsiteContent = {
     { id: 'ecommerce', name: 'E-commerce', arName: 'متجر إلكتروني', description: 'Ready-to-launch e-commerce platform tailored for Egyptian merchants.', arDescription: 'منصة تجارة إلكترونية جاهزة للإطلاق مخصصة للتجار المصريين.', visible: true, link: 'https://ouonex.com/ecommerce' },
   ],
 };
+
+
+export function togglePublishInvitation(id: string): { message: string; data: Invitation } {
+  const inv = invitationDetail(id);
+  if (inv) {
+    inv.status = inv.status === 'published' ? 'draft' : 'published';
+  }
+  return { message: 'Updated', data: inv! };
+}

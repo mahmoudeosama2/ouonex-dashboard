@@ -253,8 +253,25 @@ function GeneralTab() {
     currency: 'EGP',
     email_notifications: true,
     auto_refresh_seconds: 30,
+    menu_price_monthly: 100,
+    menu_price_yearly: 1000,
+    menu_free_mode: false,
+    dawaty_invitation_price: 150,
+    dawaty_free_mode: false,
+    vodafone_cash_number: '01019603225',
+    instapay_address: 'instapay@address'
   });
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    api.settings.get().then(res => {
+      setForm(prev => ({ ...prev, ...res }));
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -267,6 +284,10 @@ function GeneralTab() {
       setSaving(false);
     }
   };
+
+  if (loading) {
+    return <div className="text-sm text-ink-400">Loading settings...</div>;
+  }
 
   return (
     <div className="max-w-2xl space-y-5">
@@ -310,6 +331,108 @@ function GeneralTab() {
               <option value="EUR">EUR — Euro</option>
               <option value="SAR">SAR — Saudi Riyal</option>
             </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Digital Menu Pricing ── */}
+      <div className="card p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Crown className="w-4 h-4 text-ink-400" />
+          <h3 className="text-sm font-semibold text-ink-100">Digital Menu Subscriptions</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">Monthly Price (EGP)</label>
+            <input
+              type="number"
+              value={form.menu_price_monthly}
+              onChange={e => setForm(f => ({ ...f, menu_price_monthly: Number(e.target.value) }))}
+              className="input w-full"
+              disabled={form.menu_free_mode}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">Yearly Price (EGP)</label>
+            <input
+              type="number"
+              value={form.menu_price_yearly}
+              onChange={e => setForm(f => ({ ...f, menu_price_yearly: Number(e.target.value) }))}
+              className="input w-full"
+              disabled={form.menu_free_mode}
+            />
+          </div>
+        </div>
+        <label className="flex items-center justify-between cursor-pointer pt-2">
+          <div>
+            <p className="text-sm text-ink-200">Free Mode</p>
+            <p className="text-xs text-ink-500">Provide Digital Menu subscriptions completely for free</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setForm(f => ({ ...f, menu_free_mode: !f.menu_free_mode }))}
+            className={`relative w-11 h-6 rounded-full transition-colors ${form.menu_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
+          >
+            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.menu_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
+          </button>
+        </label>
+      </div>
+
+      {/* ── Dawaty Pricing ── */}
+      <div className="card p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Globe className="w-4 h-4 text-ink-400" />
+          <h3 className="text-sm font-semibold text-ink-100">Dawaty Invitations</h3>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-ink-300 mb-1.5">Single Invitation Price (EGP)</label>
+          <input
+            type="number"
+            value={form.dawaty_invitation_price}
+            onChange={e => setForm(f => ({ ...f, dawaty_invitation_price: Number(e.target.value) }))}
+            className="input w-full"
+            disabled={form.dawaty_free_mode}
+          />
+        </div>
+        <label className="flex items-center justify-between cursor-pointer pt-2">
+          <div>
+            <p className="text-sm text-ink-200">Free Mode</p>
+            <p className="text-xs text-ink-500">Provide Dawaty wedding invitations completely for free</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setForm(f => ({ ...f, dawaty_free_mode: !f.dawaty_free_mode }))}
+            className={`relative w-11 h-6 rounded-full transition-colors ${form.dawaty_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
+          >
+            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.dawaty_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
+          </button>
+        </label>
+      </div>
+
+      {/* ── Payment Gateways ── */}
+      <div className="card p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Save className="w-4 h-4 text-ink-400" />
+          <h3 className="text-sm font-semibold text-ink-100">Payment Gateways</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">Vodafone Cash Number</label>
+            <input
+              type="text"
+              value={form.vodafone_cash_number}
+              onChange={e => setForm(f => ({ ...f, vodafone_cash_number: e.target.value }))}
+              className="input w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">InstaPay Address</label>
+            <input
+              type="text"
+              value={form.instapay_address}
+              onChange={e => setForm(f => ({ ...f, instapay_address: e.target.value }))}
+              className="input w-full"
+            />
           </div>
         </div>
       </div>

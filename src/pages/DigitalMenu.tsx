@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2 } from 'lucide-react';
+import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Restaurant, Order, AIUsageSummary } from '@/lib/types';
 import { DataTable, type Column } from '@/components/DataTable';
@@ -98,6 +98,21 @@ function RestaurantsTab() {
 
   const columns: Column<Restaurant>[] = [
     { key: 'name', header: 'Restaurant', sortValue: r => r.store_name, render: r => <span className="font-medium text-ink-100">{r.store_name}</span> },
+    { key: 'slug', header: 'Live URL', render: r => (
+      r.menu_published ? (
+        <a
+          href={`https://${r.slug}.ouonex.com`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-mono text-xs text-brand-400 hover:text-brand-300 hover:underline flex items-center gap-1 transition-colors"
+          onClick={e => e.stopPropagation()}
+        >
+          {r.slug}.ouonex.com <ExternalLink className="w-3 h-3" />
+        </a>
+      ) : (
+        <span className="font-mono text-xs text-ink-600">{r.slug}.ouonex.com</span>
+      )
+    ) },
     { key: 'status', header: 'Status', sortValue: r => r.status, render: r => <StatusBadge status={r.status} /> },
     { key: 'plan', header: 'Plan', sortValue: r => r.plan, render: r => <PlanBadge plan={r.plan} /> },
     { key: 'menu', header: 'Menu Published', render: r => r.menu_published ? <CheckCircle2 className="w-4 h-4 text-success-400" /> : <span className="text-2xs text-ink-500">Unpublished</span> },
@@ -300,3 +315,12 @@ function OrdersTab() {
     </>
   );
 }
+
+
+
+
+
+
+
+
+
