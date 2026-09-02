@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode } from 'lucide-react';
+import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Restaurant, Order, AIUsageSummary } from '@/lib/types';
 import { DataTable, type Column } from '@/components/DataTable';
@@ -55,6 +55,8 @@ function RestaurantsTab() {
   const [selected, setSelected] = useState<Restaurant | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [kpis, setKpis] = useState({ total: 0, active: 0, aiScans: 0, aiCost: 0 });
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -78,6 +80,53 @@ function RestaurantsTab() {
   }, [page, statusFilter]);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleSelectRow = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === rows.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(rows.map(r => r.id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to permanently delete ${selectedIds.length} restaurants and their menus? This cannot be undone.`)) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await api.digitalMenu.bulkDelete(selectedIds);
+      setRows(prev => prev.filter(r => !selectedIds.includes(r.id)));
+      setSelectedIds([]);
+      setTotal(prev => Math.max(0, prev - selectedIds.length));
+    } catch (err) {
+      alert('Failed to delete selected restaurants.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteSingle = async (r: Restaurant) => {
+    if (!window.confirm(`Are you sure you want to permanently delete restaurant "${r.store_name}" and its entire menu? This cannot be undone.`)) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await api.digitalMenu.delete(r.id);
+      setRows(prev => prev.filter(item => item.id !== r.id));
+      setDrawerOpen(false);
+      setSelected(null);
+      setTotal(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      alert('Failed to delete restaurant.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleRowClick = async (r: Restaurant) => {
     setSelected(r);
@@ -137,6 +186,35 @@ function RestaurantsTab() {
 
       <FilterBar filters={filters} />
 
+      {/* Floating Bulk Action Bar */}
+      {selectedIds.length > 0 && (
+        <div className="flex items-center justify-between p-3.5 mb-4 rounded-xl bg-ink-900 border border-brand-500/40 shadow-soft animate-fade-in">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-xs font-semibold text-ink-100">
+              {selectedIds.length} {selectedIds.length === 1 ? 'restaurant' : 'restaurants'} selected
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedIds([])}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white transition"
+            >
+              Clear
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              disabled={deleting}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition shadow-sm disabled:opacity-50"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {deleting ? 'Deleting...' : `Delete Selected (${selectedIds.length})`}
+            </button>
+          </div>
+        </div>
+      )}
+
       <DataTable
         columns={columns}
         rows={rows}
@@ -146,6 +224,9 @@ function RestaurantsTab() {
         perPage={10}
         total={total}
         onPageChange={setPage}
+        selectedIds={selectedIds}
+        onSelectRow={handleSelectRow}
+        onSelectAll={handleSelectAll}
         emptyTitle="No restaurants found"
       />
 
@@ -153,6 +234,7 @@ function RestaurantsTab() {
         {selected && (
           <RestaurantDetail
             r={selected}
+            onDelete={() => handleDeleteSingle(selected)}
             onUpdated={(updated) => {
               setSelected({ ...selected, ...updated });
               setRows(prev => prev.map(item => item.id === selected.id ? { ...item, ...updated } : item));
@@ -164,7 +246,15 @@ function RestaurantsTab() {
   );
 }
 
-function RestaurantDetail({ r, onUpdated }: { r: Restaurant; onUpdated: (updated: Partial<Restaurant>) => void }) {
+function RestaurantDetail({ 
+  r, 
+  onUpdated,
+  onDelete
+}: { 
+  r: Restaurant; 
+  onUpdated: (updated: Partial<Restaurant>) => void;
+  onDelete: () => void;
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
@@ -233,13 +323,23 @@ function RestaurantDetail({ r, onUpdated }: { r: Restaurant; onUpdated: (updated
           <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
         </a>
 
-        <button
-          onClick={() => setIsEditing(!isEditing)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-ink-800 text-ink-200 hover:bg-ink-700 hover:text-white transition"
-        >
-          {isEditing ? <X className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
-          {isEditing ? 'Cancel' : 'Edit Restaurant'}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-ink-800 text-ink-200 hover:bg-ink-700 hover:text-white transition"
+          >
+            {isEditing ? <X className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
+            {isEditing ? 'Cancel' : 'Edit Restaurant'}
+          </button>
+
+          <button
+            onClick={onDelete}
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition"
+            title="Delete Restaurant"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {successMsg && (

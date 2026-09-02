@@ -27,12 +27,16 @@ interface Props<T> {
   sortKey?: string;
   sortDir?: 'asc' | 'desc';
   onSort?: (key: string) => void;
+  selectedIds?: string[];
+  onSelectRow?: (id: string) => void;
+  onSelectAll?: () => void;
 }
 
 export function DataTable<T extends { id: string }>({
   columns, rows, loading, emptyTitle = 'No results', emptyMessage = 'Try adjusting your filters or search.',
   onRowClick, rowActions, page = 1, perPage = 10, total = 0, onPageChange,
   sortKey, sortDir, onSort,
+  selectedIds, onSelectRow, onSelectAll,
 }: Props<T>) {
   const [localSort, setLocalSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
 
@@ -62,6 +66,16 @@ export function DataTable<T extends { id: string }>({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-ink-800 bg-ink-900/50">
+              {selectedIds && onSelectAll && (
+                <th className="w-10 px-4 py-3 text-center">
+                  <input
+                    type="checkbox"
+                    checked={rows.length > 0 && selectedIds.length === rows.length}
+                    onChange={onSelectAll}
+                    className="rounded border-ink-700 bg-ink-950 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                  />
+                </th>
+              )}
               {columns.map(c => (
                 <th
                   key={c.key}
@@ -85,35 +99,50 @@ export function DataTable<T extends { id: string }>({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={columns.length + (rowActions ? 1 : 0)} className="p-0">
-                  <TableSkeleton rows={6} cols={columns.length} />
+                <td colSpan={columns.length + (rowActions ? 1 : 0) + (selectedIds ? 1 : 0)} className="p-0">
+                  <TableSkeleton rows={6} cols={columns.length + (selectedIds ? 1 : 0)} />
                 </td>
               </tr>
             ) : sorted.length === 0 ? (
               <tr>
-                <td colSpan={columns.length + (rowActions ? 1 : 0)} className="p-0">
+                <td colSpan={columns.length + (rowActions ? 1 : 0) + (selectedIds ? 1 : 0)} className="p-0">
                   <EmptyState icon={<Inbox className="w-5 h-5" />} title={emptyTitle} message={emptyMessage} />
                 </td>
               </tr>
             ) : (
-              sorted.map((row, i) => (
-                <tr
-                  key={row.id}
-                  onClick={() => onRowClick?.(row)}
-                  className={`border-b border-ink-800/60 transition-colors ${onRowClick ? 'cursor-pointer hover:bg-ink-800/40' : ''} ${i === sorted.length - 1 ? 'border-b-0' : ''}`}
-                >
-                  {columns.map(c => (
-                    <td key={c.key} className={`px-4 py-3 text-ink-200 ${c.className ?? ''}`}>
-                      {c.render(row)}
-                    </td>
-                  ))}
-                  {rowActions && (
-                    <td className="px-4 py-3 text-right" onClick={e => e.stopPropagation()}>
-                      {rowActions(row)}
-                    </td>
-                  )}
-                </tr>
-              ))
+              sorted.map((row, i) => {
+                const isSelected = selectedIds?.includes(row.id);
+                return (
+                  <tr
+                    key={row.id}
+                    onClick={() => onRowClick?.(row)}
+                    className={`border-b border-ink-800/60 transition-colors ${
+                      isSelected ? 'bg-brand-600/10' : ''
+                    } ${onRowClick ? 'cursor-pointer hover:bg-ink-800/40' : ''} ${i === sorted.length - 1 ? 'border-b-0' : ''}`}
+                  >
+                    {selectedIds && onSelectRow && (
+                      <td className="px-4 py-3 text-center" onClick={e => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => onSelectRow(row.id)}
+                          className="rounded border-ink-700 bg-ink-950 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                        />
+                      </td>
+                    )}
+                    {columns.map(c => (
+                      <td key={c.key} className={`px-4 py-3 text-ink-200 ${c.className ?? ''}`}>
+                        {c.render(row)}
+                      </td>
+                    ))}
+                    {rowActions && (
+                      <td className="px-4 py-3 text-right" onClick={e => e.stopPropagation()}>
+                        {rowActions(row)}
+                      </td>
+                    )}
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

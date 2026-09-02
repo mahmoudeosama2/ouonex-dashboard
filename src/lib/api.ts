@@ -82,6 +82,26 @@ async function httpPut<T>(path: string, body?: unknown): Promise<T> {
   }
 }
 
+async function httpDelete<T>(path: string): Promise<T> {
+  console.log(`🚀 [API Request] DELETE ${BASE}${path}`);
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      console.error(`❌ [API Error] DELETE ${BASE}${path} -> Status ${res.status}`);
+      throw new Error(`API ${res.status} on ${path}`);
+    }
+    console.log(`✅ [API Success] DELETE ${BASE}${path} -> Status ${res.status}`);
+    return res.json() as Promise<T>;
+  } catch (err) {
+    console.error(`❌ [API Failed] DELETE ${BASE}${path} ->`, err);
+    throw err;
+  }
+}
+
 // Simulated latency for mock mode
 function delay<T>(v: T, ms = 350): Promise<T> {
   return new Promise(r => setTimeout(() => r(v), ms));
@@ -133,6 +153,10 @@ export const api = {
       MOCK ? delay(mock.invitationDetail(id)) : http<{ data: Invitation }>(`/admin/dawaty/invitations/${id}`).then(r => (r && 'data' in r && r.data ? r.data : (r as unknown as Invitation))),
     update: (id: string, data: Record<string, unknown>): Promise<{ message: string; data: Invitation }> =>
       httpPost<{ message: string; data: Invitation }>(`/admin/dawaty/invitations/${id}`, data),
+    delete: (id: string): Promise<any> =>
+      httpDelete(`/admin/dawaty/invitations/${id}`),
+    bulkDelete: (ids: string[]): Promise<any> =>
+      httpPost('/admin/dawaty/invitations/bulk-delete', { ids }),
     togglePublish: (id: string): Promise<{ message: string; data: Invitation }> =>
       MOCK ? delay(mock.togglePublishInvitation(id)) : httpPost<{ message: string; data: Invitation }>(`/admin/dawaty/invitations/${id}/toggle-publish`),
   },
@@ -144,6 +168,10 @@ export const api = {
       MOCK ? delay(mock.restaurantDetail(id)) : http(`/admin/digital-menu/restaurants/${id}`),
     update: (id: string, data: Record<string, unknown>): Promise<{ status: string; message: string; data: Restaurant }> =>
       httpPost<{ status: string; message: string; data: Restaurant }>(`/admin/digital-menu/restaurants/${id}`, data),
+    delete: (id: string): Promise<any> =>
+      httpDelete(`/admin/digital-menu/restaurants/${id}`),
+    bulkDelete: (ids: string[]): Promise<any> =>
+      httpPost('/admin/digital-menu/restaurants/bulk-delete', { ids }),
     orders: (f?: { status?: string; page?: number; per_page?: number }): Promise<Paginated<Order>> =>
       MOCK ? delay(mock.orders(f)) : http(`/admin/digital-menu/orders${qs(f as Record<string, unknown>)}`),
   },

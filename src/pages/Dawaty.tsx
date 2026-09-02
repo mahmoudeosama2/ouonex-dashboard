@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { 
   Heart, Eye, QrCode, Users, FileText, ChevronRight, ExternalLink, 
   Sparkles, CheckCircle2, PauseCircle, Loader2, MapPin, Calendar, Clock, UserCheck,
-  Edit3, Save, X
+  Edit3, Save, X, Trash2, AlertTriangle
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Invitation } from '@/lib/types';
@@ -28,6 +28,8 @@ export function Dawaty() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [kpis, setKpis] = useState({ total: 0, published: 0, visits: 0, rsvp: 0 });
   const [toggling, setToggling] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -51,6 +53,53 @@ export function Dawaty() {
   }, [page, statusFilter]);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleSelectRow = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === invitations.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(invitations.map(i => i.id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to permanently delete ${selectedIds.length} invitations? This cannot be undone.`)) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await api.dawaty.bulkDelete(selectedIds);
+      setInvitations(prev => prev.filter(i => !selectedIds.includes(i.id)));
+      setSelectedIds([]);
+      setTotal(prev => Math.max(0, prev - selectedIds.length));
+    } catch (err) {
+      alert('Failed to delete selected invitations.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteSingle = async (inv: Invitation) => {
+    if (!window.confirm(`Are you sure you want to permanently delete invitation "${inv.couple_names}"? This cannot be undone.`)) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await api.dawaty.delete(inv.id);
+      setInvitations(prev => prev.filter(i => i.id !== inv.id));
+      setDrawerOpen(false);
+      setSelected(null);
+      setTotal(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      alert('Failed to delete invitation.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleRowClick = async (inv: Invitation) => {
     setSelected(inv);
@@ -163,6 +212,35 @@ export function Dawaty() {
 
       <FilterBar filters={filters} />
 
+      {/* Floating Bulk Action Bar */}
+      {selectedIds.length > 0 && (
+        <div className="flex items-center justify-between p-3.5 mb-4 rounded-xl bg-ink-900 border border-brand-500/40 shadow-soft animate-fade-in">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
+            <span className="text-xs font-semibold text-ink-100">
+              {selectedIds.length} {selectedIds.length === 1 ? 'invitation' : 'invitations'} selected
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedIds([])}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white transition"
+            >
+              Clear
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              disabled={deleting}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition shadow-sm disabled:opacity-50"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {deleting ? 'Deleting...' : `Delete Selected (${selectedIds.length})`}
+            </button>
+          </div>
+        </div>
+      )}
+
       <DataTable
         columns={columns}
         rows={invitations}
@@ -172,6 +250,9 @@ export function Dawaty() {
         perPage={10}
         total={total}
         onPageChange={setPage}
+        selectedIds={selectedIds}
+        onSelectRow={handleSelectRow}
+        onSelectAll={handleSelectAll}
         emptyTitle="No invitations found"
         emptyMessage="Try adjusting your status filter."
       />
@@ -188,6 +269,7 @@ export function Dawaty() {
             inv={selected} 
             toggling={toggling}
             onTogglePublish={() => handleTogglePublish(selected)}
+            onDelete={() => handleDeleteSingle(selected)}
             onUpdated={(updated) => {
               setSelected({ ...selected, ...updated });
               setInvitations(prev => prev.map(item => item.id === selected.id ? { ...item, ...updated } : item));
@@ -203,12 +285,14 @@ function InvitationDetail({
   inv, 
   toggling, 
   onTogglePublish,
-  onUpdated
+  onUpdated,
+  onDelete,
 }: { 
   inv: Invitation; 
   toggling: boolean; 
   onTogglePublish: () => void;
   onUpdated: (updated: Partial<Invitation>) => void;
+  onDelete: () => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -341,6 +425,14 @@ function InvitationDetail({
                 Live <ExternalLink className="w-3 h-3" />
               </a>
             )}
+
+            <button
+              onClick={onDelete}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition"
+              title="Delete Invitation"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </div>
