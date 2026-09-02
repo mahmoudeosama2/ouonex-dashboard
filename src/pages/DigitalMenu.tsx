@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2 } from 'lucide-react';
+import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Restaurant, Order, AIUsageSummary } from '@/lib/types';
 import { DataTable, type Column } from '@/components/DataTable';
@@ -150,15 +150,180 @@ function RestaurantsTab() {
       />
 
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={selected?.store_name ?? 'Restaurant'} subtitle={selected ? `/${selected.slug}` : ''}>
-        {selected && <RestaurantDetail r={selected} />}
+        {selected && (
+          <RestaurantDetail
+            r={selected}
+            onUpdated={(updated) => {
+              setSelected({ ...selected, ...updated });
+              setRows(prev => prev.map(item => item.id === selected.id ? { ...item, ...updated } : item));
+            }}
+          />
+        )}
       </Drawer>
     </>
   );
 }
 
-function RestaurantDetail({ r }: { r: Restaurant }) {
+function RestaurantDetail({ r, onUpdated }: { r: Restaurant; onUpdated: (updated: Partial<Restaurant>) => void }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [formData, setFormData] = useState({
+    store_name: r.store_name,
+    slug: r.slug,
+    status: r.status,
+    currency: 'EGP',
+    delivery_fee: 15,
+  });
+
+  useEffect(() => {
+    setFormData({
+      store_name: r.store_name,
+      slug: r.slug,
+      status: r.status,
+      currency: 'EGP',
+      delivery_fee: 15,
+    });
+    setIsEditing(false);
+    setSuccessMsg('');
+  }, [r]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setSuccessMsg('');
+    try {
+      await api.digitalMenu.update(r.id, {
+        store_name: formData.store_name,
+        name: formData.store_name,
+        slug: formData.slug,
+        status: formData.status,
+        currency: formData.currency,
+        delivery_fee: formData.delivery_fee,
+      });
+
+      onUpdated({
+        store_name: formData.store_name,
+        slug: formData.slug,
+        status: formData.status as any,
+      });
+      setSuccessMsg('Restaurant updated successfully!');
+      setIsEditing(false);
+    } catch (err) {
+      alert('Failed to update restaurant.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const liveUrl = `https://menu.ouonex.com/${r.slug}`;
+
   return (
     <div className="space-y-5">
+      {/* Action Bar */}
+      <div className="flex items-center justify-between gap-2 pb-3 border-b border-ink-800">
+        <a
+          href={liveUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600/15 text-brand-400 border border-brand-500/30 hover:bg-brand-600/25 transition"
+        >
+          <Globe2 className="w-3.5 h-3.5" />
+          <span>View Live Menu</span>
+          <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+        </a>
+
+        <button
+          onClick={() => setIsEditing(!isEditing)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-ink-800 text-ink-200 hover:bg-ink-700 hover:text-white transition"
+        >
+          {isEditing ? <X className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
+          {isEditing ? 'Cancel' : 'Edit Restaurant'}
+        </button>
+      </div>
+
+      {successMsg && (
+        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4" />
+          <span>{successMsg}</span>
+        </div>
+      )}
+
+      {/* Edit Form */}
+      {isEditing ? (
+        <form onSubmit={handleSave} className="p-4 rounded-xl bg-ink-950/80 border border-ink-800/80 space-y-3 animate-fade-in">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">Edit Restaurant Details</h4>
+          <div>
+            <label className="block text-2xs text-ink-400 mb-1">Restaurant Name</label>
+            <input
+              type="text"
+              required
+              value={formData.store_name}
+              onChange={e => setFormData({ ...formData, store_name: e.target.value })}
+              className="input w-full text-xs"
+            />
+          </div>
+
+          <div>
+            <label className="block text-2xs text-ink-400 mb-1">URL Slug</label>
+            <input
+              type="text"
+              required
+              value={formData.slug}
+              onChange={e => setFormData({ ...formData, slug: e.target.value })}
+              className="input w-full text-xs font-mono"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">Status</label>
+              <select
+                value={formData.status}
+                onChange={e => setFormData({ ...formData, status: e.target.value })}
+                className="input w-full text-xs bg-ink-950"
+              >
+                <option value="active">Active (مفعل)</option>
+                <option value="trial">Trial (تجريبي)</option>
+                <option value="suspended">Suspended (موقوف)</option>
+                <option value="inactive">Inactive (معطل)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">Currency</label>
+              <select
+                value={formData.currency}
+                onChange={e => setFormData({ ...formData, currency: e.target.value })}
+                className="input w-full text-xs bg-ink-950"
+              >
+                <option value="EGP">EGP (ج.م)</option>
+                <option value="SAR">SAR (ر.س)</option>
+                <option value="USD">USD ($)</option>
+                <option value="AED">AED (د.إ)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="pt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-ink-950 hover:bg-amber-400 transition disabled:opacity-50"
+            >
+              <Save className="w-3.5 h-3.5" />
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      ) : null}
+
       <div className="flex items-center gap-3">
         <StatusBadge status={r.status} />
         <PlanBadge plan={r.plan} />

@@ -1,14 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Users as UsersIcon, Search, Wallet, Clock, Mail } from 'lucide-react';
+import { Users as UsersIcon, Search, Wallet, Clock, Mail, Edit3, Save, X, Key, Shield, CheckCircle2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { UserSearchResult } from '@/lib/types';
 import { DataTable, type Column } from '@/components/DataTable';
 import { Drawer } from '@/components/Drawer';
 import { ProductBadge, StatusBadge } from '@/components/Badge';
-import { CardSkeleton } from '@/components/Skeleton';
 import { ErrorState, EmptyState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/Layout';
-import { egp, date, dateTime, timeAgo } from '@/lib/format';
+import { egp, date, timeAgo } from '@/lib/format';
 
 export function UsersPage() {
   const [query, setQuery] = useState('');
@@ -46,6 +45,13 @@ export function UsersPage() {
     if (detail) setSelected(detail);
   };
 
+  const handleUserUpdated = (updated: Partial<UserSearchResult>) => {
+    if (!selected) return;
+    const newObj = { ...selected, ...updated };
+    setSelected(newObj);
+    setResults(prev => prev.map(u => u.id === selected.id ? { ...u, ...updated } : u));
+  };
+
   if (error) return <ErrorState message="Failed to load users." onRetry={load} />;
 
   const columns: Column<UserSearchResult>[] = [
@@ -68,7 +74,7 @@ export function UsersPage() {
 
   return (
     <div>
-      <PageHeader title="Users" description="Global search across Dawaty and Digital Menu" icon={<UsersIcon className="w-5 h-5" />} />
+      <PageHeader title="Users Management" description="Global control and profile management across Dawaty and Digital Menu" icon={<UsersIcon className="w-5 h-5" />} />
 
       <div className="relative mb-4 max-w-xl">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
@@ -95,24 +101,160 @@ export function UsersPage() {
       />
 
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={selected?.name ?? 'User'} subtitle={selected?.email}>
-        {selected && <UserDetail user={selected} />}
+        {selected && <UserDetail user={selected} onUpdated={handleUserUpdated} />}
       </Drawer>
     </div>
   );
 }
 
-function UserDetail({ user }: { user: UserSearchResult }) {
+function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u: Partial<UserSearchResult>) => void }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [formData, setFormData] = useState({
+    name: user.name,
+    email: user.email,
+    password: '',
+    status: 'active',
+  });
+
+  useEffect(() => {
+    setFormData({
+      name: user.name,
+      email: user.email,
+      password: '',
+      status: 'active',
+    });
+    setIsEditing(false);
+    setSuccessMsg('');
+  }, [user]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setSuccessMsg('');
+    try {
+      const payload: Record<string, unknown> = {
+        name: formData.name,
+        email: formData.email,
+        status: formData.status,
+      };
+      if (formData.password.trim()) {
+        payload.password = formData.password.trim();
+      }
+
+      await api.users.update(user.id, payload);
+      onUpdated({ name: formData.name, email: formData.email });
+      setSuccessMsg('User updated successfully!');
+      setIsEditing(false);
+    } catch (err) {
+      alert('Failed to update user. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-ink-700 flex items-center justify-center text-sm font-bold text-ink-200">
-          {user.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+      {/* Header & Edit Button */}
+      <div className="flex items-center justify-between pb-3 border-b border-ink-800">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-sm font-bold text-white shadow-soft">
+            {user.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-ink-100">{user.name}</p>
+            <p className="text-xs text-ink-400 flex items-center gap-1"><Mail className="w-3 h-3" /> {user.email}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm font-semibold text-ink-100">{user.name}</p>
-          <p className="text-xs text-ink-400 flex items-center gap-1"><Mail className="w-3 h-3" /> {user.email}</p>
-        </div>
+
+        <button
+          onClick={() => setIsEditing(!isEditing)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-ink-800 text-ink-200 hover:bg-ink-700 hover:text-white transition"
+        >
+          {isEditing ? <X className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
+          {isEditing ? 'Cancel' : 'Edit User'}
+        </button>
       </div>
+
+      {successMsg && (
+        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4" />
+          <span>{successMsg}</span>
+        </div>
+      )}
+
+      {/* Edit Form */}
+      {isEditing ? (
+        <form onSubmit={handleSave} className="p-4 rounded-xl bg-ink-950/80 border border-ink-800/80 space-y-3 animate-fade-in">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-brand-400">Edit Profile & Credentials</h4>
+          <div>
+            <label className="block text-2xs text-ink-400 mb-1">Full Name</label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
+              className="input w-full text-xs"
+            />
+          </div>
+
+          <div>
+            <label className="block text-2xs text-ink-400 mb-1">Email Address</label>
+            <input
+              type="email"
+              required
+              value={formData.email}
+              onChange={e => setFormData({ ...formData, email: e.target.value })}
+              className="input w-full text-xs"
+            />
+          </div>
+
+          <div>
+            <label className="block text-2xs text-ink-400 mb-1">Account Status</label>
+            <select
+              value={formData.status}
+              onChange={e => setFormData({ ...formData, status: e.target.value })}
+              className="input w-full text-xs bg-ink-950"
+            >
+              <option value="active">Active (نشط)</option>
+              <option value="suspended">Suspended (معلق)</option>
+              <option value="banned">Banned (محظور)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-2xs text-ink-400 mb-1 flex items-center gap-1">
+              <Key className="w-3 h-3 text-warning-400" /> Reset Password (leave blank to keep current)
+            </label>
+            <input
+              type="password"
+              placeholder="Enter new password"
+              value={formData.password}
+              onChange={e => setFormData({ ...formData, password: e.target.value })}
+              className="input w-full text-xs"
+            />
+          </div>
+
+          <div className="pt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white hover:bg-brand-500 transition disabled:opacity-50"
+            >
+              <Save className="w-3.5 h-3.5" />
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      ) : null}
 
       <div>
         <h4 className="text-sm font-semibold text-ink-100 mb-2">Products</h4>

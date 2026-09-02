@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { 
   Heart, Eye, QrCode, Users, FileText, ChevronRight, ExternalLink, 
-  Sparkles, CheckCircle2, PauseCircle, Loader2, MapPin, Calendar, Clock, UserCheck 
+  Sparkles, CheckCircle2, PauseCircle, Loader2, MapPin, Calendar, Clock, UserCheck,
+  Edit3, Save, X
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Invitation } from '@/lib/types';
@@ -187,6 +188,10 @@ export function Dawaty() {
             inv={selected} 
             toggling={toggling}
             onTogglePublish={() => handleTogglePublish(selected)}
+            onUpdated={(updated) => {
+              setSelected({ ...selected, ...updated });
+              setInvitations(prev => prev.map(item => item.id === selected.id ? { ...item, ...updated } : item));
+            }}
           />
         )}
       </Drawer>
@@ -197,15 +202,88 @@ export function Dawaty() {
 function InvitationDetail({ 
   inv, 
   toggling, 
-  onTogglePublish 
+  onTogglePublish,
+  onUpdated
 }: { 
   inv: Invitation; 
   toggling: boolean; 
   onTogglePublish: () => void;
+  onUpdated: (updated: Partial<Invitation>) => void;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const extra = inv as any;
+
+  const [formData, setFormData] = useState({
+    groom_name: extra.groom_name || inv.couple_names.split('&')[0]?.trim() || '',
+    bride_name: extra.bride_name || inv.couple_names.split('&')[1]?.trim() || '',
+    wedding_date: extra.wedding_date || inv.date || '',
+    time: extra.time || '8:00 PM',
+    venue_name: extra.venue_name || extra.venue || '',
+    venue_address: extra.venue_address || '',
+    template_id: extra.template_id || 'envelope_romantic',
+    slug: inv.slug,
+    status: inv.status,
+    notifications_enabled: true,
+  });
+
+  useEffect(() => {
+    setFormData({
+      groom_name: extra.groom_name || inv.couple_names.split('&')[0]?.trim() || '',
+      bride_name: extra.bride_name || inv.couple_names.split('&')[1]?.trim() || '',
+      wedding_date: extra.wedding_date || inv.date || '',
+      time: extra.time || '8:00 PM',
+      venue_name: extra.venue_name || extra.venue || '',
+      venue_address: extra.venue_address || '',
+      template_id: extra.template_id || 'envelope_romantic',
+      slug: inv.slug,
+      status: inv.status,
+      notifications_enabled: true,
+    });
+    setIsEditing(false);
+    setSuccessMsg('');
+  }, [inv]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setSuccessMsg('');
+    try {
+      const res = await api.dawaty.update(inv.id, {
+        groom_name: formData.groom_name,
+        bride_name: formData.bride_name,
+        invitation_title: `${formData.groom_name} & ${formData.bride_name}`,
+        wedding_date: formData.wedding_date,
+        time: formData.time,
+        venue_name: formData.venue_name,
+        venue_address: formData.venue_address,
+        template_id: formData.template_id,
+        slug: formData.slug,
+        status: formData.status,
+        notifications_enabled: formData.notifications_enabled,
+      });
+
+      const updated = res.data ?? res;
+      onUpdated({
+        couple_names: `${formData.groom_name} & ${formData.bride_name}`,
+        slug: formData.slug,
+        status: formData.status as any,
+        date: formData.wedding_date,
+        ...updated,
+      });
+      setSuccessMsg('Invitation updated successfully!');
+      setIsEditing(false);
+    } catch (err) {
+      alert('Failed to update invitation.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const isPublished = inv.status === 'published';
   const total_rsvp = (inv.rsvp_attending || 0) + (inv.rsvp_declined || 0) + (inv.rsvp_pending || 0);
-  const extra = inv as any;
+  const liveUrl = `https://dawety.ouonex.com/${inv.slug}`;
 
   return (
     <div className="space-y-6">
@@ -218,6 +296,14 @@ function InvitationDetail({
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-ink-800 hover:bg-ink-700 text-ink-200 hover:text-white border border-ink-700 transition"
+            >
+              {isEditing ? <X className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
+              {isEditing ? 'Cancel' : 'Edit Details'}
+            </button>
+
             <button
               onClick={onTogglePublish}
               disabled={toggling}
@@ -235,22 +321,22 @@ function InvitationDetail({
               ) : isPublished ? (
                 <>
                   <PauseCircle className="w-3.5 h-3.5 text-amber-400" />
-                  Deactivate / Unpublish
+                  Deactivate
                 </>
               ) : (
                 <>
                   <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-                  Activate & Publish Live
+                  Activate & Publish
                 </>
               )}
             </button>
 
             {isPublished && (
               <a
-                href={`https://${inv.slug}.ouonex.com`}
+                href={liveUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-ink-800 hover:bg-ink-700 text-brand-300 border border-ink-700 hover:text-brand-200 transition-colors"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition-colors"
               >
                 Live <ExternalLink className="w-3 h-3" />
               </a>
@@ -258,6 +344,144 @@ function InvitationDetail({
           </div>
         </div>
       </div>
+
+      {successMsg && (
+        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4" />
+          <span>{successMsg}</span>
+        </div>
+      )}
+
+      {/* Edit Form */}
+      {isEditing && (
+        <form onSubmit={handleSave} className="p-4 rounded-xl bg-ink-950/80 border border-ink-800/80 space-y-3 animate-fade-in">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400">Edit Invitation & Event Data</h4>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">Groom Name (اسم العريس)</label>
+              <input
+                type="text"
+                required
+                value={formData.groom_name}
+                onChange={e => setFormData({ ...formData, groom_name: e.target.value })}
+                className="input w-full text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">Bride Name (اسم العروس)</label>
+              <input
+                type="text"
+                required
+                value={formData.bride_name}
+                onChange={e => setFormData({ ...formData, bride_name: e.target.value })}
+                className="input w-full text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">Wedding Date</label>
+              <input
+                type="date"
+                required
+                value={formData.wedding_date}
+                onChange={e => setFormData({ ...formData, wedding_date: e.target.value })}
+                className="input w-full text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">Time (الوقت)</label>
+              <input
+                type="text"
+                value={formData.time}
+                onChange={e => setFormData({ ...formData, time: e.target.value })}
+                className="input w-full text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">Venue Name (القاعة)</label>
+              <input
+                type="text"
+                value={formData.venue_name}
+                onChange={e => setFormData({ ...formData, venue_name: e.target.value })}
+                className="input w-full text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">Venue Address / Maps</label>
+              <input
+                type="text"
+                value={formData.venue_address}
+                onChange={e => setFormData({ ...formData, venue_address: e.target.value })}
+                className="input w-full text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">Design Template</label>
+              <select
+                value={formData.template_id}
+                onChange={e => setFormData({ ...formData, template_id: e.target.value })}
+                className="input w-full text-xs bg-ink-950"
+              >
+                <option value="envelope_romantic">المغلف الرومانسي (Romantic Envelope)</option>
+                <option value="royal_gold">الملكي الذهبي (Royal Gold)</option>
+                <option value="emerald_royal">الزمرد الملكي (Emerald Royal)</option>
+                <option value="classic_pearl">اللؤلؤي الكلاسيكي (Classic Pearl)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">Status</label>
+              <select
+                value={formData.status}
+                onChange={e => setFormData({ ...formData, status: e.target.value })}
+                className="input w-full text-xs bg-ink-950"
+              >
+                <option value="published">Published (منشورة ونشطة)</option>
+                <option value="draft">Draft (مسودة)</option>
+                <option value="inactive">Inactive (متوقفة)</option>
+                <option value="expired">Expired (منتهية)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-2xs text-ink-400 mb-1">URL Slug</label>
+            <input
+              type="text"
+              required
+              value={formData.slug}
+              onChange={e => setFormData({ ...formData, slug: e.target.value })}
+              className="input w-full text-xs font-mono"
+            />
+          </div>
+
+          <div className="pt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 text-white hover:bg-rose-500 transition disabled:opacity-50"
+            >
+              <Save className="w-3.5 h-3.5" />
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* Basic Info Overview */}
       <div className="grid grid-cols-2 gap-3">

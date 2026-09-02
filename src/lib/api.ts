@@ -131,6 +131,8 @@ export const api = {
       MOCK ? delay(mock.invitations(f)) : http(`/admin/dawaty/invitations${qs(f as Record<string, unknown>)}`),
     invitation: (id: string): Promise<Invitation | undefined> =>
       MOCK ? delay(mock.invitationDetail(id)) : http<{ data: Invitation }>(`/admin/dawaty/invitations/${id}`).then(r => (r && 'data' in r && r.data ? r.data : (r as unknown as Invitation))),
+    update: (id: string, data: Record<string, unknown>): Promise<{ message: string; data: Invitation }> =>
+      httpPost<{ message: string; data: Invitation }>(`/admin/dawaty/invitations/${id}`, data),
     togglePublish: (id: string): Promise<{ message: string; data: Invitation }> =>
       MOCK ? delay(mock.togglePublishInvitation(id)) : httpPost<{ message: string; data: Invitation }>(`/admin/dawaty/invitations/${id}/toggle-publish`),
   },
@@ -140,6 +142,8 @@ export const api = {
       MOCK ? delay(mock.restaurants(f)) : http(`/admin/digital-menu/restaurants${qs(f as Record<string, unknown>)}`),
     restaurant: (id: string): Promise<Restaurant | undefined> =>
       MOCK ? delay(mock.restaurantDetail(id)) : http(`/admin/digital-menu/restaurants/${id}`),
+    update: (id: string, data: Record<string, unknown>): Promise<{ status: string; message: string; data: Restaurant }> =>
+      httpPost<{ status: string; message: string; data: Restaurant }>(`/admin/digital-menu/restaurants/${id}`, data),
     orders: (f?: { status?: string; page?: number; per_page?: number }): Promise<Paginated<Order>> =>
       MOCK ? delay(mock.orders(f)) : http(`/admin/digital-menu/orders${qs(f as Record<string, unknown>)}`),
   },
@@ -161,6 +165,8 @@ export const api = {
       MOCK ? delay(mock.searchUsers(q, page)) : http(`/admin/users${qs({ search: q, page: page ?? 1 })}`),
     detail: (id: string): Promise<UserSearchResult | undefined> =>
       MOCK ? delay(mock.userDetail(id)) : http(`/admin/users/${id}`),
+    update: (id: string, data: Record<string, unknown>): Promise<{ status: string; message: string; data: any }> =>
+      httpPost<{ status: string; message: string; data: any }>(`/admin/users/${id}`, data),
   },
 
   team: {
