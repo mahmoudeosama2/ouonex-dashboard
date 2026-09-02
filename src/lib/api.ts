@@ -172,6 +172,8 @@ export const api = {
       httpDelete(`/admin/digital-menu/restaurants/${id}`),
     bulkDelete: (ids: string[]): Promise<any> =>
       httpPost('/admin/digital-menu/restaurants/bulk-delete', { ids }),
+    impersonate: (id: string): Promise<{ status: string; data: any }> =>
+      httpPost(`/admin/digital-menu/restaurants/${id}/impersonate`),
     orders: (f?: { status?: string; page?: number; per_page?: number }): Promise<Paginated<Order>> =>
       MOCK ? delay(mock.orders(f)) : http(`/admin/digital-menu/orders${qs(f as Record<string, unknown>)}`),
   },
@@ -195,6 +197,8 @@ export const api = {
       MOCK ? delay(mock.userDetail(id)) : http(`/admin/users/${id}`),
     update: (id: string, data: Record<string, unknown>): Promise<{ status: string; message: string; data: any }> =>
       httpPost<{ status: string; message: string; data: any }>(`/admin/users/${id}`, data),
+    impersonate: (id: string): Promise<{ status: string; data: any }> =>
+      httpPost(`/admin/users/${id}/impersonate`),
   },
 
   team: {

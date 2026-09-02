@@ -2,8 +2,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { 
   Heart, Eye, QrCode, Users, FileText, ChevronRight, ExternalLink, 
   Sparkles, CheckCircle2, PauseCircle, Loader2, MapPin, Calendar, Clock, UserCheck,
-  Edit3, Save, X, Trash2, AlertTriangle
+  Edit3, Save, X, Trash2, AlertTriangle, FileSpreadsheet
 } from 'lucide-react';
+import { exportToCsv } from '@/lib/exportCsv';
 import { api } from '@/lib/api';
 import type { Invitation } from '@/lib/types';
 import { DataTable, type Column } from '@/components/DataTable';
@@ -99,6 +100,32 @@ export function Dawaty() {
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleExportInvitations = () => {
+    const headers = [
+      'ID', 'Couple Names', 'Date', 'Time', 'Venue', 'Venue Address',
+      'Status', 'Template', 'Visits', 'Attending', 'Declined', 'Pending', 'Live Link'
+    ];
+    const data = invitations.map(inv => {
+      const extra = inv as any;
+      return [
+        inv.id,
+        inv.couple_names,
+        inv.date,
+        extra.time || '',
+        extra.venue_name || extra.venue || '',
+        extra.venue_address || '',
+        inv.status,
+        extra.template_id || '',
+        inv.visit_count || 0,
+        inv.rsvp_attending || 0,
+        inv.rsvp_declined || 0,
+        inv.rsvp_pending || 0,
+        `https://dawety.ouonex.com/${inv.slug}`,
+      ];
+    });
+    exportToCsv('ouonex_dawaty_invitations_database', headers, data);
   };
 
   const handleRowClick = async (inv: Invitation) => {
@@ -210,7 +237,17 @@ export function Dawaty() {
         </div>
       </div>
 
-      <FilterBar filters={filters} />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+        <FilterBar filters={filters} />
+
+        <button
+          onClick={handleExportInvitations}
+          className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-ink-900 hover:bg-ink-800 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 shadow-soft transition self-end sm:self-auto"
+        >
+          <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+          <span>Export to Excel (CSV)</span>
+        </button>
+      </div>
 
       {/* Floating Bulk Action Bar */}
       {selectedIds.length > 0 && (

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2 } from 'lucide-react';
+import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2, FileSpreadsheet, LogIn, Copy, Check } from 'lucide-react';
+import { exportToCsv } from '@/lib/exportCsv';
 import { api } from '@/lib/api';
 import type { Restaurant, Order, AIUsageSummary } from '@/lib/types';
 import { DataTable, type Column } from '@/components/DataTable';
@@ -128,6 +129,26 @@ function RestaurantsTab() {
     }
   };
 
+  const handleExportRestaurants = () => {
+    const headers = ['ID', 'Store Name', 'Owner', 'Slug', 'Status', 'Plan', 'Categories', 'Products', 'Orders', 'AI Scans', 'AI Cost', 'Created Date', 'Live Menu URL'];
+    const data = rows.map(r => [
+      r.id,
+      r.store_name,
+      r.owner,
+      r.slug,
+      r.status,
+      r.plan,
+      r.categories_count,
+      r.products_count,
+      r.orders_count,
+      r.ai_scans_count,
+      r.ai_cost,
+      date(r.created_at),
+      `https://menu.ouonex.com/${r.slug}`,
+    ]);
+    exportToCsv('ouonex_restaurants_database', headers, data);
+  };
+
   const handleRowClick = async (r: Restaurant) => {
     setSelected(r);
     setDrawerOpen(true);
@@ -184,7 +205,17 @@ function RestaurantsTab() {
         )}
       </div>
 
-      <FilterBar filters={filters} />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+        <FilterBar filters={filters} />
+
+        <button
+          onClick={handleExportRestaurants}
+          className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-ink-900 hover:bg-ink-800 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 shadow-soft transition self-end sm:self-auto"
+        >
+          <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+          <span>Export to Excel (CSV)</span>
+        </button>
+      </div>
 
       {/* Floating Bulk Action Bar */}
       {selectedIds.length > 0 && (
@@ -257,6 +288,9 @@ function RestaurantDetail({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [impersonating, setImpersonating] = useState(false);
+  const [impersonationModal, setImpersonationModal] = useState<any>(null);
+  const [copiedToken, setCopiedToken] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [formData, setFormData] = useState({
     store_name: r.store_name,
@@ -276,6 +310,7 @@ function RestaurantDetail({
     });
     setIsEditing(false);
     setSuccessMsg('');
+    setImpersonationModal(null);
   }, [r]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -306,6 +341,24 @@ function RestaurantDetail({
     }
   };
 
+  const handleImpersonate = async () => {
+    setImpersonating(true);
+    try {
+      const res = await api.digitalMenu.impersonate(r.id);
+      setImpersonationModal(res.data);
+    } catch (err) {
+      alert('Failed to generate restaurant impersonation token.');
+    } finally {
+      setImpersonating(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedToken(true);
+    setTimeout(() => setCopiedToken(false), 2000);
+  };
+
   const liveUrl = `https://menu.ouonex.com/${r.slug}`;
 
   return (
@@ -325,6 +378,16 @@ function RestaurantDetail({
 
         <div className="flex items-center gap-1.5">
           <button
+            onClick={handleImpersonate}
+            disabled={impersonating}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition disabled:opacity-50"
+            title="Login as restaurant owner"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span>{impersonating ? 'Connecting...' : 'Login As'}</span>
+          </button>
+
+          <button
             onClick={() => setIsEditing(!isEditing)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-ink-800 text-ink-200 hover:bg-ink-700 hover:text-white transition"
           >
@@ -341,6 +404,33 @@ function RestaurantDetail({
           </button>
         </div>
       </div>
+
+      {/* Impersonation Bridge Modal / Panel */}
+      {impersonationModal && (
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-3 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-amber-300 flex items-center gap-1.5">
+              <LogIn className="w-4 h-4" /> Restaurant Impersonation (دخول كصاحب المطعم)
+            </span>
+            <button onClick={() => setImpersonationModal(null)} className="text-ink-400 hover:text-white">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <p className="text-2xs text-ink-300">
+            Authenticated as <strong>{impersonationModal.owner?.name}</strong> ({impersonationModal.owner?.email}) for <strong>{impersonationModal.restaurant?.store_name}</strong>.
+          </p>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-ink-950/80 border border-ink-800">
+            <span className="font-mono text-3xs text-ink-400 truncate flex-1">{impersonationModal.impersonation_token}</span>
+            <button
+              onClick={() => copyToClipboard(impersonationModal.impersonation_token)}
+              className="flex items-center gap-1 text-3xs text-brand-400 hover:text-brand-300 shrink-0 font-medium"
+            >
+              {copiedToken ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+              {copiedToken ? 'Copied' : 'Copy Token'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {successMsg && (
         <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
