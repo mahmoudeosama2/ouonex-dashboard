@@ -9,6 +9,7 @@ import { canAccess, type PageKey } from '@/lib/rbac';
 import { api } from '@/lib/api';
 import { Login } from '@/pages/Login';
 import { Overview } from '@/pages/Overview';
+import { Analytics } from '@/pages/Analytics';
 import { Finance } from '@/pages/Finance';
 import { Dawaty } from '@/pages/Dawaty';
 import { DigitalMenu } from '@/pages/DigitalMenu';
@@ -52,6 +53,7 @@ function Dashboard() {
   } else {
     switch (page) {
       case 'overview': content = <Overview onNavigate={handleNavigate} />; break;
+      case 'analytics': content = <Analytics />; break;
       case 'finance': content = <Finance />; break;
       case 'dawaty': content = <Dawaty />; break;
       case 'digital_menu': content = <DigitalMenu />; break;

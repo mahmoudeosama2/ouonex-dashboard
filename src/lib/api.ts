@@ -196,5 +196,18 @@ export const api = {
     updateContent: (content: WebsiteContent): Promise<{ ok: boolean }> =>
       MOCK ? delay({ ok: true }) : httpPost('/admin/website/content', content),
   },
+
+  analytics: {
+    overview: (product = 'all', period = '7d'): Promise<any> =>
+      http(`/admin/analytics/overview?product=${product}&period=${period}`),
+    traffic: (period = '7d'): Promise<any> =>
+      http(`/admin/analytics/traffic?period=${period}`),
+    peakHours: (): Promise<any> =>
+      http('/admin/analytics/peak-hours'),
+    topPerformers: (): Promise<any> =>
+      http('/admin/analytics/top-performers'),
+    funnel: (): Promise<any> =>
+      http('/admin/analytics/funnel'),
+  },
 };
 
