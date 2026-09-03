@@ -1,3 +1,4 @@
+import { useState, type ReactNode } from 'react';
 import {
   LayoutDashboard, Heart, UtensilsCrossed, Wallet, Sparkles, Users, Settings,
   Menu, X, Bell, Search, ChevronDown, ShieldCheck, Activity, LogOut, Globe2, BarChart3,

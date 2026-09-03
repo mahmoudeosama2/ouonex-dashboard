@@ -123,9 +123,7 @@ export function useLocale(): LocaleCtx {
   if (!c) throw new Error('useLocale must be inside LocaleProvider');
   return c;
 }
-"@
 
-$csv = @'
 export function exportCSV(filename: string, headers: string[], rows: (string | number)[][]): void {
   const escape = (v: string | number): string => {
     const s = String(v);
