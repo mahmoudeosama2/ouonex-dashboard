@@ -247,5 +247,20 @@ export const api = {
     funnel: (): Promise<any> =>
       http('/admin/analytics/funnel'),
   },
+
+  support: {
+    overview: (): Promise<{ status: string; data: { pending_deletions: number; open_tickets: number; total_tickets: number; unread_badge: number } }> =>
+      http('/admin/support/overview'),
+    tickets: (f?: { status?: string; app?: string; page?: number; per_page?: number }): Promise<any> =>
+      http(`/admin/support/tickets${qs(f as Record<string, unknown>)}`),
+    updateTicket: (id: string | number, status: string): Promise<any> =>
+      httpPut(`/admin/support/tickets/${id}`, { status }),
+    deletionRequests: (f?: { status?: string; app?: string; page?: number; per_page?: number }): Promise<any> =>
+      http(`/admin/support/deletion-requests${qs(f as Record<string, unknown>)}`),
+    executeDeletion: (id: string | number): Promise<any> =>
+      httpPost(`/admin/support/deletion-requests/${id}/execute`),
+    dismissDeletion: (id: string | number): Promise<any> =>
+      httpPost(`/admin/support/deletion-requests/${id}/dismiss`),
+  },
 };
 

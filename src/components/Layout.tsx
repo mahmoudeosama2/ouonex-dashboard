@@ -1,7 +1,7 @@
-import { useState, type ReactNode } from 'react';
 import {
   LayoutDashboard, Heart, UtensilsCrossed, Wallet, Sparkles, Users, Settings,
   Menu, X, Bell, Search, ChevronDown, ShieldCheck, Activity, LogOut, Globe2, BarChart3,
+  LifeBuoy,
 } from 'lucide-react';
 import { useRole } from '@/context/RoleContext';
 import { useAuth } from '@/context/AuthContext';
@@ -18,6 +18,7 @@ const NAV: { key: PageKey; label: string; icon: ReactNode }[] = [
   { key: 'finance', label: 'Finance', icon: <Wallet className="w-[18px] h-[18px]" /> },
   { key: 'ai_usage', label: 'AI Usage', icon: <Sparkles className="w-[18px] h-[18px]" /> },
   { key: 'users', label: 'Users', icon: <Users className="w-[18px] h-[18px]" /> },
+  { key: 'support', label: 'Support & Requests', icon: <LifeBuoy className="w-[18px] h-[18px]" /> },
   { key: 'website', label: 'Website CMS', icon: <Globe2 className="w-[18px] h-[18px]" /> },
   { key: 'settings', label: 'Settings', icon: <Settings className="w-[18px] h-[18px]" /> },
 ];
@@ -32,9 +33,10 @@ interface Props {
   onNavigate: (p: PageKey) => void;
   children: ReactNode;
   pendingCount?: number;
+  supportCount?: number;
 }
 
-export function Layout({ current, onNavigate, children, pendingCount = 0 }: Props) {
+export function Layout({ current, onNavigate, children, pendingCount = 0, supportCount = 0 }: Props) {
   const { role, setRole, actorName } = useRole();
   const { logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -61,6 +63,7 @@ export function Layout({ current, onNavigate, children, pendingCount = 0 }: Prop
         {visible.map(item => {
           const active = current === item.key;
           const isFinance = item.key === 'finance';
+          const isSupport = item.key === 'support';
           return (
             <button
               key={item.key}
@@ -76,6 +79,11 @@ export function Layout({ current, onNavigate, children, pendingCount = 0 }: Prop
               {isFinance && pendingCount > 0 && (
                 <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-warning-500 text-ink-970 text-2xs font-bold animate-pulse">
                   {pendingCount}
+                </span>
+              )}
+              {isSupport && supportCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-rose-500 text-white text-2xs font-bold animate-pulse">
+                  {supportCount}
                 </span>
               )}
             </button>

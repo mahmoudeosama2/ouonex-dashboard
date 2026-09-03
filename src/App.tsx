@@ -15,6 +15,7 @@ import { Dawaty } from '@/pages/Dawaty';
 import { DigitalMenu } from '@/pages/DigitalMenu';
 import { AIUsage } from '@/pages/AIUsage';
 import { UsersPage } from '@/pages/Users';
+import { SupportPage } from '@/pages/Support';
 import { Settings } from '@/pages/Settings';
 import { WebsiteCMS } from '@/pages/WebsiteCMS';
 import { ShieldAlert } from 'lucide-react';
@@ -24,18 +25,23 @@ function Dashboard() {
   const { role, can } = useRole();
   const [page, setPage] = useState<PageKey>('overview');
   const [pendingCount, setPendingCount] = useState(0);
+  const [supportCount, setSupportCount] = useState(0);
   const [retryKey, setRetryKey] = useState(0);
 
-  const refreshPending = useCallback(async () => {
+  const refreshCounters = useCallback(async () => {
     try {
-      const pending = await api.payments.pending();
-      setPendingCount(pending.length);
+      const [pending, ov] = await Promise.allSettled([
+        api.payments.pending(),
+        api.support.overview(),
+      ]);
+      if (pending.status === 'fulfilled') setPendingCount(pending.value.length);
+      if (ov.status === 'fulfilled') setSupportCount(ov.value.data.unread_badge || 0);
     } catch {
-      setPendingCount(0);
+      // ignore
     }
   }, []);
 
-  useEffect(() => { refreshPending(); }, [refreshPending]);
+  useEffect(() => { refreshCounters(); }, [refreshCounters]);
 
   const handleNavigate = (p: PageKey) => {
     if (canAccess(role, p)) setPage(p);
@@ -59,6 +65,7 @@ function Dashboard() {
       case 'digital_menu': content = <DigitalMenu />; break;
       case 'ai_usage': content = <AIUsage />; break;
       case 'users': content = <UsersPage />; break;
+      case 'support': content = <SupportPage />; break;
       case 'settings': content = <Settings />; break;
       case 'website': content = <WebsiteCMS />; break;
       default: content = <Overview onNavigate={handleNavigate} />;
@@ -66,7 +73,7 @@ function Dashboard() {
   }
 
   return (
-    <Layout current={page} onNavigate={handleNavigate} pendingCount={pendingCount}>
+    <Layout current={page} onNavigate={handleNavigate} pendingCount={pendingCount} supportCount={supportCount}>
       <ErrorBoundary key={`${page}-${retryKey}`} onRetry={() => setRetryKey(k => k + 1)}>
         <div key={page} className="animate-fade-in">
           {content}
