@@ -283,7 +283,7 @@ export function Analytics() {
           </div>
 
           <div className="mt-4 pt-4 border-t border-ink-800/80 flex items-center justify-between text-2xs text-ink-400">
-            <span>Aggregated from Firebase Analytics & GA4 Real-time Streams</span>
+            <span>مستخرجة مباشرة من قواعد بيانات المنصة الفعلية (100% Real Database Analytics)</span>
             <span className="text-ink-300">Bounce rate: {metrics.bounce_rate}</span>
           </div>
         </div>
