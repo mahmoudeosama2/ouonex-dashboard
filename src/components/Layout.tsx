@@ -9,7 +9,6 @@ import { useAuth } from '@/context/AuthContext';
 import { canAccess, type PageKey } from '@/lib/rbac';
 import { ROLES } from '@/lib/rbac';
 import { timeAgo } from '@/lib/format';
-import { teamMembers } from '@/lib/mock-data';
 
 const NAV: { key: PageKey; label: string; icon: ReactNode }[] = [
   { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-[18px] h-[18px]" /> },
@@ -44,7 +43,6 @@ export function Layout({ current, onNavigate, children, pendingCount = 0, suppor
   const [roleMenu, setRoleMenu] = useState(false);
 
   const visible = NAV.filter(n => canAccess(role, n.key));
-  const me = teamMembers[0];
 
   const sidebar = (
     <div className="flex flex-col h-full">
@@ -156,7 +154,7 @@ export function Layout({ current, onNavigate, children, pendingCount = 0, suppor
                 onClick={() => setRoleMenu(v => !v)}
                 className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-lg hover:bg-ink-800/60 transition-colors"
               >
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: me.avatar_color }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white bg-brand-600">
                   {actorName.split(' ').map(w => w[0]).join('').slice(0, 2)}
                 </div>
                 <div className="text-left hidden sm:block">

@@ -124,7 +124,7 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
             <KPICard label="Pending Amount" value={kpis.pendingPaymentsAmount} format="egp" icon={<Wallet className="w-4 h-4" />} accent="warning" />
             <KPICard label="Active Invitations" value={kpis.activeInvitations} format="num" delta={kpis.deltas.activeInvitations} icon={<Heart className="w-4 h-4" />} />
             <KPICard label="Active Restaurants" value={kpis.activeRestaurants} format="num" delta={kpis.deltas.activeRestaurants} icon={<UtensilsCrossed className="w-4 h-4" />} />
-            <KPICard label="Revenue / Active" value={Math.round(kpis.totalRevenue / kpis.activeUsers)} format="egp" icon={<TrendingUp className="w-4 h-4" />} />
+            <KPICard label="Revenue / Active" value={kpis.activeUsers > 0 ? Math.round(kpis.totalRevenue / kpis.activeUsers) : 0} format="egp" icon={<TrendingUp className="w-4 h-4" />} />
           </>
         )}
       </div>

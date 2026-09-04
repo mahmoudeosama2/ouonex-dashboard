@@ -4,8 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import type { Role } from '@/lib/types';
 
-const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
-const MOCK = !BASE.startsWith('http');
+const BASE = import.meta.env.VITE_API_BASE_URL || 'https://api.ouonex.com/api/v1';
 
 export function Login() {
   const auth = useAuth();
@@ -22,28 +21,22 @@ export function Login() {
     setLoading(true);
     setError('');
     try {
-      if (MOCK) {
-        await new Promise(r => setTimeout(r, 600));
-        if (email.trim().length > 0) {
-          auth.login('mock_admin_token_' + Date.now(), 'owner');
-          toast.success('Welcome back', 'Signed in to Ouonex Dashboard');
-        } else {
-          throw new Error('Invalid credentials');
-        }
-      } else {
-        const res = await fetch(`${BASE}/auth/admin/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.message ?? 'Invalid email or password');
-        }
-        const data = await res.json();
-        auth.login(data.token ?? data.access_token, (data.role ?? 'owner') as Role);
-        toast.success('Welcome back', 'Signed in to Ouonex Dashboard');
+      const res = await fetch(`${BASE}/admin/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(body.error?.message ?? body.message ?? 'Invalid email or password');
       }
+      const token = body.data?.token ?? body.token ?? body.access_token;
+      const role = (body.data?.admin?.role ?? body.role ?? 'owner') as Role;
+      auth.login(token, role);
+      toast.success('Welcome back', 'Signed in to Ouonex Dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {
@@ -122,12 +115,6 @@ export function Login() {
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign in'}
           </button>
-
-          {MOCK && (
-            <p className="text-2xs text-ink-500 text-center pt-1">
-              Demo mode — any email/password works
-            </p>
-          )}
         </form>
 
         <p className="text-2xs text-ink-500 text-center mt-4">
