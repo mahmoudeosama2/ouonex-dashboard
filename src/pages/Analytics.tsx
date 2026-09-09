@@ -232,8 +232,8 @@ export function Analytics() {
       {/* Main Content Grid: Traffic Trends & Peak Hours */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Traffic Trends Chart */}
-        <div className="lg:col-span-2 p-6 rounded-2xl bg-ink-900/60 border border-ink-800/80 backdrop-blur-sm flex flex-col justify-between">
-          <div>
+        <div className="lg:col-span-2 min-w-0 overflow-hidden p-6 rounded-2xl bg-ink-900/60 border border-ink-800/80 backdrop-blur-sm flex flex-col justify-between">
+          <div className="min-w-0 w-full">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-bold text-ink-50">Daily Engagement Trend</h3>
@@ -250,15 +250,20 @@ export function Analytics() {
             </div>
 
             {/* Custom Interactive SVG Bar/Area Chart */}
-            <div className="h-48 mt-6 flex items-end gap-2 sm:gap-3 px-2">
+            <div className="h-48 mt-6 flex items-end gap-1 sm:gap-1.5 px-1 overflow-x-auto no-scrollbar w-full">
               {traffic.map((item, idx) => {
-                const dawatyHeight = (item.dawaty_views / maxTraffic) * 100;
-                const menuHeight = (item.menu_views / maxTraffic) * 100;
+                const dawatyHeight = maxTraffic > 0 ? (item.dawaty_views / maxTraffic) * 100 : 0;
+                const menuHeight = maxTraffic > 0 ? (item.menu_views / maxTraffic) * 100 : 0;
+                const showLabel = period === '30d'
+                  ? (idx % 5 === 0 || idx === traffic.length - 1)
+                  : (period === '24h' ? idx % 3 === 0 : true);
+
                 return (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-2 group relative">
+                  <div key={idx} className="flex-1 min-w-[10px] sm:min-w-[14px] flex flex-col items-center gap-1.5 group relative">
                     {/* Tooltip */}
-                    <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition pointer-events-none bg-ink-950 border border-ink-700 text-white text-2xs rounded-lg px-2 py-1 shadow-lg whitespace-nowrap z-20">
-                      <div>Total: {item.total_views}</div>
+                    <div className="absolute -top-14 opacity-0 group-hover:opacity-100 transition pointer-events-none bg-ink-950 border border-ink-700 text-white text-2xs rounded-lg px-2.5 py-1.5 shadow-xl whitespace-nowrap z-30">
+                      <div className="font-semibold text-ink-200">{item.date}</div>
+                      <div>Total: <span className="font-bold text-white">{item.total_views}</span></div>
                       <div className="text-rose-400">Dawaty: {item.dawaty_views}</div>
                       <div className="text-amber-400">Menu: {item.menu_views}</div>
                     </div>
@@ -273,8 +278,8 @@ export function Analytics() {
                         className="w-full bg-rose-500/80 hover:bg-rose-400 transition-all"
                       />
                     </div>
-                    <span className="text-3xs text-ink-400 group-hover:text-white transition">
-                      {item.date}
+                    <span className="text-3xs text-ink-400 group-hover:text-white transition whitespace-nowrap h-4 text-center">
+                      {showLabel ? item.date : ''}
                     </span>
                   </div>
                 );
