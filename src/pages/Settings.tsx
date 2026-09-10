@@ -266,7 +266,13 @@ function GeneralTab() {
     qr_me_vip_price: 15,
     qr_me_free_mode: true,
     vodafone_cash_number: '01019603225',
-    instapay_address: 'instapay@address'
+    instapay_address: 'instapay@address',
+    qr_me_app_store_url: '',
+    qr_me_play_store_url: '',
+    menu_app_store_url: '',
+    menu_play_store_url: '',
+    dawaty_app_store_url: '',
+    dawaty_play_store_url: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -556,6 +562,109 @@ function GeneralTab() {
               onChange={e => setForm(f => ({ ...f, instapay_address: e.target.value }))}
               className="input w-full"
             />
+          </div>
+        </div>
+      </div>
+
+      {/* ── SMART APP STORE & VIRAL PROMOTION LINKS ── */}
+      <div className="card p-5 space-y-5">
+        <div className="flex items-center gap-2 mb-1">
+          <Globe className="w-4 h-4 text-ink-400" />
+          <div>
+            <h3 className="text-sm font-semibold text-ink-100">Smart App Store & Viral Promotion Links</h3>
+            <p className="text-xs text-ink-400 mt-0.5">
+              These URLs power the "Powered by" banners on public web pages. Visitors on iOS are automatically routed to App Store, and visitors on Android to Google Play.
+            </p>
+          </div>
+        </div>
+
+        {/* QR Me Links */}
+        <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
+            <QrCode className="w-3.5 h-3.5 text-brand-400" />
+            <span>QR Me App Links</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">Apple App Store URL (iOS)</label>
+              <input
+                type="url"
+                placeholder="https://apps.apple.com/app/qr-me/..."
+                value={form.qr_me_app_store_url}
+                onChange={e => setForm(f => ({ ...f, qr_me_app_store_url: e.target.value }))}
+                className="input w-full text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">Google Play Store URL (Android)</label>
+              <input
+                type="url"
+                placeholder="https://play.google.com/store/apps/details?id=..."
+                value={form.qr_me_play_store_url}
+                onChange={e => setForm(f => ({ ...f, qr_me_play_store_url: e.target.value }))}
+                className="input w-full text-xs"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Digital Menu Links */}
+        <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
+            <Crown className="w-3.5 h-3.5 text-amber-400" />
+            <span>Digital Menu App Links</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">Apple App Store URL (iOS)</label>
+              <input
+                type="url"
+                placeholder="https://apps.apple.com/app/ouonex-menu/..."
+                value={form.menu_app_store_url}
+                onChange={e => setForm(f => ({ ...f, menu_app_store_url: e.target.value }))}
+                className="input w-full text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">Google Play Store URL (Android)</label>
+              <input
+                type="url"
+                placeholder="https://play.google.com/store/apps/details?id=..."
+                value={form.menu_play_store_url}
+                onChange={e => setForm(f => ({ ...f, menu_play_store_url: e.target.value }))}
+                className="input w-full text-xs"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Dawaty Links */}
+        <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
+            <Building className="w-3.5 h-3.5 text-rose-400" />
+            <span>Dawaty Invitations App Links</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">Apple App Store URL (iOS)</label>
+              <input
+                type="url"
+                placeholder="https://apps.apple.com/app/dawaty/..."
+                value={form.dawaty_app_store_url}
+                onChange={e => setForm(f => ({ ...f, dawaty_app_store_url: e.target.value }))}
+                className="input w-full text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">Google Play Store URL (Android)</label>
+              <input
+                type="url"
+                placeholder="https://play.google.com/store/apps/details?id=..."
+                value={form.dawaty_play_store_url}
+                onChange={e => setForm(f => ({ ...f, dawaty_play_store_url: e.target.value }))}
+                className="input w-full text-xs"
+              />
+            </div>
           </div>
         </div>
       </div>
