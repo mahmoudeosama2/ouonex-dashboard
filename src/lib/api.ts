@@ -262,5 +262,19 @@ export const api = {
     dismissDeletion: (id: string | number): Promise<any> =>
       httpPost(`/admin/support/deletion-requests/${id}/dismiss`),
   },
+
+  qrMe: {
+    stats: (): Promise<{ status: string; data: { total_qrs: number; total_scans: number; scans_today: number; scans_last_7_days: number; active_users: number; paid_unlocks: number; custom_colors_count: number; custom_profiles_count: number; by_type: Array<{ label: string; count: number; pct: number }> } }> =>
+      http('/admin/qr-me/stats'),
+    list: (params?: { page?: number; per_page?: number; search?: string; type?: string }): Promise<any> =>
+      http(`/admin/qr-me/list${qs(params as Record<string, unknown>)}`),
+  },
+
+  cvMaker: {
+    stats: (): Promise<{ status: string; data: { total_resumes: number; total_exports: number; paid_unlocks: number; active_users: number; templates: Array<{ name: string; count: number; percentage: number }>; categories: Array<{ name: string; count: number; percentage: number }> } }> =>
+      http('/admin/cv-maker/stats'),
+    list: (params?: { page?: number; per_page?: number; search?: string }): Promise<any> =>
+      http(`/admin/cv-maker/list${qs(params as Record<string, unknown>)}`),
+  },
 };
 

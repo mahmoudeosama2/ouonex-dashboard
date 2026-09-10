@@ -1,51 +1,91 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   QrCode, Sparkles, Download, Eye, Zap, ShieldCheck, ToggleLeft, ToggleRight,
-  Save, RefreshCw, BarChart2, Share2, Layers, CheckCircle2, AlertCircle, FileText
+  Save, RefreshCw, BarChart2, Layers, CheckCircle2, AlertCircle, Palette, UserCheck
 } from 'lucide-react';
 import { PageHeader } from '@/components/Layout';
 import { KPICard } from '@/components/KPICard';
 import { useToast } from '@/context/ToastContext';
 import { api } from '@/lib/api';
+import { timeAgo } from '@/lib/format';
 
-interface QrItem {
-  id: string;
-  type: string;
-  name: string;
-  content: string;
-  format: string;
-  scans: number;
-  isVip: boolean;
-  createdAt: string;
+interface QrStats {
+  total_qrs: number;
+  total_scans: number;
+  scans_today: number;
+  scans_last_7_days: number;
+  active_users: number;
+  paid_unlocks: number;
+  custom_colors_count: number;
+  custom_profiles_count: number;
+  by_type: Array<{ label: string; count: number; pct: number }>;
 }
-
-const MOCK_QRS: QrItem[] = [
-  { id: 'qr_1', type: 'WiFi Network', name: 'Office HighSpeed 5G', content: 'WIFI:S:Office5G;T:WPA;P:***;;', format: 'SVG (Vector)', scans: 342, isVip: true, createdAt: '10 mins ago' },
-  { id: 'qr_2', type: 'Website URL', name: 'Ouonex Landing Page', content: 'https://ouonex.com', format: 'PNG High-Res', scans: 1250, isVip: false, createdAt: '25 mins ago' },
-  { id: 'qr_3', type: 'vCard Contact', name: 'Dr. Tarek Business Card', content: 'BEGIN:VCARD...', format: 'PDF Vector', scans: 89, isVip: true, createdAt: '1 hour ago' },
-  { id: 'qr_4', type: 'Social Media Hub', name: 'Instagram & TikTok Link', content: 'https://linktr.ee/...', format: 'PNG High-Res', scans: 512, isVip: true, createdAt: '3 hours ago' },
-  { id: 'qr_5', type: 'WhatsApp Direct', name: 'Customer Support Direct', content: 'https://wa.me/201019603225', format: 'SVG', scans: 670, isVip: false, createdAt: '5 hours ago' },
-];
 
 export function QrMe() {
   const toast = useToast();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
+  // Real data state
+  const [stats, setStats] = useState<QrStats>({
+    total_qrs: 0,
+    total_scans: 0,
+    scans_today: 0,
+    scans_last_7_days: 0,
+    active_users: 0,
+    paid_unlocks: 0,
+    custom_colors_count: 0,
+    custom_profiles_count: 0,
+    by_type: [],
+  });
+  const [qrs, setQrs] = useState<any[]>([]);
+  const [loadingQrs, setLoadingQrs] = useState(false);
+
   // Paywall states
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
   const [vipPrice, setVipPrice] = useState(15);
   const [activeTab, setActiveTab] = useState<'stats' | 'paywall' | 'recent'>('stats');
 
-  useEffect(() => {
-    // Load current settings from backend / Firestore
-    api.settings.get().then(s => {
-      if (s) {
-        setIsPaymentEnabled(s.qr_me_payment_enabled ?? !(s.qr_me_free_mode ?? true));
-        if (s.qr_me_vip_price) setVipPrice(s.qr_me_vip_price);
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await api.qrMe.stats();
+      if (res?.data) {
+        setStats(res.data);
       }
-    }).catch(() => {});
+    } catch (err) {
+      console.error('Failed to load QR Me stats:', err);
+    }
   }, []);
+
+  const fetchQrs = useCallback(async () => {
+    setLoadingQrs(true);
+    try {
+      const res = await api.qrMe.list();
+      if (res?.data) {
+        setQrs(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to load QR Me list:', err);
+    } finally {
+      setLoadingQrs(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      api.settings.get().then(s => {
+        if (s) {
+          setIsPaymentEnabled(s.qr_me_payment_enabled ?? !(s.qr_me_free_mode ?? true));
+          if (s.qr_me_vip_price) setVipPrice(s.qr_me_vip_price);
+        }
+      }).catch(() => {}),
+      fetchStats(),
+      fetchQrs(),
+    ]).finally(() => {
+      setLoading(false);
+    });
+  }, [fetchStats, fetchQrs]);
 
   const handleTogglePaywall = async (newVal: boolean) => {
     setIsPaymentEnabled(newVal);
@@ -136,36 +176,33 @@ export function QrMe() {
         </div>
       </div>
 
-      {/* ── KPI Grid ── */}
+      {/* ── KPI Grid (100% Real Database Metrics) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
           label="Total QRs Created"
-          value={18420}
+          value={stats.total_qrs}
           format="num"
-          delta={{ value: 18.4, type: 'percent', direction: 'up' }}
           icon={<QrCode className="w-4 h-4" />}
         />
         <KPICard
           label="Total Scans Tracked"
-          value={94810}
+          value={stats.total_scans}
           format="num"
-          delta={{ value: 24.1, type: 'percent', direction: 'up' }}
           icon={<Eye className="w-4 h-4" />}
+          accent="success"
         />
         <KPICard
-          label="VIP High-Res Exports"
-          value={1490}
+          label="Scans Today"
+          value={stats.scans_today}
           format="num"
-          icon={<Download className="w-4 h-4" />}
+          icon={<Zap className="w-4 h-4" />}
           accent="warning"
         />
         <KPICard
           label="Active App Users"
-          value={3860}
+          value={stats.active_users}
           format="num"
-          delta={{ value: 12.5, type: 'percent', direction: 'up' }}
           icon={<Layers className="w-4 h-4" />}
-          accent="success"
         />
       </div>
 
@@ -199,25 +236,25 @@ export function QrMe() {
               <Layers className="w-4 h-4 text-brand-400" />
               <span>Popular QR Code Formats</span>
             </h3>
-            <div className="space-y-3">
-              {[
-                { label: 'Website & Landing Pages (URL)', pct: 48, count: '8,840' },
-                { label: 'WiFi Network Autoconnect', pct: 24, count: '4,420' },
-                { label: 'vCard Digital Business Cards', pct: 14, count: '2,580' },
-                { label: 'Social Media & Bio Links', pct: 9, count: '1,660' },
-                { label: 'WhatsApp & SMS Direct Text', pct: 5, count: '920' },
-              ].map(item => (
-                <div key={item.label}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-ink-200">{item.label}</span>
-                    <span className="font-semibold text-ink-400">{item.count} ({item.pct}%)</span>
+            {stats.by_type.length === 0 ? (
+              <div className="py-8 text-center text-xs text-ink-500">
+                No QR codes created yet in database.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {stats.by_type.map(item => (
+                  <div key={item.label}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-ink-200">{item.label}</span>
+                      <span className="font-semibold text-ink-400">{item.count} ({item.pct}%)</span>
+                    </div>
+                    <div className="w-full h-2 bg-ink-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-brand-500 rounded-full" style={{ width: `${item.pct}%` }} />
+                    </div>
                   </div>
-                  <div className="w-full h-2 bg-ink-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-brand-500 rounded-full" style={{ width: `${item.pct}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="card p-5 space-y-4">
@@ -227,24 +264,28 @@ export function QrMe() {
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">Custom Logo Center</p>
-                <p className="text-lg font-bold text-ink-100 mt-1">4,210</p>
-                <p className="text-2xs text-brand-400 mt-0.5">Used in 23% of QRs</p>
+                <p className="text-xs text-ink-400">Custom Colors / Styles</p>
+                <p className="text-lg font-bold text-ink-100 mt-1">{stats.custom_colors_count}</p>
+                <p className="text-2xs text-brand-400 mt-0.5">
+                  {stats.total_qrs > 0 ? `${Math.round((stats.custom_colors_count / stats.total_qrs) * 100)}% of total QRs` : 'Live telemetry'}
+                </p>
               </div>
               <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">Gradient Colors</p>
-                <p className="text-lg font-bold text-ink-100 mt-1">3,680</p>
-                <p className="text-2xs text-brand-400 mt-0.5">Used in 20% of QRs</p>
+                <p className="text-xs text-ink-400">Profile / Business Cards</p>
+                <p className="text-lg font-bold text-ink-100 mt-1">{stats.custom_profiles_count}</p>
+                <p className="text-2xs text-brand-400 mt-0.5">
+                  {stats.total_qrs > 0 ? `${Math.round((stats.custom_profiles_count / stats.total_qrs) * 100)}% of total QRs` : 'Live telemetry'}
+                </p>
               </div>
               <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">Circular / Dot Patterns</p>
-                <p className="text-lg font-bold text-ink-100 mt-1">2,910</p>
-                <p className="text-2xs text-brand-400 mt-0.5">Used in 16% of QRs</p>
+                <p className="text-xs text-ink-400">VIP Paid Unlocks</p>
+                <p className="text-lg font-bold text-ink-100 mt-1">{stats.paid_unlocks}</p>
+                <p className="text-2xs text-amber-400 mt-0.5">Approved Orders</p>
               </div>
               <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">Vector SVG Downloads</p>
-                <p className="text-lg font-bold text-ink-100 mt-1">1,490</p>
-                <p className="text-2xs text-brand-400 mt-0.5">High Quality Print</p>
+                <p className="text-xs text-ink-400">Total Scans Tracked</p>
+                <p className="text-lg font-bold text-ink-100 mt-1">{stats.total_scans}</p>
+                <p className="text-2xs text-success-400 mt-0.5">{stats.scans_today} today</p>
               </div>
             </div>
           </div>
@@ -312,48 +353,52 @@ export function QrMe() {
         </div>
       )}
 
-      {/* ── Tab 3: Recent Generations ── */}
+      {/* ── Tab 3: Recent Generations (Real database list) ── */}
       {activeTab === 'recent' && (
         <div className="card overflow-hidden">
           <div className="p-4 border-b border-ink-800 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-ink-100">Recent Generated Codes</h3>
-            <span className="text-xs text-ink-400">Live feed from app users</span>
+            <span className="text-xs text-ink-400">Live database telemetry</span>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-ink-900/60 text-2xs uppercase tracking-wider text-ink-400 border-b border-ink-800">
-                <tr>
-                  <th className="py-3 px-4">Type</th>
-                  <th className="py-3 px-4">Title / Name</th>
-                  <th className="py-3 px-4">Format</th>
-                  <th className="py-3 px-4">Scans</th>
-                  <th className="py-3 px-4">Tier</th>
-                  <th className="py-3 px-4">Created</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ink-800/60 text-xs">
-                {MOCK_QRS.map(q => (
-                  <tr key={q.id} className="hover:bg-ink-900/40 transition-colors">
-                    <td className="py-3 px-4 font-medium text-brand-300 flex items-center gap-2">
-                      <QrCode className="w-3.5 h-3.5 text-ink-400" />
-                      <span>{q.type}</span>
-                    </td>
-                    <td className="py-3 px-4 text-ink-200">{q.name}</td>
-                    <td className="py-3 px-4 text-ink-400">{q.format}</td>
-                    <td className="py-3 px-4 text-ink-300 font-mono">{q.scans}</td>
-                    <td className="py-3 px-4">
-                      <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full ${
-                        q.isVip ? 'bg-amber-500/15 text-amber-300 border border-amber-500/20' : 'bg-ink-800 text-ink-400'
-                      }`}>
-                        {q.isVip ? 'VIP Export' : 'Standard'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-ink-500">{q.createdAt}</td>
+          {loadingQrs ? (
+            <div className="p-8 text-center text-xs text-ink-400 flex items-center justify-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-brand-400" />
+              <span>Loading QR codes...</span>
+            </div>
+          ) : qrs.length === 0 ? (
+            <div className="p-8 text-center">
+              <p className="text-sm font-semibold text-ink-200 mb-1">No QR Codes Generated Yet</p>
+              <p className="text-xs text-ink-500">When users create QR codes in the app, they will appear here in real time.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-ink-900/60 text-2xs uppercase tracking-wider text-ink-400 border-b border-ink-800">
+                  <tr>
+                    <th className="py-3 px-4">Type</th>
+                    <th className="py-3 px-4">Title / Name</th>
+                    <th className="py-3 px-4">Identifier / Slug</th>
+                    <th className="py-3 px-4">Scans</th>
+                    <th className="py-3 px-4">Created</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-ink-800/60 text-xs">
+                  {qrs.map(q => (
+                    <tr key={q.id} className="hover:bg-ink-900/40 transition-colors">
+                      <td className="py-3 px-4 font-medium text-brand-300 flex items-center gap-2">
+                        <QrCode className="w-3.5 h-3.5 text-ink-400" />
+                        <span>{q.type || 'Text'}</span>
+                      </td>
+                      <td className="py-3 px-4 text-ink-200">{q.title || q.profile_name || 'QR Code'}</td>
+                      <td className="py-3 px-4 text-ink-400 font-mono text-2xs">{q.slug || q.id}</td>
+                      <td className="py-3 px-4 text-ink-300 font-mono">{q.scans_count || q.view_count || 0}</td>
+                      <td className="py-3 px-4 text-ink-500">{q.created_at ? timeAgo(q.created_at) : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>

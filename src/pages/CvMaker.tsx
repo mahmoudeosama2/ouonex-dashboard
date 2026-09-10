@@ -1,51 +1,87 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
-  FileText, Sparkles, Download, Eye, Zap, ShieldCheck, ToggleLeft, ToggleRight,
-  Save, RefreshCw, BarChart2, Share2, Layers, CheckCircle2, AlertCircle, Award,
-  Briefcase, GraduationCap, Palette, Users
+  FileText, Download, Zap, ToggleLeft, ToggleRight,
+  Save, RefreshCw, BarChart2, Layers, CheckCircle2, AlertCircle,
+  Briefcase, Palette, Users
 } from 'lucide-react';
 import { PageHeader } from '@/components/Layout';
 import { KPICard } from '@/components/KPICard';
+import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/context/ToastContext';
 import { api } from '@/lib/api';
+import { timeAgo } from '@/lib/format';
 
-interface CvItem {
-  id: string;
-  candidateName: string;
-  jobTitle: string;
-  template: string;
-  downloads: number;
-  isVip: boolean;
-  createdAt: string;
+interface CvStats {
+  total_resumes: number;
+  total_exports: number;
+  paid_unlocks: number;
+  active_users: number;
+  templates: Array<{ name: string; count: number; percentage: number }>;
+  categories: Array<{ name: string; count: number; percentage: number }>;
 }
-
-const MOCK_CVS: CvItem[] = [
-  { id: 'cv_1', candidateName: 'Mahmoud Osama', jobTitle: 'Senior Full-Stack Engineer', template: 'Modern Executive (Tech)', downloads: 14, isVip: true, createdAt: '15 mins ago' },
-  { id: 'cv_2', candidateName: 'Sara Ahmed', jobTitle: 'UI/UX Product Designer', template: 'Creative Minimalist', downloads: 8, isVip: true, createdAt: '45 mins ago' },
-  { id: 'cv_3', candidateName: 'Omar Khaled', jobTitle: 'Digital Marketing Specialist', template: 'Professional Classic', downloads: 22, isVip: false, createdAt: '2 hours ago' },
-  { id: 'cv_4', candidateName: 'Nouran Mostafa', jobTitle: 'Financial Analyst', template: 'Executive Corporate', downloads: 5, isVip: true, createdAt: '4 hours ago' },
-  { id: 'cv_5', candidateName: 'Youssef Ibrahim', jobTitle: 'Civil Site Engineer', template: 'Simple Grid Clean', downloads: 31, isVip: false, createdAt: '6 hours ago' },
-];
 
 export function CvMaker() {
   const toast = useToast();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
+  // Real data state
+  const [stats, setStats] = useState<CvStats>({
+    total_resumes: 0,
+    total_exports: 0,
+    paid_unlocks: 0,
+    active_users: 0,
+    templates: [],
+    categories: [],
+  });
+  const [resumes, setResumes] = useState<any[]>([]);
+  const [loadingResumes, setLoadingResumes] = useState(false);
+
   // Paywall states
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
   const [pdfPrice, setPdfPrice] = useState(25);
   const [activeTab, setActiveTab] = useState<'stats' | 'templates' | 'paywall' | 'recent'>('stats');
 
-  useEffect(() => {
-    // Load current settings from backend / Firestore
-    api.settings.get().then(s => {
-      if (s) {
-        setIsPaymentEnabled(s.cv_maker_payment_enabled ?? !(s.cv_maker_free_mode ?? true));
-        if (s.cv_maker_pdf_price) setPdfPrice(s.cv_maker_pdf_price);
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await api.cvMaker.stats();
+      if (res?.data) {
+        setStats(res.data);
       }
-    }).catch(() => {});
+    } catch (err) {
+      console.error('Failed to load CV Maker stats:', err);
+    }
   }, []);
+
+  const fetchResumes = useCallback(async () => {
+    setLoadingResumes(true);
+    try {
+      const res = await api.cvMaker.list();
+      if (res?.data) {
+        setResumes(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to load CV Maker list:', err);
+    } finally {
+      setLoadingResumes(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      api.settings.get().then(s => {
+        if (s) {
+          setIsPaymentEnabled(s.cv_maker_payment_enabled ?? !(s.cv_maker_free_mode ?? true));
+          if (s.cv_maker_pdf_price) setPdfPrice(s.cv_maker_pdf_price);
+        }
+      }).catch(() => {}),
+      fetchStats(),
+      fetchResumes(),
+    ]).finally(() => {
+      setLoading(false);
+    });
+  }, [fetchStats, fetchResumes]);
 
   const handleTogglePaywall = async (newVal: boolean) => {
     setIsPaymentEnabled(newVal);
@@ -136,35 +172,32 @@ export function CvMaker() {
         </div>
       </div>
 
-      {/* ── KPI Grid ── */}
+      {/* ── KPI Grid (100% Real Database Metrics) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
           label="Total Resumes Created"
-          value={12480}
+          value={stats.total_resumes}
           format="num"
-          delta={{ value: 21.6, label: '+21.6%', direction: 'up' }}
           icon={<FileText className="w-4 h-4" />}
         />
         <KPICard
           label="PDF Resumes Exported"
-          value={8340}
+          value={stats.total_exports}
           format="num"
-          delta={{ value: 16.3, label: '+16.3%', direction: 'up' }}
           icon={<Download className="w-4 h-4" />}
           accent="success"
         />
         <KPICard
           label="VIP Paid Unlocks"
-          value={1120}
+          value={stats.paid_unlocks}
           format="num"
           icon={<Zap className="w-4 h-4" />}
           accent="warning"
         />
         <KPICard
           label="Active Job Seekers"
-          value={4690}
+          value={stats.active_users}
           format="num"
-          delta={{ value: 9.8, label: '+9.8%', direction: 'up' }}
           icon={<Users className="w-4 h-4" />}
         />
       </div>
@@ -200,25 +233,25 @@ export function CvMaker() {
               <Palette className="w-4 h-4 text-brand-400" />
               <span>Most Popular Resume Templates</span>
             </h3>
-            <div className="space-y-3">
-              {[
-                { label: 'Modern Executive (Tech & Engineering)', pct: 42, count: '5,240' },
-                { label: 'Minimalist Clean (General / Fresh Grad)', pct: 28, count: '3,490' },
-                { label: 'Creative Designer (Portfolio Style)', pct: 16, count: '1,990' },
-                { label: 'Corporate Banker & Finance', pct: 9, count: '1,120' },
-                { label: 'Academic & Research CV', pct: 5, count: '640' },
-              ].map(item => (
-                <div key={item.label}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-ink-200">{item.label}</span>
-                    <span className="font-semibold text-ink-400">{item.count} ({item.pct}%)</span>
+            {stats.templates.length === 0 ? (
+              <div className="py-8 text-center text-xs text-ink-500">
+                No template usage recorded yet in database.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {stats.templates.map(item => (
+                  <div key={item.name}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-ink-200">{item.name}</span>
+                      <span className="font-semibold text-ink-400">{item.count} ({item.percentage}%)</span>
+                    </div>
+                    <div className="w-full h-2 bg-ink-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-brand-500 rounded-full" style={{ width: `${item.percentage}%` }} />
+                    </div>
                   </div>
-                  <div className="w-full h-2 bg-ink-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-brand-500 rounded-full" style={{ width: `${item.pct}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="card p-5 space-y-4">
@@ -226,25 +259,25 @@ export function CvMaker() {
               <Briefcase className="w-4 h-4 text-brand-400" />
               <span>Top Career Categories</span>
             </h3>
-            <div className="space-y-3">
-              {[
-                { label: 'Software Engineering & IT', pct: 36, count: '4,490' },
-                { label: 'Marketing & Sales', pct: 24, count: '2,990' },
-                { label: 'Healthcare & Pharmacy', pct: 18, count: '2,240' },
-                { label: 'Accounting & Banking', pct: 14, count: '1,750' },
-                { label: 'Human Resources & Admin', pct: 8, count: '1,010' },
-              ].map(item => (
-                <div key={item.label}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-ink-200">{item.label}</span>
-                    <span className="font-semibold text-ink-400">{item.count} ({item.pct}%)</span>
+            {stats.categories.length === 0 ? (
+              <div className="py-8 text-center text-xs text-ink-500">
+                No career category data recorded yet in database.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {stats.categories.map(item => (
+                  <div key={item.name}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-ink-200">{item.name}</span>
+                      <span className="font-semibold text-ink-400">{item.count} ({item.percentage}%)</span>
+                    </div>
+                    <div className="w-full h-2 bg-ink-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-accent-500 rounded-full" style={{ width: `${item.percentage}%` }} />
+                    </div>
                   </div>
-                  <div className="w-full h-2 bg-ink-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-accent-500 rounded-full" style={{ width: `${item.pct}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -285,7 +318,7 @@ export function CvMaker() {
               <span>CV Maker Dynamic Paywall Configuration</span>
             </h3>
             <p className="text-xs text-ink-400">
-              Settings synchronized in real-time with Firebase and user mobile apps without requiring app store updates.
+              Settings synchronized in real-time with backend and user mobile apps without requiring app store updates.
             </p>
           </div>
 
@@ -347,49 +380,61 @@ export function CvMaker() {
         </div>
       )}
 
-      {/* ── Tab 4: Recent CVs ── */}
+      {/* ── Tab 4: Recent CVs (Real database list) ── */}
       {activeTab === 'recent' && (
         <div className="card overflow-hidden">
           <div className="p-4 border-b border-ink-800 flex items-center justify-between">
             <h3 className="text-sm font-bold text-ink-100">Recent Candidate Resumes</h3>
-            <span className="text-xs text-ink-400">Real-time export telemetry</span>
+            <span className="text-xs text-ink-400">Live database telemetry</span>
           </div>
-          <div className="overflow-x-auto">
-            <table className="table w-full">
-              <thead>
-                <tr>
-                  <th>Candidate</th>
-                  <th>Target Job Title</th>
-                  <th>Chosen Template</th>
-                  <th>Downloads</th>
-                  <th>Tier</th>
-                  <th>Generated</th>
-                </tr>
-              </thead>
-              <tbody>
-                {MOCK_CVS.map(c => (
-                  <tr key={c.id}>
-                    <td className="font-semibold text-ink-100">{c.candidateName}</td>
-                    <td className="text-ink-300">{c.jobTitle}</td>
-                    <td>
-                      <span className="text-xs px-2 py-0.5 rounded bg-ink-800/80 text-ink-300 border border-ink-700/50">
-                        {c.template}
-                      </span>
-                    </td>
-                    <td className="font-mono text-ink-200">{c.downloads}</td>
-                    <td>
-                      <span className={`text-2xs font-bold px-2 py-0.5 rounded-full ${
-                        c.isVip ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-ink-700/40 text-ink-400'
-                      }`}>
-                        {c.isVip ? 'VIP Paid' : 'Free Tier'}
-                      </span>
-                    </td>
-                    <td className="text-2xs text-ink-500">{c.createdAt}</td>
+          {loadingResumes ? (
+            <div className="p-8 text-center text-xs text-ink-400 flex items-center justify-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-brand-400" />
+              <span>Loading resumes...</span>
+            </div>
+          ) : resumes.length === 0 ? (
+            <div className="p-8 text-center">
+              <p className="text-sm font-semibold text-ink-200 mb-1">No Resumes Generated Yet</p>
+              <p className="text-xs text-ink-500">When users create or download resumes in the CV Maker app, they will appear here in real time.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="table w-full">
+                <thead>
+                  <tr>
+                    <th>Candidate</th>
+                    <th>Target Job Title</th>
+                    <th>Chosen Template</th>
+                    <th>Downloads</th>
+                    <th>Tier</th>
+                    <th>Generated</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {resumes.map(c => (
+                    <tr key={c.id}>
+                      <td className="font-semibold text-ink-100">{c.candidate_name || 'Candidate'}</td>
+                      <td className="text-ink-300">{c.job_title || '—'}</td>
+                      <td>
+                        <span className="text-xs px-2 py-0.5 rounded bg-ink-800/80 text-ink-300 border border-ink-700/50">
+                          {c.template_name || 'Standard'}
+                        </span>
+                      </td>
+                      <td className="font-mono text-ink-200">{c.downloads_count || 0}</td>
+                      <td>
+                        <span className={`text-2xs font-bold px-2 py-0.5 rounded-full ${
+                          c.is_paid ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-ink-700/40 text-ink-400'
+                        }`}>
+                          {c.is_paid ? 'VIP Paid' : 'Free Tier'}
+                        </span>
+                      </td>
+                      <td className="text-2xs text-ink-500">{c.created_at ? timeAgo(c.created_at) : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>
