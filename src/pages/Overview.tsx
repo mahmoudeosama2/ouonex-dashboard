@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Users, UserCheck, Wallet, Clock, Heart, UtensilsCrossed, TrendingUp,
   ArrowUpRight, ArrowDownRight, Sparkles, CheckCircle2, XCircle, UserPlus, FileText,
-  Activity,
+  Activity, Smartphone,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { OverviewKPIs, RevenuePoint, UserGrowthPoint, ProductComparison, ActivityItem, HealthIndicator } from '@/lib/types';
@@ -237,21 +237,25 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
               </span>
             )}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {health.map(h => (
               <div key={h.product} className="rounded-xl2 border border-ink-800 p-4 bg-ink-950/50 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${h.reachable ? 'bg-success-500/10 text-success-400' : 'bg-danger-500/10 text-danger-400'}`}>
-                    <Activity className="w-4 h-4" />
+                    {h.product === 'sms_gateway' ? <Smartphone className="w-4 h-4" /> : <Activity className="w-4 h-4" />}
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-ink-100">{h.name}</p>
-                    <p className="text-2xs text-ink-400">{timeAgo(h.last_sync)} · {h.latency_ms}ms</p>
+                    <p className="text-2xs text-ink-400">
+                      {h.product === 'sms_gateway'
+                        ? `${timeAgo(h.last_sync)} · Battery ${h.latency_ms}%`
+                        : `${timeAgo(h.last_sync)} · ${h.latency_ms}ms`}
+                    </p>
                   </div>
                 </div>
                 <span className={`badge ${h.reachable ? 'bg-success-500/15 text-success-400 border border-success-500/30' : 'bg-danger-500/15 text-danger-400 border border-danger-500/30'}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${h.reachable ? 'bg-success-400 animate-pulse' : 'bg-danger-400'}`} />
-                  {h.reachable ? 'Reachable' : 'Offline'}
+                  {h.reachable ? 'Online' : 'Offline'}
                 </span>
               </div>
             ))}

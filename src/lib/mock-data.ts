@@ -371,6 +371,7 @@ export const teamMembers: TeamMember[] = [
 export const healthIndicators: HealthIndicator[] = [
   { product: 'dawaty', name: 'Dawaty Backend', reachable: true, last_sync: isoDaysAgo(0), latency_ms: 142 },
   { product: 'digital_menu', name: 'Digital Menu Backend', reachable: true, last_sync: isoDaysAgo(0), latency_ms: 189 },
+  { product: 'sms_gateway', name: 'SMS & InstaPay Gateway (Android)', reachable: true, last_sync: isoDaysAgo(0), latency_ms: 92 },
 ];
 
 // ── Users ────────────────────────────────────────────────

@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import {
   LayoutDashboard, Heart, UtensilsCrossed, Wallet, Sparkles, Users, Settings,
   Menu, X, Bell, Search, ChevronDown, ShieldCheck, Activity, LogOut, Globe2, BarChart3,
-  LifeBuoy,
+  LifeBuoy, QrCode,
 } from 'lucide-react';
 import { useRole } from '@/context/RoleContext';
 import { useAuth } from '@/context/AuthContext';
@@ -15,6 +15,7 @@ const NAV: { key: PageKey; label: string; icon: ReactNode }[] = [
   { key: 'analytics', label: 'Live Analytics', icon: <BarChart3 className="w-[18px] h-[18px]" /> },
   { key: 'dawaty', label: 'Dawaty', icon: <Heart className="w-[18px] h-[18px]" /> },
   { key: 'digital_menu', label: 'Digital Menu', icon: <UtensilsCrossed className="w-[18px] h-[18px]" /> },
+  { key: 'qr_me', label: 'QR Me Barcode', icon: <QrCode className="w-[18px] h-[18px]" /> },
   { key: 'finance', label: 'Finance', icon: <Wallet className="w-[18px] h-[18px]" /> },
   { key: 'ai_usage', label: 'AI Usage', icon: <Sparkles className="w-[18px] h-[18px]" /> },
   { key: 'users', label: 'Users', icon: <Users className="w-[18px] h-[18px]" /> },
@@ -26,6 +27,7 @@ const NAV: { key: PageKey; label: string; icon: ReactNode }[] = [
 const PRODUCT_ICONS: Record<string, ReactNode> = {
   dawaty: <Heart className="w-3.5 h-3.5" />,
   digital_menu: <UtensilsCrossed className="w-3.5 h-3.5" />,
+  qr_me: <QrCode className="w-3.5 h-3.5" />,
 };
 
 interface Props {

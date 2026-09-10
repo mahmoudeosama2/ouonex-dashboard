@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   Settings as SettingsIcon, Users, ScrollText, Activity, ShieldCheck,
   CheckCircle2, XCircle, Crown, Lock, Save, Loader2, Bell, Globe, Building,
-  FileText,
+  FileText, QrCode, Zap, AlertTriangle,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { TeamMember, AuditLogEntry, HealthIndicator, Role } from '@/lib/types';
@@ -254,6 +254,7 @@ function GeneralTab() {
     currency: 'EGP',
     email_notifications: true,
     auto_refresh_seconds: 30,
+    global_emergency_free_mode: false,
     menu_price_monthly: 100,
     menu_price_yearly: 1000,
     menu_free_mode: false,
@@ -261,6 +262,9 @@ function GeneralTab() {
     dawaty_free_mode: false,
     cv_price_single: 25,
     cv_price_subscription: 120,
+    cv_free_mode: false,
+    qr_me_vip_price: 15,
+    qr_me_free_mode: true,
     vodafone_cash_number: '01019603225',
     instapay_address: 'instapay@address'
   });
@@ -338,6 +342,48 @@ function GeneralTab() {
         </div>
       </div>
 
+      {/* ── GLOBAL EMERGENCY KILL SWITCH ── */}
+      <div className={`card p-5 space-y-3 border-2 transition-all ${
+        form.global_emergency_free_mode
+          ? 'bg-rose-950/20 border-rose-500/50'
+          : 'bg-ink-900/60 border-ink-800'
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              form.global_emergency_free_mode ? 'bg-rose-500 text-white' : 'bg-ink-800 text-ink-400'
+            }`}>
+              <AlertTriangle className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-ink-100">Global Emergency Kill Switch</h3>
+                <span className={`text-2xs font-bold px-2 py-0.5 rounded-full ${
+                  form.global_emergency_free_mode ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-ink-800 text-ink-400'
+                }`}>
+                  {form.global_emergency_free_mode ? 'ACTIVE: ALL APPS 100% FREE' : 'NORMAL: PER-APP RULES'}
+                </span>
+              </div>
+              <p className="text-xs text-ink-400 mt-0.5">
+                Immediately bypasses and hides payment screens across all 4 apps (Dawaty, Digital Menu, CV Maker, QR Me). 
+                Essential during Google Play & Apple App Store review approvals.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setForm(f => ({ ...f, global_emergency_free_mode: !f.global_emergency_free_mode }))}
+            className={`relative w-12 h-6.5 rounded-full transition-colors shrink-0 ${
+              form.global_emergency_free_mode ? 'bg-rose-600' : 'bg-ink-700'
+            }`}
+          >
+            <span className={`absolute top-0.5 w-5.5 h-5.5 rounded-full bg-white transition-transform ${
+              form.global_emergency_free_mode ? 'translate-x-6' : 'translate-x-0.5'
+            }`} />
+          </button>
+        </div>
+      </div>
+
       {/* ── Digital Menu Pricing ── */}
       <div className="card p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
@@ -352,7 +398,7 @@ function GeneralTab() {
               value={form.menu_price_monthly}
               onChange={e => setForm(f => ({ ...f, menu_price_monthly: Number(e.target.value) }))}
               className="input w-full"
-              disabled={form.menu_free_mode}
+              disabled={form.menu_free_mode || form.global_emergency_free_mode}
             />
           </div>
           <div>
@@ -362,7 +408,7 @@ function GeneralTab() {
               value={form.menu_price_yearly}
               onChange={e => setForm(f => ({ ...f, menu_price_yearly: Number(e.target.value) }))}
               className="input w-full"
-              disabled={form.menu_free_mode}
+              disabled={form.menu_free_mode || form.global_emergency_free_mode}
             />
           </div>
         </div>
@@ -394,7 +440,7 @@ function GeneralTab() {
             value={form.dawaty_invitation_price}
             onChange={e => setForm(f => ({ ...f, dawaty_invitation_price: Number(e.target.value) }))}
             className="input w-full"
-            disabled={form.dawaty_free_mode}
+            disabled={form.dawaty_free_mode || form.global_emergency_free_mode}
           />
         </div>
         <label className="flex items-center justify-between cursor-pointer pt-2">
@@ -416,7 +462,7 @@ function GeneralTab() {
       <div className="card p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <FileText className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">CV Maker Pricing</h3>
+          <h3 className="text-sm font-semibold text-ink-100">CV Maker Pricing & Paywall</h3>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -426,6 +472,7 @@ function GeneralTab() {
               value={form.cv_price_single}
               onChange={e => setForm(f => ({ ...f, cv_price_single: Number(e.target.value) }))}
               className="input w-full"
+              disabled={form.cv_free_mode || form.global_emergency_free_mode}
             />
           </div>
           <div>
@@ -435,9 +482,54 @@ function GeneralTab() {
               value={form.cv_price_subscription}
               onChange={e => setForm(f => ({ ...f, cv_price_subscription: Number(e.target.value) }))}
               className="input w-full"
+              disabled={form.cv_free_mode || form.global_emergency_free_mode}
             />
           </div>
         </div>
+        <label className="flex items-center justify-between cursor-pointer pt-2">
+          <div>
+            <p className="text-sm text-ink-200">Free Mode (Bypass CV Paywall)</p>
+            <p className="text-xs text-ink-500">Allow users to export clean PDFs without watermark for free</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setForm(f => ({ ...f, cv_free_mode: !f.cv_free_mode }))}
+            className={`relative w-11 h-6 rounded-full transition-colors ${form.cv_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
+          >
+            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.cv_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
+          </button>
+        </label>
+      </div>
+
+      {/* ── QR Me Pricing ── */}
+      <div className="card p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <QrCode className="w-4 h-4 text-ink-400" />
+          <h3 className="text-sm font-semibold text-ink-100">QR Me Custom Barcode Pricing</h3>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-ink-300 mb-1.5">VIP Template & High-Res Export Price (EGP)</label>
+          <input
+            type="number"
+            value={form.qr_me_vip_price}
+            onChange={e => setForm(f => ({ ...f, qr_me_vip_price: Number(e.target.value) }))}
+            className="input w-full"
+            disabled={form.qr_me_free_mode || form.global_emergency_free_mode}
+          />
+        </div>
+        <label className="flex items-center justify-between cursor-pointer pt-2">
+          <div>
+            <p className="text-sm text-ink-200">Free Mode (Bypass QR Me Paywall)</p>
+            <p className="text-xs text-ink-500">Unlock all vector SVG/PDF exports and VIP templates completely free</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setForm(f => ({ ...f, qr_me_free_mode: !f.qr_me_free_mode }))}
+            className={`relative w-11 h-6 rounded-full transition-colors ${form.qr_me_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
+          >
+            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.qr_me_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
+          </button>
+        </label>
       </div>
 
       {/* ── Payment Gateways ── */}

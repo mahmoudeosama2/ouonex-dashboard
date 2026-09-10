@@ -13,6 +13,7 @@ export type PageKey =
   | 'analytics'
   | 'dawaty'
   | 'digital_menu'
+  | 'qr_me'
   | 'finance'
   | 'ai_usage'
   | 'users'
@@ -21,11 +22,11 @@ export type PageKey =
   | 'website';
 
 const PAGE_ACCESS: Record<Role, PageKey[]> = {
-  owner: ['overview', 'analytics', 'dawaty', 'digital_menu', 'finance', 'ai_usage', 'users', 'support', 'settings', 'website'],
-  admin: ['overview', 'analytics', 'dawaty', 'digital_menu', 'finance', 'ai_usage', 'users', 'support', 'settings', 'website'],
+  owner: ['overview', 'analytics', 'dawaty', 'digital_menu', 'qr_me', 'finance', 'ai_usage', 'users', 'support', 'settings', 'website'],
+  admin: ['overview', 'analytics', 'dawaty', 'digital_menu', 'qr_me', 'finance', 'ai_usage', 'users', 'support', 'settings', 'website'],
   finance: ['overview', 'analytics', 'finance'],
-  support: ['overview', 'dawaty', 'digital_menu', 'users', 'support'],
-  viewer: ['overview', 'analytics', 'dawaty', 'digital_menu'],
+  support: ['overview', 'dawaty', 'digital_menu', 'qr_me', 'users', 'support'],
+  viewer: ['overview', 'analytics', 'dawaty', 'digital_menu', 'qr_me'],
 };
 
 export function canAccess(role: Role, page: PageKey): boolean {
