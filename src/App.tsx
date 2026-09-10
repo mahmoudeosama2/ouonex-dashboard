@@ -13,6 +13,7 @@ import { Analytics } from '@/pages/Analytics';
 import { Finance } from '@/pages/Finance';
 import { Dawaty } from '@/pages/Dawaty';
 import { DigitalMenu } from '@/pages/DigitalMenu';
+import { CvMaker } from '@/pages/CvMaker';
 import { QrMe } from '@/pages/QrMe';
 import { AIUsage } from '@/pages/AIUsage';
 import { UsersPage } from '@/pages/Users';
@@ -64,6 +65,7 @@ function Dashboard() {
       case 'finance': content = <Finance />; break;
       case 'dawaty': content = <Dawaty />; break;
       case 'digital_menu': content = <DigitalMenu />; break;
+      case 'cv_maker': content = <CvMaker />; break;
       case 'qr_me': content = <QrMe />; break;
       case 'ai_usage': content = <AIUsage />; break;
       case 'users': content = <UsersPage />; break;
