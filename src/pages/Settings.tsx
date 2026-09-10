@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   Settings as SettingsIcon, Users, ScrollText, Activity, ShieldCheck,
   CheckCircle2, XCircle, Crown, Lock, Save, Loader2, Bell, Globe, Building,
+  FileText,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { TeamMember, AuditLogEntry, HealthIndicator, Role } from '@/lib/types';
@@ -258,6 +259,8 @@ function GeneralTab() {
     menu_free_mode: false,
     dawaty_invitation_price: 150,
     dawaty_free_mode: false,
+    cv_price_single: 25,
+    cv_price_subscription: 120,
     vodafone_cash_number: '01019603225',
     instapay_address: 'instapay@address'
   });
@@ -407,6 +410,34 @@ function GeneralTab() {
             <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.dawaty_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
           </button>
         </label>
+      </div>
+
+      {/* ── CV Maker Pricing ── */}
+      <div className="card p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <FileText className="w-4 h-4 text-ink-400" />
+          <h3 className="text-sm font-semibold text-ink-100">CV Maker Pricing</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">Single CV Export (EGP)</label>
+            <input
+              type="number"
+              value={form.cv_price_single}
+              onChange={e => setForm(f => ({ ...f, cv_price_single: Number(e.target.value) }))}
+              className="input w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">Unlimited Subscription (EGP)</label>
+            <input
+              type="number"
+              value={form.cv_price_subscription}
+              onChange={e => setForm(f => ({ ...f, cv_price_subscription: Number(e.target.value) }))}
+              className="input w-full"
+            />
+          </div>
+        </div>
       </div>
 
       {/* ── Payment Gateways ── */}
