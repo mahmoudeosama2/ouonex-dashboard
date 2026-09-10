@@ -9,35 +9,37 @@ import { PageHeader } from '@/components/Layout';
 import { ErrorState } from '@/components/EmptyState';
 import { CardSkeleton } from '@/components/Skeleton';
 import { useToast } from '@/context/ToastContext';
+import { useLocale } from '@/context/LocaleContext';
 
 type Tab = 'general' | 'sections' | 'products';
 
 export function WebsiteCMS() {
+  const { t } = useLocale();
   const [tab, setTab] = useState<Tab>('general');
 
   return (
     <div>
       <PageHeader
-        title="Website CMS"
-        description="Manage the landing page content of ouonex.com"
+        title={t('website.title')}
+        description={t('website.description')}
         icon={<Globe2 className="w-5 h-5" />}
       />
 
       <div className="flex items-center gap-1 mb-4 border-b border-ink-800">
         {([
-          { key: 'general', label: 'General & Contacts', icon: <Mail className="w-3.5 h-3.5" /> },
-          { key: 'sections', label: 'Landing Sections', icon: <Layout className="w-3.5 h-3.5" /> },
-          { key: 'products', label: 'Products Display', icon: <GripVertical className="w-3.5 h-3.5" /> },
-        ] as const).map(t => (
+          { key: 'general', label: t('website.tab_general'), icon: <Mail className="w-3.5 h-3.5" /> },
+          { key: 'sections', label: t('website.tab_sections'), icon: <Layout className="w-3.5 h-3.5" /> },
+          { key: 'products', label: t('website.tab_products'), icon: <GripVertical className="w-3.5 h-3.5" /> },
+        ] as const).map(tabItem => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tabItem.key}
+            onClick={() => setTab(tabItem.key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === t.key ? 'border-brand-500 text-brand-300' : 'border-transparent text-ink-400 hover:text-ink-200'
+              tab === tabItem.key ? 'border-brand-500 text-brand-300' : 'border-transparent text-ink-400 hover:text-ink-200'
             }`}
           >
-            {t.icon}
-            {t.label}
+            {tabItem.icon}
+            {tabItem.label}
           </button>
         ))}
       </div>

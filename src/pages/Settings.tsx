@@ -14,34 +14,40 @@ import { useRole } from '@/context/RoleContext';
 import { useToast } from '@/context/ToastContext';
 import { ROLES } from '@/lib/rbac';
 import { dateTime, timeAgo } from '@/lib/format';
+import { useLocale } from '@/context/LocaleContext';
 
 type SubTab = 'team' | 'audit' | 'health' | 'general';
 
 export function Settings() {
+  const { t } = useLocale();
   const { canManageTeam } = useRole();
   const toast = useToast();
   const [tab, setTab] = useState<SubTab>('general');
 
   return (
     <div>
-      <PageHeader title="Settings" description="Team, audit log, and system health" icon={<SettingsIcon className="w-5 h-5" />} />
+      <PageHeader
+        title={t('settings.title')}
+        description={t('settings.description')}
+        icon={<SettingsIcon className="w-5 h-5" />}
+      />
 
       <div className="flex items-center gap-1 mb-4 border-b border-ink-800">
         {([
-          { key: 'general', label: 'General', icon: <SettingsIcon className="w-3.5 h-3.5" /> },
-          { key: 'team', label: 'Team', icon: <Users className="w-3.5 h-3.5" /> },
-          { key: 'audit', label: 'Audit Log', icon: <ScrollText className="w-3.5 h-3.5" /> },
-          { key: 'health', label: 'Health', icon: <Activity className="w-3.5 h-3.5" /> },
-        ] as const).map(t => (
+          { key: 'general', label: t('settings.tab_general'), icon: <SettingsIcon className="w-3.5 h-3.5" /> },
+          { key: 'team', label: t('settings.tab_team'), icon: <Users className="w-3.5 h-3.5" /> },
+          { key: 'audit', label: t('settings.tab_audit'), icon: <ScrollText className="w-3.5 h-3.5" /> },
+          { key: 'health', label: t('settings.tab_health'), icon: <Activity className="w-3.5 h-3.5" /> },
+        ] as const).map(tabItem => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tabItem.key}
+            onClick={() => setTab(tabItem.key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === t.key ? 'border-brand-500 text-brand-300' : 'border-transparent text-ink-400 hover:text-ink-200'
+              tab === tabItem.key ? 'border-brand-500 text-brand-300' : 'border-transparent text-ink-400 hover:text-ink-200'
             }`}
           >
-            {t.icon}
-            {t.label}
+            {tabItem.icon}
+            {tabItem.label}
           </button>
         ))}
       </div>

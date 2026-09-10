@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/Layout';
 import { KPICard } from '@/components/KPICard';
 import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/context/ToastContext';
+import { useLocale } from '@/context/LocaleContext';
 import { api } from '@/lib/api';
 import { timeAgo, num, egp } from '@/lib/format';
 
@@ -33,6 +34,7 @@ interface CvStats {
 
 export function CvMaker() {
   const toast = useToast();
+  const { t, locale } = useLocale();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -176,8 +178,8 @@ export function CvMaker() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="CV Maker — Professional Resume Studio"
-        description="Monitor resume downloads, template sales demand, and manage the dynamic PDF paywall."
+        title={t('cv.title')}
+        description={t('cv.description')}
         icon={<FileText className="w-5 h-5" />}
       />
 
@@ -196,18 +198,18 @@ export function CvMaker() {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-sm">
-                {!isPaymentEnabled ? 'Free Mode Active (Google/Apple Review Safe)' : 'VIP PDF Paywall Active'}
+                {!isPaymentEnabled ? t('cv.free_mode_title') : t('cv.paid_mode_title')}
               </h3>
               <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full ${
                 !isPaymentEnabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
               }`}>
-                {!isPaymentEnabled ? '100% FREE' : `${pdfPrice} EGP / PDF`}
+                {!isPaymentEnabled ? t('cv.free_badge') : t('cv.price_per_pdf', { price: pdfPrice })}
               </span>
             </div>
             <p className="text-xs text-ink-300 mt-0.5">
               {!isPaymentEnabled 
-                ? 'Payment dialog is hidden in the app. Users can download water-mark free PDFs immediately.'
-                : 'Users must confirm payment via InstaPay / Vodafone Cash to unlock vector PDF downloads.'}
+                ? t('cv.free_desc')
+                : t('cv.paid_desc')}
             </p>
           </div>
         </div>
@@ -222,7 +224,7 @@ export function CvMaker() {
             }`}
           >
             {!isPaymentEnabled ? <ToggleLeft className="w-4 h-4" /> : <ToggleRight className="w-4 h-4" />}
-            <span>{!isPaymentEnabled ? 'Switch to Paid Mode' : 'Switch to Free Mode'}</span>
+            <span>{!isPaymentEnabled ? t('cv.switch_to_paid') : t('cv.switch_to_free')}</span>
           </button>
         </div>
       </div>
@@ -230,27 +232,27 @@ export function CvMaker() {
       {/* ── KPI Grid (100% Real Database Metrics) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
-          label="Total Resumes Created"
+          label={t('cv.kpi_total_resumes')}
           value={stats.total_resumes}
           format="num"
           icon={<FileText className="w-4 h-4" />}
         />
         <KPICard
-          label="PDF Resumes Exported"
+          label={t('cv.kpi_pdf_exports')}
           value={stats.total_exports}
           format="num"
           icon={<Download className="w-4 h-4" />}
           accent="success"
         />
         <KPICard
-          label="VIP Paid Unlocks"
+          label={t('cv.kpi_paid_unlocks')}
           value={stats.paid_unlocks}
           format="num"
           icon={<Zap className="w-4 h-4" />}
           accent="warning"
         />
         <KPICard
-          label="Active Job Seekers"
+          label={t('cv.kpi_active_seekers')}
           value={stats.active_users}
           format="num"
           icon={<Users className="w-4 h-4" />}
@@ -260,23 +262,23 @@ export function CvMaker() {
       {/* ── Navigation SubTabs ── */}
       <div className="flex items-center gap-2 border-b border-ink-800 overflow-x-auto">
         {[
-          { key: 'template_sales', label: 'Template Sales & Demand', icon: <ShoppingCart className="w-4 h-4" /> },
-          { key: 'analytics', label: 'Overview & Categories', icon: <BarChart2 className="w-4 h-4" /> },
-          { key: 'gallery', label: 'Template Gallery', icon: <Palette className="w-4 h-4" /> },
-          { key: 'paywall', label: 'Paywall Controls', icon: <Zap className="w-4 h-4" /> },
-          { key: 'recent', label: 'Recent Resumes', icon: <Layers className="w-4 h-4" /> },
-        ].map(t => (
+          { key: 'template_sales', label: t('cv.tab_template_sales'), icon: <ShoppingCart className="w-4 h-4" /> },
+          { key: 'analytics', label: t('cv.tab_analytics'), icon: <BarChart2 className="w-4 h-4" /> },
+          { key: 'gallery', label: t('cv.tab_gallery'), icon: <Palette className="w-4 h-4" /> },
+          { key: 'paywall', label: t('cv.tab_paywall'), icon: <Zap className="w-4 h-4" /> },
+          { key: 'recent', label: t('cv.tab_recent'), icon: <Layers className="w-4 h-4" /> },
+        ].map(tTab => (
           <button
-            key={t.key}
-            onClick={() => setActiveTab(t.key as any)}
+            key={tTab.key}
+            onClick={() => setActiveTab(tTab.key as any)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
-              activeTab === t.key
+              activeTab === tTab.key
                 ? 'border-brand-500 text-brand-300'
                 : 'border-transparent text-ink-400 hover:text-ink-200'
             }`}
           >
-            {t.icon}
-            <span>{t.label}</span>
+            {tTab.icon}
+            <span>{tTab.label}</span>
           </button>
         ))}
       </div>
@@ -288,45 +290,45 @@ export function CvMaker() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="card p-4 border border-ink-800 bg-ink-950/40">
               <div className="flex items-center justify-between">
-                <span className="text-2xs font-semibold text-ink-400 uppercase tracking-wider">Total Templates</span>
+                <span className="text-2xs font-semibold text-ink-400 uppercase tracking-wider">{t('cv.total_templates_card')}</span>
                 <Palette className="w-4 h-4 text-brand-400" />
               </div>
               <p className="text-2xl font-bold text-ink-50 mt-2">{stats.template_sales.length || 23}</p>
-              <p className="text-2xs text-ink-400 mt-1">Ready for users in mobile app</p>
+              <p className="text-2xs text-ink-400 mt-1">{t('cv.total_templates_sub')}</p>
             </div>
 
             <div className="card p-4 border border-amber-500/20 bg-amber-950/10">
               <div className="flex items-center justify-between">
-                <span className="text-2xs font-semibold text-amber-300 uppercase tracking-wider">Total Purchases</span>
+                <span className="text-2xs font-semibold text-amber-300 uppercase tracking-wider">{t('cv.total_purchases_card')}</span>
                 <ShoppingCart className="w-4 h-4 text-amber-400" />
               </div>
               <p className="text-2xl font-bold text-amber-300 mt-2">{stats.paid_unlocks}</p>
-              <p className="text-2xs text-ink-400 mt-1">VIP & paid template unlocks</p>
+              <p className="text-2xs text-ink-400 mt-1">{t('cv.total_purchases_sub')}</p>
             </div>
 
             <div className="card p-4 border border-emerald-500/20 bg-emerald-950/10">
               <div className="flex items-center justify-between">
-                <span className="text-2xs font-semibold text-emerald-300 uppercase tracking-wider">Top Best Seller</span>
+                <span className="text-2xs font-semibold text-emerald-300 uppercase tracking-wider">{t('cv.top_seller_card')}</span>
                 <Flame className="w-4 h-4 text-emerald-400" />
               </div>
               <p className="text-sm font-bold text-emerald-300 mt-2 truncate">
-                {topSeller ? topSeller.name : 'No purchases yet'}
+                {topSeller ? topSeller.name : t('cv.status_no_purchases')}
               </p>
               <p className="text-2xs text-ink-400 mt-1">
-                {topSeller ? `${topSeller.purchases_count} buyers (${topSeller.purchase_share}% of sales)` : 'Waiting for first sale'}
+                {topSeller ? `${topSeller.purchases_count} (${topSeller.purchase_share}%)` : '—'}
               </p>
             </div>
 
             <div className="card p-4 border border-ink-800 bg-ink-950/40">
               <div className="flex items-center justify-between">
-                <span className="text-2xs font-semibold text-ink-400 uppercase tracking-wider">Most Created</span>
+                <span className="text-2xs font-semibold text-ink-400 uppercase tracking-wider">{t('cv.most_created_card')}</span>
                 <Award className="w-4 h-4 text-accent-400" />
               </div>
               <p className="text-sm font-bold text-ink-100 mt-2 truncate">
-                {mostCreated ? mostCreated.name : 'No resumes yet'}
+                {mostCreated ? mostCreated.name : t('common.no_data')}
               </p>
               <p className="text-2xs text-ink-400 mt-1">
-                {mostCreated ? `${mostCreated.creations_count} resumes created` : 'Waiting for creation'}
+                {mostCreated ? `${mostCreated.creations_count}` : '—'}
               </p>
             </div>
           </div>
@@ -337,10 +339,10 @@ export function CvMaker() {
               <div>
                 <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
                   <ShoppingCart className="w-4 h-4 text-brand-400" />
-                  <span>Template Purchase & Demand Analysis (إقبال ومبيعات كل قالب)</span>
+                  <span>{t('cv.sales_title')}</span>
                 </h3>
                 <p className="text-xs text-ink-400 mt-0.5">
-                  Real-time breakdown of which templates are most bought and most demanded by users.
+                  {t('cv.sales_desc')}
                 </p>
               </div>
 
@@ -350,7 +352,7 @@ export function CvMaker() {
                   <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
                   <input
                     type="text"
-                    placeholder="Search template name..."
+                    placeholder={t('cv.search_placeholder')}
                     value={templateSearch}
                     onChange={e => setTemplateSearch(e.target.value)}
                     className="input w-full pl-8 py-1.5 text-xs"
@@ -364,7 +366,7 @@ export function CvMaker() {
                       templateSort === 'purchases' ? 'bg-ink-700 text-ink-100 font-semibold' : 'text-ink-400 hover:text-ink-200'
                     }`}
                   >
-                    Purchases
+                    {t('cv.sort_purchases')}
                   </button>
                   <button
                     onClick={() => setTemplateSort('creations')}
@@ -372,7 +374,7 @@ export function CvMaker() {
                       templateSort === 'creations' ? 'bg-ink-700 text-ink-100 font-semibold' : 'text-ink-400 hover:text-ink-200'
                     }`}
                   >
-                    Creations
+                    {t('cv.sort_creations')}
                   </button>
                   <button
                     onClick={() => setTemplateSort('downloads')}
@@ -380,7 +382,7 @@ export function CvMaker() {
                       templateSort === 'downloads' ? 'bg-ink-700 text-ink-100 font-semibold' : 'text-ink-400 hover:text-ink-200'
                     }`}
                   >
-                    Exports
+                    {t('cv.sort_exports')}
                   </button>
                 </div>
               </div>
@@ -391,20 +393,20 @@ export function CvMaker() {
               <table className="table w-full">
                 <thead>
                   <tr>
-                    <th>Rank & Template</th>
-                    <th>Buyers / Purchases (كم اشترى)</th>
-                    <th>Demand Share (% من المبيعات)</th>
-                    <th>Resumes Created</th>
-                    <th>PDF Exports</th>
-                    <th>Demand Status</th>
-                    <th className="text-right">Action</th>
+                    <th>{t('cv.th_rank_template')}</th>
+                    <th>{t('cv.th_buyers_purchases')}</th>
+                    <th>{t('cv.th_demand_share')}</th>
+                    <th>{t('cv.th_creations')}</th>
+                    <th>{t('cv.th_downloads')}</th>
+                    <th>{t('cv.th_demand_status')}</th>
+                    <th className="text-right">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTemplates.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="text-center py-8 text-xs text-ink-500">
-                        No templates matching your search query.
+                        {t('common.no_data')}
                       </td>
                     </tr>
                   ) : (
@@ -426,7 +428,7 @@ export function CvMaker() {
                                   <span>{item.name}</span>
                                   {isTop && (
                                     <span className="text-3xs font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-0.5">
-                                      <Flame className="w-2.5 h-2.5 text-amber-400" /> #1 Best Seller
+                                      <Flame className="w-2.5 h-2.5 text-amber-400" /> {t('cv.best_seller_badge')}
                                     </span>
                                   )}
                                 </p>
@@ -440,7 +442,6 @@ export function CvMaker() {
                               <span className={`text-xs font-bold ${item.purchases_count > 0 ? 'text-amber-300' : 'text-ink-400'}`}>
                                 {item.purchases_count}
                               </span>
-                              <span className="text-2xs text-ink-500">purchases</span>
                             </div>
                           </td>
 
@@ -475,19 +476,19 @@ export function CvMaker() {
                           <td>
                             {item.purchases_count > 5 ? (
                               <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                                🔥 High Demand
+                                {t('cv.status_high_demand')}
                               </span>
                             ) : item.purchases_count > 0 ? (
                               <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                                ⚡ Active Demand
+                                {t('cv.status_active_demand')}
                               </span>
                             ) : item.creations_count > 0 ? (
                               <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-ink-800 text-ink-300 border border-ink-700/50">
-                                Free Tier Usage
+                                {t('cv.status_free_tier')}
                               </span>
                             ) : (
                               <span className="text-2xs text-ink-500">
-                                No purchases yet
+                                {t('cv.status_no_purchases')}
                               </span>
                             )}
                           </td>
@@ -502,7 +503,7 @@ export function CvMaker() {
                               }}
                               className="text-xs text-brand-400 hover:text-brand-300 font-medium inline-flex items-center gap-1 transition-colors"
                             >
-                              <span>View Resumes</span>
+                              <span>{t('cv.btn_view_resumes')}</span>
                               <ArrowUpRight className="w-3 h-3" />
                             </button>
                           </td>
@@ -673,7 +674,7 @@ export function CvMaker() {
               className="btn btn-primary flex items-center gap-2 px-5 py-2 text-xs font-bold"
             >
               {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              <span>{saving ? 'Saving...' : 'Save Settings'}</span>
+              <span>{saving ? t('common.saving') : t('common.save')}</span>
             </button>
           </div>
         </div>
@@ -684,15 +685,15 @@ export function CvMaker() {
         <div className="card overflow-hidden">
           <div className="p-4 border-b border-ink-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-ink-100">Recent Candidate Resumes</h3>
-              <p className="text-xs text-ink-400">Live database telemetry</p>
+              <h3 className="text-sm font-bold text-ink-100">{t('cv.recent_title')}</h3>
+              <p className="text-xs text-ink-400">{t('common.status')}</p>
             </div>
 
             {/* Template Filter Pill */}
             {selectedTemplateFilter !== 'all' && (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-ink-300">
-                  Filtered by: <strong className="text-brand-300">{selectedTemplateFilter}</strong>
+                  <strong className="text-brand-300">{selectedTemplateFilter}</strong>
                 </span>
                 <button
                   onClick={() => {
@@ -701,7 +702,7 @@ export function CvMaker() {
                   }}
                   className="text-xs text-rose-400 hover:underline"
                 >
-                  Clear filter
+                  {t('common.clear_filter')}
                 </button>
               </div>
             )}
@@ -710,24 +711,24 @@ export function CvMaker() {
           {loadingResumes ? (
             <div className="p-8 text-center text-xs text-ink-400 flex items-center justify-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-brand-400" />
-              <span>Loading resumes...</span>
+              <span>{t('common.loading')}</span>
             </div>
           ) : resumes.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-sm font-semibold text-ink-200 mb-1">No Resumes Generated Yet</p>
-              <p className="text-xs text-ink-500">When users create or download resumes in the CV Maker app, they will appear here in real time.</p>
+              <p className="text-sm font-semibold text-ink-200 mb-1">{t('cv.no_resumes_yet')}</p>
+              <p className="text-xs text-ink-500">{t('cv.no_resumes_desc')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="table w-full">
                 <thead>
                   <tr>
-                    <th>Candidate</th>
-                    <th>Target Job Title</th>
-                    <th>Chosen Template</th>
-                    <th>Downloads</th>
-                    <th>Tier</th>
-                    <th>Generated</th>
+                    <th>{t('cv.candidate')}</th>
+                    <th>{t('cv.target_job')}</th>
+                    <th>{t('cv.chosen_template')}</th>
+                    <th>{t('cv.downloads')}</th>
+                    <th>{t('cv.tier')}</th>
+                    <th>{t('cv.generated')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -745,7 +746,7 @@ export function CvMaker() {
                         <span className={`text-2xs font-bold px-2 py-0.5 rounded-full ${
                           c.is_paid || c.is_vip ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-ink-700/40 text-ink-400'
                         }`}>
-                          {c.is_paid || c.is_vip ? 'VIP Paid' : 'Free Tier'}
+                          {c.is_paid || c.is_vip ? t('cv.vip_paid') : t('cv.free_tier')}
                         </span>
                       </td>
                       <td className="text-2xs text-ink-500">{c.created_at ? timeAgo(c.created_at) : '—'}</td>

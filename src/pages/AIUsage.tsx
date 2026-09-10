@@ -11,8 +11,10 @@ import { ErrorState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/Layout';
 import { ProductBadge } from '@/components/Badge';
 import { num, egp, dateTime, pct } from '@/lib/format';
+import { useLocale } from '@/context/LocaleContext';
 
 export function AIUsage() {
+  const { t, locale } = useLocale();
   const [summary, setSummary] = useState<AIUsageSummary | null>(null);
   const [scans, setScans] = useState<AIScan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,62 +39,66 @@ export function AIUsage() {
     return () => { ok = false; };
   }, [productFilter, page]);
 
-  if (error) return <ErrorState message="Failed to load AI usage data." />;
+  if (error) return <ErrorState message={locale === 'ar' ? 'فشل تحميل بيانات استهلاك الذكاء الاصطناعي.' : 'Failed to load AI usage data.'} />;
   if (loading || !summary) return (
     <div>
-      <PageHeader title="AI Usage" description="Cross-product AI scan analytics" icon={<Sparkles className="w-5 h-5" />} />
+      <PageHeader title={t('ai.title')} description={t('ai.description')} icon={<Sparkles className="w-5 h-5" />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">{Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}</div>
     </div>
   );
 
   const filters: FilterItem[] = [
     {
-      type: 'select', label: 'Product', value: productFilter,
-      options: [{ label: 'All', value: 'all' }, { label: 'Digital Menu', value: 'digital_menu' }, { label: 'Dawaty', value: 'dawaty' }],
+      type: 'select', label: t('finance.th_product'), value: productFilter,
+      options: [
+        { label: t('common.all'), value: 'all' },
+        { label: 'Digital Menu', value: 'digital_menu' },
+        { label: 'Dawaty', value: 'dawaty' },
+      ],
       onChange: v => { setProductFilter(v); setPage(1); },
     },
   ];
 
   const columns: Column<AIScan>[] = [
-    { key: 'id', header: 'Scan ID', sortValue: r => r.id, render: r => <span className="font-mono text-xs text-ink-100">{r.id}</span> },
-    { key: 'product', header: 'Product', render: r => <ProductBadge product={r.product} /> },
-    { key: 'restaurant', header: 'Restaurant', sortValue: r => r.restaurant_name ?? '', render: r => <span className="text-ink-200">{r.restaurant_name ?? '—'}</span> },
-    { key: 'status', header: 'Status', sortValue: r => r.status, render: r => (
+    { key: 'id', header: t('ai.th_scan_id'), sortValue: r => r.id, render: r => <span className="font-mono text-xs text-ink-100">{r.id}</span> },
+    { key: 'product', header: t('finance.th_product'), render: r => <ProductBadge product={r.product} /> },
+    { key: 'restaurant', header: t('ai.th_restaurant'), sortValue: r => r.restaurant_name ?? '', render: r => <span className="text-ink-200">{r.restaurant_name ?? '—'}</span> },
+    { key: 'status', header: t('ai.th_status'), sortValue: r => r.status, render: r => (
       <span className={`badge ${r.status === 'success' ? 'bg-success-500/15 text-success-400 border border-success-500/30' : 'bg-danger-500/15 text-danger-400 border border-danger-500/30'}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${r.status === 'success' ? 'bg-success-400' : 'bg-danger-400'}`} />
-        {r.status === 'success' ? 'Success' : 'Failed'}
+        {r.status === 'success' ? (locale === 'ar' ? 'ناجح' : 'Success') : (locale === 'ar' ? 'فشل' : 'Failed')}
       </span>
     ) },
-    { key: 'cost', header: 'Cost', sortValue: r => r.cost, render: r => <span className="tabular-nums text-ink-200">EGP {r.cost.toFixed(2)}</span> },
-    { key: 'duration', header: 'Duration', sortValue: r => r.duration_ms, render: r => <span className="text-xs text-ink-400">{r.duration_ms}ms</span> },
-    { key: 'error', header: 'Error', render: r => r.error ? <span className="text-xs text-danger-400 truncate max-w-[160px] block">{r.error}</span> : <span className="text-ink-500">—</span> },
-    { key: 'date', header: 'Date', sortValue: r => r.created_at, render: r => <span className="text-xs text-ink-400">{dateTime(r.created_at)}</span> },
+    { key: 'cost', header: t('ai.th_cost'), sortValue: r => r.cost, render: r => <span className="tabular-nums text-ink-200">EGP {r.cost.toFixed(2)}</span> },
+    { key: 'duration', header: t('ai.th_duration'), sortValue: r => r.duration_ms, render: r => <span className="text-xs text-ink-400">{r.duration_ms}ms</span> },
+    { key: 'error', header: t('ai.th_error'), render: r => r.error ? <span className="text-xs text-danger-400 truncate max-w-[160px] block">{r.error}</span> : <span className="text-ink-500">—</span> },
+    { key: 'date', header: t('ai.th_date'), sortValue: r => r.created_at, render: r => <span className="text-xs text-ink-400">{dateTime(r.created_at)}</span> },
   ];
 
   return (
     <div>
-      <PageHeader title="AI Usage" description="Cross-product AI scan analytics" icon={<Sparkles className="w-5 h-5" />} />
+      <PageHeader title={t('ai.title')} description={t('ai.description')} icon={<Sparkles className="w-5 h-5" />} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KPICard label="Total Scans" value={summary.totalScans} format="num" icon={<Sparkles className="w-4 h-4" />} />
-        <KPICard label="Success Rate" value={summary.successRate} format="num" icon={<CheckCircle2 className="w-4 h-4" />} accent="success" />
-        <KPICard label="Failed" value={summary.failedCount} format="num" icon={<AlertCircle className="w-4 h-4" />} accent="danger" />
-        <KPICard label="Total Cost" value={summary.totalCost} format="egp" icon={<Wallet className="w-4 h-4" />} accent="warning" />
+        <KPICard label={t('ai.kpi_total_scans')} value={summary.totalScans} format="num" icon={<Sparkles className="w-4 h-4" />} />
+        <KPICard label={t('ai.kpi_success_rate')} value={summary.successRate} format="num" icon={<CheckCircle2 className="w-4 h-4" />} accent="success" />
+        <KPICard label={t('ai.kpi_failed')} value={summary.failedCount} format="num" icon={<AlertCircle className="w-4 h-4" />} accent="danger" />
+        <KPICard label={t('ai.kpi_total_cost')} value={summary.totalCost} format="egp" icon={<Wallet className="w-4 h-4" />} accent="warning" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-semibold text-ink-100">Cost Over Time</h3>
-              <p className="text-xs text-ink-400">Last 30 days</p>
+              <h3 className="text-sm font-semibold text-ink-100">{locale === 'ar' ? 'التكلفة عبر الوقت' : 'Cost Over Time'}</h3>
+              <p className="text-xs text-ink-400">{locale === 'ar' ? 'آخر 30 يوماً' : 'Last 30 days'}</p>
             </div>
             <TrendingUp className="w-4 h-4 text-ink-400" />
           </div>
           <LineChart data={summary.costOverTime.map(c => ({ date: c.date, value: c.cost }))} height={200} color={CHART_COLORS.warning} format={n => `EGP ${n}`} />
         </div>
         <div className="card p-5">
-          <h3 className="text-sm font-semibold text-ink-100 mb-4">Top Errors</h3>
+          <h3 className="text-sm font-semibold text-ink-100 mb-4">{locale === 'ar' ? 'أكثر الأخطاء تكراراً' : 'Top Errors'}</h3>
           <div className="space-y-3">
             {summary.topErrors.map((e, i) => (
               <div key={i} className="flex items-center gap-3">
@@ -109,7 +115,7 @@ export function AIUsage() {
       </div>
 
       <div className="card p-5 mb-6">
-        <h3 className="text-sm font-semibold text-ink-100 mb-4">Scans by Restaurant</h3>
+        <h3 className="text-sm font-semibold text-ink-100 mb-4">{locale === 'ar' ? 'المسح حسب المطعم' : 'Scans by Restaurant'}</h3>
         <BarChart
           data={summary.byRestaurant.map((r, i) => ({ label: r.name.split(' ').slice(0, 2).join(' '), value: r.scans, color: i % 2 === 0 ? CHART_COLORS.brand : CHART_COLORS.accent }))}
           height={220}
@@ -127,7 +133,7 @@ export function AIUsage() {
         perPage={10}
         total={total}
         onPageChange={setPage}
-        emptyTitle="No AI scans found"
+        emptyTitle={locale === 'ar' ? 'لا توجد عمليات مسح' : 'No AI scans found'}
       />
     </div>
   );

@@ -8,8 +8,10 @@ import { api } from '@/lib/api';
 import { PageHeader } from '@/components/Layout';
 import { CardSkeleton } from '@/components/Skeleton';
 import { ErrorState } from '@/components/EmptyState';
+import { useLocale } from '@/context/LocaleContext';
 
 export function Analytics() {
+  const { t, locale } = useLocale();
   const [product, setProduct] = useState<'all' | 'dawaty' | 'digital_menu'>('all');
   const [period, setPeriod] = useState<'24h' | '7d' | '30d'>('7d');
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,7 @@ export function Analytics() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Live Analytics & Behavior" subtitle="Loading metrics..." />
+        <PageHeader title={t('analytics.title')} subtitle={locale === 'ar' ? 'جاري التحميل...' : 'Loading metrics...'} />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <CardSkeleton /><CardSkeleton /><CardSkeleton /><CardSkeleton />
         </div>
@@ -78,7 +80,7 @@ export function Analytics() {
   if (error || !overview) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Live Analytics & Behavior" subtitle="System insights" />
+        <PageHeader title={t('analytics.title')} subtitle={locale === 'ar' ? 'تحليلات النظام' : 'System insights'} />
         <ErrorState onRetry={() => loadData()} />
       </div>
     );
@@ -92,12 +94,12 @@ export function Analytics() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Live Analytics & User Behavior"
-        subtitle="Real-time monitoring, conversion funnels, and peak traffic across Dawaty & Digital Menu"
+        title={t('analytics.title')}
+        subtitle={t('analytics.description')}
         badge={
           <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Live Firebase & GA4 Sync
+            {t('analytics.live_sync')}
           </span>
         }
       />
@@ -114,7 +116,7 @@ export function Analytics() {
                 : 'text-ink-400 hover:text-ink-200'
             }`}
           >
-            All Platforms
+            {t('analytics.all_platforms')}
           </button>
           <button
             onClick={() => setProduct('dawaty')}
@@ -151,7 +153,7 @@ export function Analytics() {
                   period === p ? 'bg-ink-800 text-ink-50' : 'text-ink-400 hover:text-ink-200'
                 }`}
               >
-                {p === '24h' ? '24 Hours' : p === '7d' ? '7 Days' : '30 Days'}
+                {p === '24h' ? t('analytics.hours_24') : p === '7d' ? t('analytics.days_7') : t('analytics.days_30')}
               </button>
             ))}
           </div>
@@ -160,7 +162,7 @@ export function Analytics() {
             onClick={() => loadData(true)}
             disabled={refreshing}
             className="p-2 rounded-xl bg-ink-950 border border-ink-800 text-ink-300 hover:text-white transition disabled:opacity-50"
-            title="Refresh analytics data"
+            title={t('analytics.refresh_tooltip')}
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
@@ -172,7 +174,7 @@ export function Analytics() {
         {/* Real-time Pulse Card */}
         <div className="relative overflow-hidden p-5 rounded-2xl bg-gradient-to-br from-emerald-950/40 via-ink-900 to-ink-950 border border-emerald-500/30 shadow-soft">
           <div className="flex items-center justify-between">
-            <span className="text-2xs font-semibold tracking-wider text-emerald-400 uppercase">Live Pulse</span>
+            <span className="text-2xs font-semibold tracking-wider text-emerald-400 uppercase">{t('analytics.live_pulse')}</span>
             <span className="relative flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
@@ -180,15 +182,15 @@ export function Analytics() {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-bold text-white font-mono">{overview.realtime_active}</span>
-            <span className="text-xs text-emerald-300/80">users active now</span>
+            <span className="text-xs text-emerald-300/80">{t('analytics.users_active_now')}</span>
           </div>
-          <p className="mt-1 text-2xs text-ink-400">Browsing invitations and menus in real-time</p>
+          <p className="mt-1 text-2xs text-ink-400">{t('analytics.browsing_realtime')}</p>
         </div>
 
         {/* Total Views */}
         <div className="p-5 rounded-2xl bg-ink-900/60 border border-ink-800/80 backdrop-blur-sm">
           <div className="flex items-center justify-between text-ink-400">
-            <span className="text-2xs font-semibold uppercase tracking-wider">Total Traffic / Views</span>
+            <span className="text-2xs font-semibold uppercase tracking-wider">{t('analytics.total_traffic')}</span>
             <Eye className="w-4 h-4 text-brand-400" />
           </div>
           <div className="mt-3 text-3xl font-bold text-white font-mono">
@@ -196,35 +198,35 @@ export function Analytics() {
           </div>
           <div className="mt-1 flex items-center gap-1.5 text-2xs text-emerald-400 font-medium">
             <TrendingUp className="w-3 h-3" />
-            <span>+14.2% vs previous period</span>
+            <span>{t('analytics.traffic_growth')}</span>
           </div>
         </div>
 
         {/* Total Interactions / RSVPs & Orders */}
         <div className="p-5 rounded-2xl bg-ink-900/60 border border-ink-800/80 backdrop-blur-sm">
           <div className="flex items-center justify-between text-ink-400">
-            <span className="text-2xs font-semibold uppercase tracking-wider">Confirmed Actions</span>
+            <span className="text-2xs font-semibold uppercase tracking-wider">{t('analytics.confirmed_actions')}</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="mt-3 text-3xl font-bold text-white font-mono">
             {metrics.total_interactions || 0}
           </div>
           <div className="mt-1 text-2xs text-ink-400">
-            RSVPs submitted & restaurant orders
+            {t('analytics.confirmed_actions_sub')}
           </div>
         </div>
 
         {/* Conversion Rate */}
         <div className="p-5 rounded-2xl bg-ink-900/60 border border-ink-800/80 backdrop-blur-sm">
           <div className="flex items-center justify-between text-ink-400">
-            <span className="text-2xs font-semibold uppercase tracking-wider">Conversion Rate</span>
+            <span className="text-2xs font-semibold uppercase tracking-wider">{t('analytics.conversion_rate')}</span>
             <Flame className="w-4 h-4 text-amber-400" />
           </div>
           <div className="mt-3 text-3xl font-bold text-white font-mono">
             {metrics.conversion_rate}%
           </div>
           <div className="mt-1 text-2xs text-ink-400">
-            Avg Duration: <strong className="text-ink-200">{metrics.avg_session_duration}</strong>
+            {t('analytics.avg_duration')}: <strong className="text-ink-200">{metrics.avg_session_duration}</strong>
           </div>
         </div>
       </div>
@@ -236,8 +238,8 @@ export function Analytics() {
           <div className="min-w-0 w-full">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-bold text-ink-50">Daily Engagement Trend</h3>
-                <p className="text-xs text-ink-400">Traffic volume across active wedding cards & restaurant menus</p>
+                <h3 className="text-base font-bold text-ink-50">{t('analytics.daily_trend')}</h3>
+                <p className="text-xs text-ink-400">{t('analytics.daily_trend_sub')}</p>
               </div>
               <div className="flex items-center gap-3 text-2xs font-medium">
                 <span className="flex items-center gap-1 text-rose-400">
@@ -288,8 +290,8 @@ export function Analytics() {
           </div>
 
           <div className="mt-4 pt-4 border-t border-ink-800/80 flex items-center justify-between text-2xs text-ink-400">
-            <span>مستخرجة مباشرة من قواعد بيانات المنصة الفعلية (100% Real Database Analytics)</span>
-            <span className="text-ink-300">Bounce rate: {metrics.bounce_rate}</span>
+            <span>{t('analytics.db_source_note')}</span>
+            <span className="text-ink-300">{t('analytics.bounce_rate')}: {metrics.bounce_rate}</span>
           </div>
         </div>
 
@@ -298,14 +300,14 @@ export function Analytics() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-bold text-ink-50">Peak Activity Hours</h3>
-                <p className="text-xs text-ink-400">24-Hour customer activity heatmap</p>
+                <h3 className="text-base font-bold text-ink-50">{t('analytics.peak_hours')}</h3>
+                <p className="text-xs text-ink-400">{t('analytics.peak_hours_sub')}</p>
               </div>
               <Clock className="w-4 h-4 text-brand-400" />
             </div>
 
             <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold mb-4">
-              🔥 {peakHours?.peak_period_summary || '7:00 PM – 11:00 PM (ذروة المساء)'}
+              {peakHours?.peak_period_summary || t('analytics.peak_period')}
             </div>
 
             <div className="space-y-1.5 max-h-52 overflow-y-auto no-scrollbar pr-1">
@@ -329,7 +331,7 @@ export function Analytics() {
           </div>
 
           <p className="mt-4 pt-4 border-t border-ink-800/80 text-2xs text-ink-400">
-            Helps restaurants forecast kitchen demand and wedding hosts track guest RSVP peaks.
+            {t('analytics.peak_forecast_note')}
           </p>
         </div>
       </div>
@@ -340,8 +342,8 @@ export function Analytics() {
         <div className="p-6 rounded-2xl bg-ink-900/60 border border-ink-800/80 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-base font-bold text-ink-50">Unified Conversion Funnel</h3>
-              <p className="text-xs text-ink-400">From first view to final completed action</p>
+              <h3 className="text-base font-bold text-ink-50">{t('analytics.funnel_title')}</h3>
+              <p className="text-xs text-ink-400">{t('analytics.funnel_sub')}</p>
             </div>
             <Award className="w-4 h-4 text-emerald-400" />
           </div>
@@ -365,7 +367,7 @@ export function Analytics() {
                 </div>
                 {idx > 0 && (
                   <div className="mt-1 text-right text-3xs text-rose-400 font-mono">
-                    Drop-off: {step.dropoff}
+                    {t('analytics.dropoff')}: {step.dropoff}
                   </div>
                 )}
               </div>
@@ -378,8 +380,8 @@ export function Analytics() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-bold text-ink-50">Top Performers Leaderboard</h3>
-                <p className="text-xs text-ink-400">Most engaged wedding templates & popular dishes</p>
+                <h3 className="text-base font-bold text-ink-50">{t('analytics.leaderboard_title')}</h3>
+                <p className="text-xs text-ink-400">{t('analytics.leaderboard_sub')}</p>
               </div>
               <Flame className="w-4 h-4 text-rose-400" />
             </div>
@@ -388,16 +390,16 @@ export function Analytics() {
               {/* Templates */}
               <div>
                 <h4 className="text-2xs font-bold text-rose-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5" /> Most Popular Wedding Templates
+                  <Heart className="w-3.5 h-3.5" /> {t('analytics.popular_templates')}
                 </h4>
                 <div className="space-y-2">
                   {(topPerformers?.top_templates || []).slice(0, 3).map((tpl: any, idx: number) => (
                     <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-ink-950/60 border border-ink-800/60 text-xs">
                       <span className="font-medium text-ink-200">{tpl.name}</span>
                       <div className="flex items-center gap-3">
-                        <span className="text-2xs text-ink-400 font-mono">{tpl.views} views</span>
+                        <span className="text-2xs text-ink-400 font-mono">{tpl.views} {t('analytics.views')}</span>
                         <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-400 text-2xs font-semibold">
-                          {tpl.conversion} RSVP
+                          {tpl.conversion} {t('analytics.rsvp')}
                         </span>
                       </div>
                     </div>
@@ -408,7 +410,7 @@ export function Analytics() {
               {/* Dishes */}
               <div>
                 <h4 className="text-2xs font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <UtensilsCrossed className="w-3.5 h-3.5" /> Most Viewed Menu Dishes
+                  <UtensilsCrossed className="w-3.5 h-3.5" /> {t('analytics.popular_dishes')}
                 </h4>
                 <div className="space-y-2">
                   {(topPerformers?.top_dishes || []).slice(0, 3).map((dish: any, idx: number) => (
@@ -418,7 +420,7 @@ export function Analytics() {
                         <span className="ml-2 text-3xs text-ink-400">({dish.category})</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-2xs text-ink-400 font-mono">{dish.views} views</span>
+                        <span className="text-2xs text-ink-400 font-mono">{dish.views} {t('analytics.views')}</span>
                         <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 text-2xs font-semibold">
                           ⭐ {dish.rating}
                         </span>
@@ -431,8 +433,8 @@ export function Analytics() {
           </div>
 
           <div className="mt-4 pt-4 border-t border-ink-800/80 flex items-center justify-between text-2xs text-ink-400">
-            <span>Devices: 58% Android • 36% iOS • 6% Web</span>
-            <span className="text-emerald-400 font-medium">Auto-synced</span>
+            <span>{t('analytics.devices_stat')}</span>
+            <span className="text-emerald-400 font-medium">{t('analytics.auto_synced')}</span>
           </div>
         </div>
       </div>

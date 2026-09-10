@@ -14,6 +14,7 @@ import { PageHeader } from '@/components/Layout';
 import { ProductBadge } from '@/components/Badge';
 import { egp, num, compactNum, timeAgo } from '@/lib/format';
 import type { PageKey } from '@/lib/rbac';
+import { useLocale } from '@/context/LocaleContext';
 
 const ACTIVITY_ICON: Record<string, React.ReactNode> = {
   payment_approved: <CheckCircle2 className="w-4 h-4 text-success-400" />,
@@ -25,6 +26,7 @@ const ACTIVITY_ICON: Record<string, React.ReactNode> = {
 };
 
 export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
+  const { t, locale } = useLocale();
   const [kpis, setKpis] = useState<OverviewKPIs | null>(null);
   const [revenue, setRevenue] = useState<RevenuePoint[]>([]);
   const [userGrowth, setUserGrowth] = useState<UserGrowthPoint[]>([]);
@@ -88,18 +90,18 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
   return (
     <div>
       <PageHeader
-        title="Overview"
-        description="Cross-product analytics for Dawaty and Digital Menu"
+        title={t('overview.title')}
+        description={t('overview.description')}
         actions={
           <div className="flex items-center gap-1 bg-ink-900 border border-ink-800 rounded-lg p-1">
             <button
               onClick={() => setPeriod(30)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${period === 30 ? 'bg-ink-700 text-ink-100' : 'text-ink-400 hover:text-ink-200'}`}
-            >30 days</button>
+            >{t('overview.period_30')}</button>
             <button
               onClick={() => setPeriod(90)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${period === 90 ? 'bg-ink-700 text-ink-100' : 'text-ink-400 hover:text-ink-200'}`}
-            >90 days</button>
+            >{t('overview.period_90')}</button>
           </div>
         }
       />
@@ -110,21 +112,21 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
           Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={i} />)
         ) : (
           <>
-            <KPICard label="Total Users" value={kpis.totalUsers} format="num" delta={kpis.deltas.totalUsers} icon={<Users className="w-4 h-4" />} />
-            <KPICard label="Active Users" value={kpis.activeUsers} format="num" delta={kpis.deltas.activeUsers} icon={<UserCheck className="w-4 h-4" />} accent="success" />
-            <KPICard label="Total Revenue" value={kpis.totalRevenue} format="compactEGP" delta={kpis.deltas.totalRevenue} icon={<Wallet className="w-4 h-4" />} />
+            <KPICard label={t('overview.total_users')} value={kpis.totalUsers} format="num" delta={kpis.deltas.totalUsers} icon={<Users className="w-4 h-4" />} />
+            <KPICard label={t('overview.active_users')} value={kpis.activeUsers} format="num" delta={kpis.deltas.activeUsers} icon={<UserCheck className="w-4 h-4" />} accent="success" />
+            <KPICard label={t('overview.total_revenue')} value={kpis.totalRevenue} format="compactEGP" delta={kpis.deltas.totalRevenue} icon={<Wallet className="w-4 h-4" />} />
             <KPICard
-              label="Pending Payments"
+              label={t('overview.pending_payments')}
               value={kpis.pendingPaymentsCount}
               format="num"
               delta={kpis.deltas.pendingPaymentsCount}
               icon={<Clock className="w-4 h-4" />}
               highlight
             />
-            <KPICard label="Pending Amount" value={kpis.pendingPaymentsAmount} format="egp" icon={<Wallet className="w-4 h-4" />} accent="warning" />
-            <KPICard label="Active Invitations" value={kpis.activeInvitations} format="num" delta={kpis.deltas.activeInvitations} icon={<Heart className="w-4 h-4" />} />
-            <KPICard label="Active Restaurants" value={kpis.activeRestaurants} format="num" delta={kpis.deltas.activeRestaurants} icon={<UtensilsCrossed className="w-4 h-4" />} />
-            <KPICard label="Revenue / Active" value={kpis.activeUsers > 0 ? Math.round(kpis.totalRevenue / kpis.activeUsers) : 0} format="egp" icon={<TrendingUp className="w-4 h-4" />} />
+            <KPICard label={t('overview.pending_amount')} value={kpis.pendingPaymentsAmount} format="egp" icon={<Wallet className="w-4 h-4" />} accent="warning" />
+            <KPICard label={t('overview.active_invitations')} value={kpis.activeInvitations} format="num" delta={kpis.deltas.activeInvitations} icon={<Heart className="w-4 h-4" />} />
+            <KPICard label={t('overview.active_restaurants')} value={kpis.activeRestaurants} format="num" delta={kpis.deltas.activeRestaurants} icon={<UtensilsCrossed className="w-4 h-4" />} />
+            <KPICard label={t('overview.revenue_per_active')} value={kpis.activeUsers > 0 ? Math.round(kpis.totalRevenue / kpis.activeUsers) : 0} format="egp" icon={<TrendingUp className="w-4 h-4" />} />
           </>
         )}
       </div>
@@ -134,8 +136,8 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
         <div className="card p-5 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-semibold text-ink-100">Revenue Trend</h3>
-              <p className="text-xs text-ink-400">Approved payments only · last {period} days</p>
+              <h3 className="text-sm font-semibold text-ink-100">{t('overview.revenue_trend')}</h3>
+              <p className="text-xs text-ink-400">{t('overview.revenue_sub', { period })}</p>
             </div>
             <span className="text-xs text-ink-400">EGP</span>
           </div>
@@ -144,8 +146,8 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
           )}
         </div>
         <div className="card p-5">
-          <h3 className="text-sm font-semibold text-ink-100 mb-1">User Growth</h3>
-          <p className="text-xs text-ink-400 mb-4">Total users over time</p>
+          <h3 className="text-sm font-semibold text-ink-100 mb-1">{t('overview.user_growth')}</h3>
+          <p className="text-xs text-ink-400 mb-4">{t('overview.user_growth_sub')}</p>
           {loading ? <div className="h-[200px] skeleton rounded-lg" /> : (
             <LineChart data={userGrowth.map(u => ({ date: u.date, value: u.total }))} height={200} color={CHART_COLORS.accent} format={(n) => compactNum(n)} />
           )}
@@ -155,7 +157,7 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
       {/* Comparison + Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="card p-5 lg:col-span-2">
-          <h3 className="text-sm font-semibold text-ink-100 mb-4">Product Comparison</h3>
+          <h3 className="text-sm font-semibold text-ink-100 mb-4">{t('overview.product_comparison')}</h3>
           {loading ? <div className="h-[200px] skeleton rounded-lg" /> : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {comparison.map(p => (
@@ -168,16 +170,16 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-2xs text-ink-400 uppercase tracking-wide">Users</p>
+                      <p className="text-2xs text-ink-400 uppercase tracking-wide">{t('overview.users')}</p>
                       <p className="text-xl font-bold text-ink-50 tabular-nums">{num(p.users)}</p>
                     </div>
                     <div>
-                      <p className="text-2xs text-ink-400 uppercase tracking-wide">Revenue</p>
+                      <p className="text-2xs text-ink-400 uppercase tracking-wide">{t('overview.revenue')}</p>
                       <p className="text-xl font-bold text-ink-50 tabular-nums">{egp(p.revenue)}</p>
                     </div>
                     <div className="pt-1">
                       <div className="flex items-center justify-between text-2xs text-ink-400 mb-1">
-                        <span>Revenue share</span>
+                        <span>{t('overview.revenue_share')}</span>
                         <span>{Math.round((p.revenue / comparison.reduce((s, x) => s + x.revenue, 0)) * 100)}%</span>
                       </div>
                       <div className="h-1.5 bg-ink-800 rounded-full overflow-hidden">
@@ -199,8 +201,8 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
 
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-ink-100">Recent Activity</h3>
-            <button onClick={() => onNavigate('finance')} className="text-2xs text-brand-400 hover:text-brand-300 font-medium">View all</button>
+            <h3 className="text-sm font-semibold text-ink-100">{t('overview.recent_activity')}</h3>
+            <button onClick={() => onNavigate('finance')} className="text-2xs text-brand-400 hover:text-brand-300 font-medium">{t('overview.view_all')}</button>
           </div>
           {loading ? (
             <div className="space-y-3">
@@ -228,12 +230,12 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-ink-400" />
-              <h3 className="text-sm font-semibold text-ink-100">Backend Health</h3>
+              <h3 className="text-sm font-semibold text-ink-100">{t('overview.backend_health')}</h3>
             </div>
             {healthUpdated && (
               <span className="text-2xs text-ink-500 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-success-400 animate-pulse" />
-                Last updated {healthAgo}s ago · auto-refreshes every 30s
+                {t('overview.health_updated', { sec: healthAgo })}
               </span>
             )}
           </div>
@@ -255,7 +257,7 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
                 </div>
                 <span className={`badge ${h.reachable ? 'bg-success-500/15 text-success-400 border border-success-500/30' : 'bg-danger-500/15 text-danger-400 border border-danger-500/30'}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${h.reachable ? 'bg-success-400 animate-pulse' : 'bg-danger-400'}`} />
-                  {h.reachable ? 'Online' : 'Offline'}
+                  {h.reachable ? t('overview.online') : t('overview.offline')}
                 </span>
               </div>
             ))}

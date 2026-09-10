@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { RoleProvider, useRole } from '@/context/RoleContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { LocaleProvider } from '@/context/LocaleContext';
 import { Layout } from '@/components/Layout';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -106,11 +107,13 @@ function AppInner() {
 
 function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <AppInner />
-      </ToastProvider>
-    </AuthProvider>
+    <LocaleProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <AppInner />
+        </ToastProvider>
+      </AuthProvider>
+    </LocaleProvider>
   );
 }
 

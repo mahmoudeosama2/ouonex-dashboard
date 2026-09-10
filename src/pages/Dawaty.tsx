@@ -17,8 +17,10 @@ import { CardSkeleton } from '@/components/Skeleton';
 import { ErrorState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/Layout';
 import { num, date, relativeDays } from '@/lib/format';
+import { useLocale } from '@/context/LocaleContext';
 
 export function Dawaty() {
+  const { t, locale } = useLocale();
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -167,15 +169,20 @@ export function Dawaty() {
 
   const filters: FilterItem[] = [
     {
-      type: 'select', label: 'Status', value: statusFilter,
-      options: [{ label: 'All', value: 'all' }, { label: 'Draft', value: 'draft' }, { label: 'Published', value: 'published' }, { label: 'Expired', value: 'expired' }],
+      type: 'select', label: t('dawaty.th_status'), value: statusFilter,
+      options: [
+        { label: t('dawaty.filter_all'), value: 'all' },
+        { label: t('dawaty.filter_draft'), value: 'draft' },
+        { label: t('dawaty.filter_published'), value: 'published' },
+        { label: t('dawaty.filter_expired'), value: 'expired' },
+      ],
       onChange: v => { setStatusFilter(v); setPage(1); },
     },
   ];
 
   const columns: Column<Invitation>[] = [
-    { key: 'couple', header: 'Couple', sortValue: r => r.couple_names, render: r => <span className="font-medium text-ink-100">{r.couple_names}</span> },
-    { key: 'slug', header: 'Live URL', render: r => (
+    { key: 'couple', header: t('dawaty.th_couple'), sortValue: r => r.couple_names, render: r => <span className="font-medium text-ink-100">{r.couple_names}</span> },
+    { key: 'slug', header: t('dawaty.th_live_url'), render: r => (
       r.status === 'published' ? (
         <a
           href={`https://${r.slug}.ouonex.com`}
@@ -190,38 +197,38 @@ export function Dawaty() {
         <span className="font-mono text-xs text-ink-600">{r.slug}.ouonex.com</span>
       )
     ) },
-    { key: 'status', header: 'Status', sortValue: r => r.status, render: r => <StatusBadge status={r.status} /> },
-    { key: 'template', header: 'Template', render: r => <span className="text-xs text-ink-300">{r.template}</span> },
-    { key: 'owner', header: 'Owner', sortValue: r => r.owner, render: r => <span className="text-xs text-ink-300">{r.owner}</span> },
-    { key: 'visits', header: 'Visits', sortValue: r => r.visit_count, render: r => <span className="tabular-nums text-ink-200">{num(r.visit_count)}</span> },
-    { key: 'rsvp', header: 'RSVP', render: r => <span className="text-xs"><span className="text-success-400">{r.rsvp_attending}</span> / <span className="text-danger-400">{r.rsvp_declined}</span> / <span className="text-ink-400">{r.rsvp_pending}</span></span> },
-    { key: 'created', header: 'Created', sortValue: r => r.created_at, render: r => <span className="text-xs text-ink-400">{date(r.created_at)}</span> },
+    { key: 'status', header: t('dawaty.th_status'), sortValue: r => r.status, render: r => <StatusBadge status={r.status} /> },
+    { key: 'template', header: t('dawaty.th_template'), render: r => <span className="text-xs text-ink-300">{r.template}</span> },
+    { key: 'owner', header: t('dawaty.th_owner'), sortValue: r => r.owner, render: r => <span className="text-xs text-ink-300">{r.owner}</span> },
+    { key: 'visits', header: t('dawaty.th_visits'), sortValue: r => r.visit_count, render: r => <span className="tabular-nums text-ink-200">{num(r.visit_count)}</span> },
+    { key: 'rsvp', header: t('dawaty.th_rsvp'), render: r => <span className="text-xs"><span className="text-success-400">{r.rsvp_attending}</span> / <span className="text-danger-400">{r.rsvp_declined}</span> / <span className="text-ink-400">{r.rsvp_pending}</span></span> },
+    { key: 'created', header: t('dawaty.th_created'), sortValue: r => r.created_at, render: r => <span className="text-xs text-ink-400">{date(r.created_at)}</span> },
   ];
 
   return (
     <div>
-      <PageHeader title="Dawaty" description="Wedding invitations platform" icon={<Heart className="w-5 h-5" />} />
+      <PageHeader title={t('dawaty.title')} description={t('dawaty.description')} icon={<Heart className="w-5 h-5" />} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {loading && !kpis.total ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />) : (
           <>
-            <KPICard label="Total Invitations" value={kpis.total} format="num" icon={<FileText className="w-4 h-4" />} />
-            <KPICard label="Published" value={kpis.published} format="num" icon={<Heart className="w-4 h-4" />} accent="success" />
-            <KPICard label="Total Visits" value={kpis.visits} format="compactNum" icon={<Eye className="w-4 h-4" />} />
-            <KPICard label="RSVPs (attending)" value={kpis.rsvp} format="num" icon={<Users className="w-4 h-4" />} accent="success" />
+            <KPICard label={t('dawaty.kpi_total')} value={kpis.total} format="num" icon={<FileText className="w-4 h-4" />} />
+            <KPICard label={t('dawaty.kpi_published')} value={kpis.published} format="num" icon={<Heart className="w-4 h-4" />} accent="success" />
+            <KPICard label={t('dawaty.kpi_visits')} value={kpis.visits} format="compactNum" icon={<Eye className="w-4 h-4" />} />
+            <KPICard label={t('dawaty.kpi_rsvp')} value={kpis.rsvp} format="num" icon={<Users className="w-4 h-4" />} accent="success" />
           </>
         )}
       </div>
 
       {/* Funnel widget */}
       <div className="card p-5 mb-6">
-        <h3 className="text-sm font-semibold text-ink-100 mb-4">Invitation Funnel</h3>
+        <h3 className="text-sm font-semibold text-ink-100 mb-4">{t('dawaty.funnel_title')}</h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: 'Created', value: kpis.total || 0, icon: <FileText className="w-4 h-4" />, color: 'bg-ink-700' },
-            { label: 'Published', value: kpis.published || 0, icon: <Heart className="w-4 h-4" />, color: 'bg-accent-600' },
-            { label: 'Viewed', value: kpis.visits || 0, icon: <Eye className="w-4 h-4" />, color: 'bg-brand-600' },
-            { label: 'RSVP Submitted', value: kpis.rsvp || 0, icon: <Users className="w-4 h-4" />, color: 'bg-success-600' },
+            { label: t('dawaty.funnel_created'), value: kpis.total || 0, icon: <FileText className="w-4 h-4" />, color: 'bg-ink-700' },
+            { label: t('dawaty.funnel_published'), value: kpis.published || 0, icon: <Heart className="w-4 h-4" />, color: 'bg-accent-600' },
+            { label: t('dawaty.funnel_viewed'), value: kpis.visits || 0, icon: <Eye className="w-4 h-4" />, color: 'bg-brand-600' },
+            { label: t('dawaty.funnel_rsvp'), value: kpis.rsvp || 0, icon: <Users className="w-4 h-4" />, color: 'bg-success-600' },
           ].map((s, i) => (
             <div key={i} className="relative">
               <div className="rounded-xl2 border border-ink-800 p-4 bg-ink-950/50">
@@ -245,7 +252,7 @@ export function Dawaty() {
           className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-ink-900 hover:bg-ink-800 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 shadow-soft transition self-end sm:self-auto"
         >
           <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-          <span>Export to Excel (CSV)</span>
+          <span>{t('dawaty.export_excel')}</span>
         </button>
       </div>
 
@@ -255,7 +262,7 @@ export function Dawaty() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
             <span className="text-xs font-semibold text-ink-100">
-              {selectedIds.length} {selectedIds.length === 1 ? 'invitation' : 'invitations'} selected
+              {t('dawaty.selected_count', { count: selectedIds.length })}
             </span>
           </div>
 
@@ -264,7 +271,7 @@ export function Dawaty() {
               onClick={() => setSelectedIds([])}
               className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white transition"
             >
-              Clear
+              {t('dawaty.clear_selection')}
             </button>
             <button
               onClick={handleBulkDelete}
@@ -272,7 +279,7 @@ export function Dawaty() {
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition shadow-sm disabled:opacity-50"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              {deleting ? 'Deleting...' : `Delete Selected (${selectedIds.length})`}
+              {deleting ? (locale === 'ar' ? 'جاري الحذف...' : 'Deleting...') : t('dawaty.delete_selected', { count: selectedIds.length })}
             </button>
           </div>
         </div>
@@ -290,8 +297,8 @@ export function Dawaty() {
         selectedIds={selectedIds}
         onSelectRow={handleSelectRow}
         onSelectAll={handleSelectAll}
-        emptyTitle="No invitations found"
-        emptyMessage="Try adjusting your status filter."
+        emptyTitle={t('dawaty.empty_title')}
+        emptyMessage={t('dawaty.empty_desc')}
       />
 
       <Drawer
@@ -331,6 +338,7 @@ function InvitationDetail({
   onUpdated: (updated: Partial<Invitation>) => void;
   onDelete: () => void;
 }) {
+  const { locale, t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
@@ -422,7 +430,7 @@ function InvitationDetail({
               className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-ink-800 hover:bg-ink-700 text-ink-200 hover:text-white border border-ink-700 transition"
             >
               {isEditing ? <X className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
-              {isEditing ? 'Cancel' : 'Edit Details'}
+              {isEditing ? (locale === 'ar' ? 'إلغاء' : 'Cancel') : (locale === 'ar' ? 'تعديل البيانات' : 'Edit Details')}
             </button>
 
             <button
@@ -437,17 +445,17 @@ function InvitationDetail({
               {toggling ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Updating...
+                  {locale === 'ar' ? 'جاري التحديث...' : 'Updating...'}
                 </>
               ) : isPublished ? (
                 <>
                   <PauseCircle className="w-3.5 h-3.5 text-amber-400" />
-                  Deactivate
+                  {locale === 'ar' ? 'تعطيل' : 'Deactivate'}
                 </>
               ) : (
                 <>
                   <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-                  Activate & Publish
+                  {locale === 'ar' ? 'تفعيل ونشر' : 'Activate & Publish'}
                 </>
               )}
             </button>
@@ -459,14 +467,14 @@ function InvitationDetail({
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition-colors"
               >
-                Live <ExternalLink className="w-3 h-3" />
+                {locale === 'ar' ? 'معاينة مباشرة' : 'Live'} <ExternalLink className="w-3 h-3" />
               </a>
             )}
 
             <button
               onClick={onDelete}
               className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition"
-              title="Delete Invitation"
+              title={locale === 'ar' ? 'حذف الدعوة' : 'Delete Invitation'}
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -484,11 +492,13 @@ function InvitationDetail({
       {/* Edit Form */}
       {isEditing && (
         <form onSubmit={handleSave} className="p-4 rounded-xl bg-ink-950/80 border border-ink-800/80 space-y-3 animate-fade-in">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400">Edit Invitation & Event Data</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400">
+            {locale === 'ar' ? 'تعديل بيانات الدعوة والمناسبة' : 'Edit Invitation & Event Data'}
+          </h4>
           
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">Groom Name (اسم العريس)</label>
+              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'اسم العريس' : 'Groom Name'}</label>
               <input
                 type="text"
                 required
@@ -498,7 +508,7 @@ function InvitationDetail({
               />
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">Bride Name (اسم العروس)</label>
+              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'اسم العروس' : 'Bride Name'}</label>
               <input
                 type="text"
                 required
@@ -511,7 +521,7 @@ function InvitationDetail({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">Wedding Date</label>
+              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'تاريخ الزفاف' : 'Wedding Date'}</label>
               <input
                 type="date"
                 required
@@ -521,7 +531,7 @@ function InvitationDetail({
               />
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">Time (الوقت)</label>
+              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'الوقت' : 'Time'}</label>
               <input
                 type="text"
                 value={formData.time}
@@ -533,7 +543,7 @@ function InvitationDetail({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">Venue Name (القاعة)</label>
+              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'اسم القاعة' : 'Venue Name'}</label>
               <input
                 type="text"
                 value={formData.venue_name}
@@ -542,7 +552,7 @@ function InvitationDetail({
               />
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">Venue Address / Maps</label>
+              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'عنوان القاعة / الخريطة' : 'Venue Address / Maps'}</label>
               <input
                 type="text"
                 value={formData.venue_address}
@@ -554,35 +564,35 @@ function InvitationDetail({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">Design Template</label>
+              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'قالب التصميم' : 'Design Template'}</label>
               <select
                 value={formData.template_id}
                 onChange={e => setFormData({ ...formData, template_id: e.target.value })}
                 className="input w-full text-xs bg-ink-950"
               >
-                <option value="envelope_romantic">المغلف الرومانسي (Romantic Envelope)</option>
-                <option value="royal_gold">الملكي الذهبي (Royal Gold)</option>
-                <option value="emerald_royal">الزمرد الملكي (Emerald Royal)</option>
-                <option value="classic_pearl">اللؤلؤي الكلاسيكي (Classic Pearl)</option>
+                <option value="envelope_romantic">{locale === 'ar' ? 'المغلف الرومانسي' : 'Romantic Envelope'}</option>
+                <option value="royal_gold">{locale === 'ar' ? 'الملكي الذهبي' : 'Royal Gold'}</option>
+                <option value="emerald_royal">{locale === 'ar' ? 'الزمرد الملكي' : 'Emerald Royal'}</option>
+                <option value="classic_pearl">{locale === 'ar' ? 'اللؤلؤي الكلاسيكي' : 'Classic Pearl'}</option>
               </select>
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">Status</label>
+              <label className="block text-2xs text-ink-400 mb-1">{t('common.status')}</label>
               <select
                 value={formData.status}
                 onChange={e => setFormData({ ...formData, status: e.target.value })}
                 className="input w-full text-xs bg-ink-950"
               >
-                <option value="published">Published (منشورة ونشطة)</option>
-                <option value="draft">Draft (مسودة)</option>
-                <option value="inactive">Inactive (متوقفة)</option>
-                <option value="expired">Expired (منتهية)</option>
+                <option value="published">{locale === 'ar' ? 'منشورة ونشطة' : 'Published'}</option>
+                <option value="draft">{locale === 'ar' ? 'مسودة' : 'Draft'}</option>
+                <option value="inactive">{locale === 'ar' ? 'متوقفة' : 'Inactive'}</option>
+                <option value="expired">{locale === 'ar' ? 'منتهية' : 'Expired'}</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="block text-2xs text-ink-400 mb-1">URL Slug</label>
+            <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'الرابط المخصص (Slug)' : 'URL Slug'}</label>
             <input
               type="text"
               required
@@ -598,7 +608,7 @@ function InvitationDetail({
               onClick={() => setIsEditing(false)}
               className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white"
             >
-              Cancel
+              {locale === 'ar' ? 'إلغاء' : 'Cancel'}
             </button>
             <button
               type="submit"
@@ -606,7 +616,7 @@ function InvitationDetail({
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 text-white hover:bg-rose-500 transition disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? (locale === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (locale === 'ar' ? 'حفظ التعديلات' : 'Save Changes')}
             </button>
           </div>
         </form>
@@ -614,29 +624,31 @@ function InvitationDetail({
 
       {/* Basic Info Overview */}
       <div className="grid grid-cols-2 gap-3">
-        <Stat label="Visits" value={num(inv.visit_count || 0)} icon={<Eye className="w-4 h-4" />} />
-        <Stat label="QR Scans" value={num(inv.qr_scan_count || 0)} icon={<QrCode className="w-4 h-4" />} />
-        <Stat label="Guests" value={num(inv.guest_count || 0)} icon={<Users className="w-4 h-4" />} />
-        <Stat label="Owner" value={inv.owner || 'Unknown'} icon={<Heart className="w-4 h-4" />} />
+        <Stat label={locale === 'ar' ? 'الزيارات' : 'Visits'} value={num(inv.visit_count || 0)} icon={<Eye className="w-4 h-4" />} />
+        <Stat label={locale === 'ar' ? 'مسح الباركود' : 'QR Scans'} value={num(inv.qr_scan_count || 0)} icon={<QrCode className="w-4 h-4" />} />
+        <Stat label={locale === 'ar' ? 'المدعوون' : 'Guests'} value={num(inv.guest_count || 0)} icon={<Users className="w-4 h-4" />} />
+        <Stat label={locale === 'ar' ? 'المالك' : 'Owner'} value={inv.owner || '—'} icon={<Heart className="w-4 h-4" />} />
       </div>
 
       {/* Wedding Details */}
       <div className="rounded-xl border border-ink-800 bg-ink-950/60 p-4 space-y-3">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-400">Event Details</h4>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-400">
+          {locale === 'ar' ? 'تفاصيل المناسبة' : 'Event Details'}
+        </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           {(extra.groom_name || extra.bride_name) && (
             <div>
-              <span className="text-ink-500 block mb-0.5">Couple</span>
+              <span className="text-ink-500 block mb-0.5">{locale === 'ar' ? 'العروسان' : 'Couple'}</span>
               <span className="text-ink-100 font-medium">{extra.groom_name || '—'} & {extra.bride_name || '—'}</span>
             </div>
           )}
           <div>
-            <span className="text-ink-500 block mb-0.5">Template</span>
+            <span className="text-ink-500 block mb-0.5">{locale === 'ar' ? 'القالب' : 'Template'}</span>
             <span className="text-ink-200 font-mono">{inv.template}</span>
           </div>
           {inv.event_date && (
             <div>
-              <span className="text-ink-500 block mb-0.5">Event Date</span>
+              <span className="text-ink-500 block mb-0.5">{locale === 'ar' ? 'تاريخ المناسبة' : 'Event Date'}</span>
               <span className="text-ink-200 flex items-center gap-1">
                 <Calendar className="w-3 h-3 text-ink-400" />
                 {date(inv.event_date)} ({relativeDays(inv.event_date)})
@@ -645,7 +657,7 @@ function InvitationDetail({
           )}
           {extra.venue_name && (
             <div>
-              <span className="text-ink-500 block mb-0.5">Venue</span>
+              <span className="text-ink-500 block mb-0.5">{locale === 'ar' ? 'مكان الحفل' : 'Venue'}</span>
               <span className="text-ink-200 flex items-center gap-1">
                 <MapPin className="w-3 h-3 text-ink-400" />
                 {extra.venue_name}
@@ -657,18 +669,22 @@ function InvitationDetail({
 
       {/* RSVP Breakdown */}
       <div>
-        <h4 className="text-sm font-semibold text-ink-100 mb-3">RSVP Breakdown</h4>
+        <h4 className="text-sm font-semibold text-ink-100 mb-3">
+          {locale === 'ar' ? 'توزيع تأكيدات الحضور' : 'RSVP Breakdown'}
+        </h4>
         <div className="space-y-2">
-          <RSVPRRow label="Attending" value={inv.rsvp_attending || 0} total={total_rsvp} color="bg-success-500" />
-          <RSVPRRow label="Declined" value={inv.rsvp_declined || 0} total={total_rsvp} color="bg-danger-500" />
-          <RSVPRRow label="Pending" value={inv.rsvp_pending || 0} total={total_rsvp} color="bg-ink-500" />
+          <RSVPRRow label={locale === 'ar' ? 'حاضر' : 'Attending'} value={inv.rsvp_attending || 0} total={total_rsvp} color="bg-success-500" />
+          <RSVPRRow label={locale === 'ar' ? 'معتذر' : 'Declined'} value={inv.rsvp_declined || 0} total={total_rsvp} color="bg-danger-500" />
+          <RSVPRRow label={locale === 'ar' ? 'معلق' : 'Pending'} value={inv.rsvp_pending || 0} total={total_rsvp} color="bg-ink-500" />
         </div>
       </div>
 
       {/* Visits Over Time Chart */}
       {inv.visits_over_time && inv.visits_over_time.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-ink-100 mb-3">Visits (Last 30 Days)</h4>
+          <h4 className="text-sm font-semibold text-ink-100 mb-3">
+            {locale === 'ar' ? 'الزيارات (آخر 30 يوماً)' : 'Visits (Last 30 Days)'}
+          </h4>
           <LineChart 
             data={inv.visits_over_time.map(v => ({ date: v.date, value: v.count }))} 
             height={160} 
@@ -681,7 +697,9 @@ function InvitationDetail({
       {/* Guest list preview if available */}
       {extra.guests && Array.isArray(extra.guests) && extra.guests.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-ink-100 mb-3">Guest List ({extra.guests.length})</h4>
+          <h4 className="text-sm font-semibold text-ink-100 mb-3">
+            {locale === 'ar' ? `قائمة المدعوين (${extra.guests.length})` : `Guest List (${extra.guests.length})`}
+          </h4>
           <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
             {extra.guests.map((g: any, idx: number) => (
               <div key={g.id || idx} className="flex items-center justify-between p-2 rounded-lg bg-ink-900 border border-ink-800 text-xs">

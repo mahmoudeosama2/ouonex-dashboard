@@ -12,8 +12,10 @@ import { ErrorState, EmptyState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/Layout';
 import { egp, date, timeAgo } from '@/lib/format';
 import { exportToCsv } from '@/lib/exportCsv';
+import { useLocale } from '@/context/LocaleContext';
 
 export function UsersPage() {
+  const { t, locale } = useLocale();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<UserSearchResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,8 +40,8 @@ export function UsersPage() {
   }, [query, page]);
 
   useEffect(() => {
-    const t = setTimeout(load, 300);
-    return () => clearTimeout(t);
+    const tTimer = setTimeout(load, 300);
+    return () => clearTimeout(tTimer);
   }, [load]);
 
   const handleRowClick = async (u: UserSearchResult) => {
@@ -70,10 +72,10 @@ export function UsersPage() {
     exportToCsv('ouonex_users_database', headers, data);
   };
 
-  if (error) return <ErrorState message="Failed to load users." onRetry={load} />;
+  if (error) return <ErrorState message={locale === 'ar' ? 'فشل تحميل قائمة المستخدمين.' : 'Failed to load users.'} onRetry={load} />;
 
   const columns: Column<UserSearchResult>[] = [
-    { key: 'name', header: 'Name', sortValue: r => r.name, render: r => (
+    { key: 'name', header: t('users.th_name'), sortValue: r => r.name, render: r => (
       <div className="flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-full bg-ink-700 flex items-center justify-center text-xs font-semibold text-ink-200">
           {r.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
@@ -81,18 +83,18 @@ export function UsersPage() {
         <span className="font-medium text-ink-100">{r.name}</span>
       </div>
     ) },
-    { key: 'email', header: 'Email', sortValue: r => r.email, render: r => <span className="text-xs text-ink-400">{r.email}</span> },
-    { key: 'products', header: 'Products', render: r => (
+    { key: 'email', header: locale === 'ar' ? 'البريد الإلكتروني' : 'Email', sortValue: r => r.email, render: r => <span className="text-xs text-ink-400">{r.email}</span> },
+    { key: 'products', header: t('users.th_products'), render: r => (
       <div className="flex flex-wrap gap-1">{r.products.map(p => <ProductBadge key={p} product={p} />)}</div>
     ) },
-    { key: 'payments', header: 'Payments', sortValue: r => r.payment_count, render: r => <span className="tabular-nums text-ink-200">{r.payment_count}</span> },
-    { key: 'pending', header: 'Pending', sortValue: r => r.pending_count, render: r => r.pending_count > 0 ? <span className="badge bg-warning-500/15 text-warning-400 border border-warning-500/30">{r.pending_count}</span> : <span className="text-ink-500">—</span> },
-    { key: 'joined', header: 'Joined', sortValue: r => r.joined_at, render: r => <span className="text-xs text-ink-400">{date(r.joined_at)}</span> },
+    { key: 'payments', header: t('users.th_payments'), sortValue: r => r.payment_count, render: r => <span className="tabular-nums text-ink-200">{r.payment_count}</span> },
+    { key: 'pending', header: t('overview.pending_payments'), sortValue: r => r.pending_count, render: r => r.pending_count > 0 ? <span className="badge bg-warning-500/15 text-warning-400 border border-warning-500/30">{r.pending_count}</span> : <span className="text-ink-500">—</span> },
+    { key: 'joined', header: t('users.th_joined'), sortValue: r => r.joined_at, render: r => <span className="text-xs text-ink-400">{date(r.joined_at)}</span> },
   ];
 
   return (
     <div>
-      <PageHeader title="Users Management" description="Global control and profile management across Dawaty and Digital Menu" icon={<UsersIcon className="w-5 h-5" />} />
+      <PageHeader title={t('users.title')} description={t('users.description')} icon={<UsersIcon className="w-5 h-5" />} />
 
       {/* Toolbar: Search & Export */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
@@ -102,7 +104,7 @@ export function UsersPage() {
             type="text"
             value={query}
             onChange={e => { setQuery(e.target.value); setPage(1); }}
-            placeholder="Search by name or email..."
+            placeholder={t('users.search_placeholder')}
             className="input pl-9 w-full"
           />
         </div>
@@ -112,7 +114,7 @@ export function UsersPage() {
           className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-ink-900 hover:bg-ink-800 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 shadow-soft transition"
         >
           <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-          <span>Export to Excel (CSV)</span>
+          <span>{locale === 'ar' ? 'تصدير إلى Excel (CSV)' : 'Export to Excel (CSV)'}</span>
         </button>
       </div>
 
@@ -125,8 +127,8 @@ export function UsersPage() {
         perPage={10}
         total={total}
         onPageChange={setPage}
-        emptyTitle={query ? 'No users found' : 'Start searching'}
-        emptyMessage={query ? 'Try a different name or email.' : 'Type a name or email to search across all products.'}
+        emptyTitle={query ? t('users.empty_title') : (locale === 'ar' ? 'ابدأ البحث' : 'Start searching')}
+        emptyMessage={query ? t('users.empty_desc') : (locale === 'ar' ? 'اكتب اسماً أو بريداً للبحث في كافة المنتجات.' : 'Type a name or email to search across all products.')}
       />
 
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={selected?.name ?? 'User'} subtitle={selected?.email}>
@@ -137,6 +139,7 @@ export function UsersPage() {
 }
 
 function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u: Partial<UserSearchResult>) => void }) {
+  const { locale } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [impersonating, setImpersonating] = useState(false);
@@ -178,10 +181,10 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
 
       await api.users.update(user.id, payload);
       onUpdated({ name: formData.name, email: formData.email });
-      setSuccessMsg('User updated successfully!');
+      setSuccessMsg(locale === 'ar' ? 'تم تحديث المستخدم بنجاح!' : 'User updated successfully!');
       setIsEditing(false);
-    } catch (err) {
-      alert('Failed to update user. Please try again.');
+    } catch {
+      alert(locale === 'ar' ? 'فشل تحديث المستخدم. يرجى المحاولة ثانية.' : 'Failed to update user. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -192,8 +195,8 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
     try {
       const res = await api.users.impersonate(user.id);
       setImpersonationModal(res.data);
-    } catch (err) {
-      alert('Failed to generate impersonation token for this user.');
+    } catch {
+      alert(locale === 'ar' ? 'فشل إنشاء جلسة تسجيل الدخول لهذا المستخدم.' : 'Failed to generate impersonation token for this user.');
     } finally {
       setImpersonating(false);
     }
@@ -224,10 +227,10 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
             onClick={handleImpersonate}
             disabled={impersonating}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition disabled:opacity-50"
-            title="Login as this user"
+            title={locale === 'ar' ? 'دخول كالمستخدم' : 'Login as this user'}
           >
             <LogIn className="w-3.5 h-3.5" />
-            <span>{impersonating ? 'Connecting...' : 'Login As'}</span>
+            <span>{impersonating ? (locale === 'ar' ? 'جاري الاتصال...' : 'Connecting...') : (locale === 'ar' ? 'دخول كالمستخدم' : 'Login As')}</span>
           </button>
 
           <button
@@ -235,7 +238,7 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-ink-800 text-ink-200 hover:bg-ink-700 hover:text-white transition"
           >
             {isEditing ? <X className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
-            {isEditing ? 'Cancel' : 'Edit'}
+            {isEditing ? (locale === 'ar' ? 'إلغاء' : 'Cancel') : (locale === 'ar' ? 'تعديل' : 'Edit')}
           </button>
         </div>
       </div>
@@ -245,14 +248,14 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
         <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-3 animate-fade-in">
           <div className="flex items-center justify-between">
             <span className="font-bold text-amber-300 flex items-center gap-1.5">
-              <LogIn className="w-4 h-4" /> Impersonation Active (تسجيل دخول كالمستخدم)
+              <LogIn className="w-4 h-4" /> {locale === 'ar' ? 'جلسة تقمص نشطة للمستخدم' : 'Impersonation Active'}
             </span>
             <button onClick={() => setImpersonationModal(null)} className="text-ink-400 hover:text-white">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
           <p className="text-2xs text-ink-300">
-            You are authenticated as <strong>{impersonationModal.user?.name}</strong> ({impersonationModal.user?.email}).
+            {locale === 'ar' ? 'تم تسجيل الدخول بنجاح بحساب' : 'You are authenticated as'} <strong>{impersonationModal.user?.name}</strong> ({impersonationModal.user?.email}).
           </p>
           <div className="flex items-center gap-2 p-2 rounded-lg bg-ink-950/80 border border-ink-800">
             <span className="font-mono text-3xs text-ink-400 truncate flex-1">{impersonationModal.impersonation_token}</span>
@@ -261,7 +264,7 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
               className="flex items-center gap-1 text-3xs text-brand-400 hover:text-brand-300 shrink-0 font-medium"
             >
               {copiedToken ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-              {copiedToken ? 'Copied' : 'Copy Token'}
+              {copiedToken ? (locale === 'ar' ? 'تم النسخ' : 'Copied') : (locale === 'ar' ? 'نسخ الرمز' : 'Copy Token')}
             </button>
           </div>
         </div>
@@ -277,9 +280,11 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
       {/* Edit Form */}
       {isEditing ? (
         <form onSubmit={handleSave} className="p-4 rounded-xl bg-ink-950/80 border border-ink-800/80 space-y-3 animate-fade-in">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-brand-400">Edit Profile & Credentials</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-brand-400">
+            {locale === 'ar' ? 'تعديل الملف الشخصي والبيانات' : 'Edit Profile & Credentials'}
+          </h4>
           <div>
-            <label className="block text-2xs text-ink-400 mb-1">Full Name</label>
+            <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'الاسم الكامل' : 'Full Name'}</label>
             <input
               type="text"
               required
@@ -290,7 +295,7 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
           </div>
 
           <div>
-            <label className="block text-2xs text-ink-400 mb-1">Email Address</label>
+            <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
             <input
               type="email"
               required
@@ -301,25 +306,25 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
           </div>
 
           <div>
-            <label className="block text-2xs text-ink-400 mb-1">Account Status</label>
+            <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'حالة الحساب' : 'Account Status'}</label>
             <select
               value={formData.status}
               onChange={e => setFormData({ ...formData, status: e.target.value })}
               className="input w-full text-xs bg-ink-950"
             >
-              <option value="active">Active (نشط)</option>
-              <option value="suspended">Suspended (معلق)</option>
-              <option value="banned">Banned (محظور)</option>
+              <option value="active">{locale === 'ar' ? 'نشط' : 'Active'}</option>
+              <option value="suspended">{locale === 'ar' ? 'معلق' : 'Suspended'}</option>
+              <option value="banned">{locale === 'ar' ? 'محظور' : 'Banned'}</option>
             </select>
           </div>
 
           <div>
             <label className="block text-2xs text-ink-400 mb-1 flex items-center gap-1">
-              <Key className="w-3 h-3 text-warning-400" /> Reset Password (leave blank to keep current)
+              <Key className="w-3 h-3 text-warning-400" /> {locale === 'ar' ? 'إعادة تعيين كلمة المرور (اتركه فارغاً للإبقاء على الحالية)' : 'Reset Password (leave blank to keep current)'}
             </label>
             <input
               type="password"
-              placeholder="Enter new password"
+              placeholder={locale === 'ar' ? 'أدخل كلمة المرور الجديدة' : 'Enter new password'}
               value={formData.password}
               onChange={e => setFormData({ ...formData, password: e.target.value })}
               className="input w-full text-xs"
@@ -332,7 +337,7 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
               onClick={() => setIsEditing(false)}
               className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white"
             >
-              Cancel
+              {locale === 'ar' ? 'إلغاء' : 'Cancel'}
             </button>
             <button
               type="submit"
@@ -340,22 +345,26 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white hover:bg-brand-500 transition disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? (locale === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (locale === 'ar' ? 'حفظ التعديلات' : 'Save Changes')}
             </button>
           </div>
         </form>
       ) : null}
 
       <div>
-        <h4 className="text-sm font-semibold text-ink-100 mb-2">Products</h4>
+        <h4 className="text-sm font-semibold text-ink-100 mb-2">{locale === 'ar' ? 'المنتجات' : 'Products'}</h4>
         <div className="flex flex-wrap gap-2">{user.products.map(p => <ProductBadge key={p} product={p} />)}</div>
       </div>
 
       <div>
-        <h4 className="text-sm font-semibold text-ink-100 mb-3">Payment History</h4>
+        <h4 className="text-sm font-semibold text-ink-100 mb-3">{locale === 'ar' ? 'سجل المدفوعات' : 'Payment History'}</h4>
         {user.payments.length === 0 ? (
           <div className="rounded-lg border border-ink-800 bg-ink-950/50 p-4">
-            <EmptyState icon={<Wallet className="w-5 h-5" />} title="No payments" message="This user has no payment history." />
+            <EmptyState
+              icon={<Wallet className="w-5 h-5" />}
+              title={locale === 'ar' ? 'لا توجد دفعات' : 'No payments'}
+              message={locale === 'ar' ? 'لا يوجد سجل مدفوعات لهذا المستخدم.' : 'This user has no payment history.'}
+            />
           </div>
         ) : (
           <div className="space-y-2">
@@ -377,7 +386,7 @@ function UserDetail({ user, onUpdated }: { user: UserSearchResult; onUpdated: (u
       </div>
 
       <div>
-        <h4 className="text-sm font-semibold text-ink-100 mb-3">Activity Timeline</h4>
+        <h4 className="text-sm font-semibold text-ink-100 mb-3">{locale === 'ar' ? 'سجل النشاط' : 'Activity Timeline'}</h4>
         <div className="space-y-3">
           {user.activity.map((a, i) => (
             <div key={i} className="flex items-start gap-3">

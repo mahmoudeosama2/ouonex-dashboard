@@ -6,6 +6,7 @@ import {
 import { PageHeader } from '@/components/Layout';
 import { KPICard } from '@/components/KPICard';
 import { useToast } from '@/context/ToastContext';
+import { useLocale } from '@/context/LocaleContext';
 import { api } from '@/lib/api';
 import { timeAgo } from '@/lib/format';
 
@@ -23,6 +24,7 @@ interface QrStats {
 
 export function QrMe() {
   const toast = useToast();
+  const { t } = useLocale();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -125,8 +127,8 @@ export function QrMe() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="QR Me — Custom Barcode & QR Suite"
-        description="Monitor QR generator metrics, user exports, and manage the dynamic in-app paywall."
+        title={t('qr.title')}
+        description={t('qr.description')}
         icon={<QrCode className="w-5 h-5" />}
       />
 
@@ -179,27 +181,27 @@ export function QrMe() {
       {/* ── KPI Grid (100% Real Database Metrics) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
-          label="Total QRs Created"
+          label={t('qr.kpi_total_qrs')}
           value={stats.total_qrs}
           format="num"
           icon={<QrCode className="w-4 h-4" />}
         />
         <KPICard
-          label="Total Scans Tracked"
+          label={t('qr.kpi_total_scans')}
           value={stats.total_scans}
           format="num"
           icon={<Eye className="w-4 h-4" />}
           accent="success"
         />
         <KPICard
-          label="Scans Today"
+          label={t('qr.kpi_scans_today')}
           value={stats.scans_today}
           format="num"
           icon={<Zap className="w-4 h-4" />}
           accent="warning"
         />
         <KPICard
-          label="Active App Users"
+          label={t('qr.kpi_active_users')}
           value={stats.active_users}
           format="num"
           icon={<Layers className="w-4 h-4" />}
@@ -209,21 +211,21 @@ export function QrMe() {
       {/* ── Navigation SubTabs ── */}
       <div className="flex items-center gap-2 border-b border-ink-800">
         {[
-          { key: 'stats', label: 'Analytics & Categories', icon: <BarChart2 className="w-4 h-4" /> },
-          { key: 'paywall', label: 'Dynamic Paywall Settings', icon: <Zap className="w-4 h-4" /> },
-          { key: 'recent', label: 'Recent QR Generations', icon: <Layers className="w-4 h-4" /> },
-        ].map(t => (
+          { key: 'stats', label: t('qr.tab_stats'), icon: <BarChart2 className="w-4 h-4" /> },
+          { key: 'paywall', label: t('qr.tab_paywall'), icon: <Zap className="w-4 h-4" /> },
+          { key: 'recent', label: t('qr.tab_recent'), icon: <Layers className="w-4 h-4" /> },
+        ].map(tTab => (
           <button
-            key={t.key}
-            onClick={() => setActiveTab(t.key as any)}
+            key={tTab.key}
+            onClick={() => setActiveTab(tTab.key as any)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              activeTab === t.key
+              activeTab === tTab.key
                 ? 'border-brand-500 text-brand-300'
                 : 'border-transparent text-ink-400 hover:text-ink-200'
             }`}
           >
-            {t.icon}
-            <span>{t.label}</span>
+            {tTab.icon}
+            <span>{tTab.label}</span>
           </button>
         ))}
       </div>
@@ -234,11 +236,11 @@ export function QrMe() {
           <div className="card p-5 space-y-4">
             <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
               <Layers className="w-4 h-4 text-brand-400" />
-              <span>Popular QR Code Formats</span>
+              <span>{t('qr.popular_formats')}</span>
             </h3>
             {stats.by_type.length === 0 ? (
               <div className="py-8 text-center text-xs text-ink-500">
-                No QR codes created yet in database.
+                {t('qr.no_qrs_yet')}
               </div>
             ) : (
               <div className="space-y-3">
@@ -260,32 +262,32 @@ export function QrMe() {
           <div className="card p-5 space-y-4">
             <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Customization & Pro Features Usage</span>
+              <span>{t('qr.customization_usage')}</span>
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">Custom Colors / Styles</p>
+                <p className="text-xs text-ink-400">{t('qr.custom_colors')}</p>
                 <p className="text-lg font-bold text-ink-100 mt-1">{stats.custom_colors_count}</p>
                 <p className="text-2xs text-brand-400 mt-0.5">
-                  {stats.total_qrs > 0 ? `${Math.round((stats.custom_colors_count / stats.total_qrs) * 100)}% of total QRs` : 'Live telemetry'}
+                  {stats.total_qrs > 0 ? `${Math.round((stats.custom_colors_count / stats.total_qrs) * 100)}%` : '—'}
                 </p>
               </div>
               <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">Profile / Business Cards</p>
+                <p className="text-xs text-ink-400">{t('qr.business_cards')}</p>
                 <p className="text-lg font-bold text-ink-100 mt-1">{stats.custom_profiles_count}</p>
                 <p className="text-2xs text-brand-400 mt-0.5">
-                  {stats.total_qrs > 0 ? `${Math.round((stats.custom_profiles_count / stats.total_qrs) * 100)}% of total QRs` : 'Live telemetry'}
+                  {stats.total_qrs > 0 ? `${Math.round((stats.custom_profiles_count / stats.total_qrs) * 100)}%` : '—'}
                 </p>
               </div>
               <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">VIP Paid Unlocks</p>
+                <p className="text-xs text-ink-400">{t('qr.paid_unlocks')}</p>
                 <p className="text-lg font-bold text-ink-100 mt-1">{stats.paid_unlocks}</p>
-                <p className="text-2xs text-amber-400 mt-0.5">Approved Orders</p>
+                <p className="text-2xs text-amber-400 mt-0.5">{stats.paid_unlocks} VIP</p>
               </div>
               <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">Total Scans Tracked</p>
+                <p className="text-xs text-ink-400">{t('qr.kpi_total_scans')}</p>
                 <p className="text-lg font-bold text-ink-100 mt-1">{stats.total_scans}</p>
-                <p className="text-2xs text-success-400 mt-0.5">{stats.scans_today} today</p>
+                <p className="text-2xs text-success-400 mt-0.5">{stats.scans_today} {t('overview.revenue_sub') ? '' : ''}</p>
               </div>
             </div>
           </div>
@@ -347,7 +349,7 @@ export function QrMe() {
               className="btn-primary flex items-center gap-2"
             >
               {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{saving ? 'Saving...' : 'Save Paywall Settings'}</span>
+              <span>{saving ? t('common.saving') : t('common.save')}</span>
             </button>
           </div>
         </div>
@@ -357,29 +359,29 @@ export function QrMe() {
       {activeTab === 'recent' && (
         <div className="card overflow-hidden">
           <div className="p-4 border-b border-ink-800 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-ink-100">Recent Generated Codes</h3>
-            <span className="text-xs text-ink-400">Live database telemetry</span>
+            <h3 className="text-sm font-semibold text-ink-100">{t('qr.tab_recent')}</h3>
+            <span className="text-xs text-ink-400">{t('common.status')}</span>
           </div>
           {loadingQrs ? (
             <div className="p-8 text-center text-xs text-ink-400 flex items-center justify-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-brand-400" />
-              <span>Loading QR codes...</span>
+              <span>{t('common.loading')}</span>
             </div>
           ) : qrs.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-sm font-semibold text-ink-200 mb-1">No QR Codes Generated Yet</p>
-              <p className="text-xs text-ink-500">When users create QR codes in the app, they will appear here in real time.</p>
+              <p className="text-sm font-semibold text-ink-200 mb-1">{t('qr.no_qrs_yet')}</p>
+              <p className="text-xs text-ink-500">{t('qr.no_qrs_desc')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-start text-sm">
                 <thead className="bg-ink-900/60 text-2xs uppercase tracking-wider text-ink-400 border-b border-ink-800">
                   <tr>
-                    <th className="py-3 px-4">Type</th>
-                    <th className="py-3 px-4">Title / Name</th>
-                    <th className="py-3 px-4">Identifier / Slug</th>
-                    <th className="py-3 px-4">Scans</th>
-                    <th className="py-3 px-4">Created</th>
+                    <th className="py-3 px-4">{t('qr.th_type')}</th>
+                    <th className="py-3 px-4">{t('qr.th_title')}</th>
+                    <th className="py-3 px-4">{t('qr.th_slug')}</th>
+                    <th className="py-3 px-4">{t('qr.th_scans')}</th>
+                    <th className="py-3 px-4">{t('qr.th_created')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ink-800/60 text-xs">

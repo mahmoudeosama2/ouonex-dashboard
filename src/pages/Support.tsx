@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/Layout';
 import { KPICard } from '@/components/KPICard';
 import { ErrorState, EmptyState } from '@/components/EmptyState';
 import { date, timeAgo } from '@/lib/format';
+import { useLocale } from '@/context/LocaleContext';
 
 interface SupportTicket {
   id: number;
@@ -35,6 +36,7 @@ interface DeletionRequest {
 }
 
 export function SupportPage() {
+  const { t, locale } = useLocale();
   const [activeTab, setActiveTab] = useState<'tickets' | 'deletions'>('tickets');
   const [overview, setOverview] = useState({ pending_deletions: 0, open_tickets: 0, total_tickets: 0 });
   const [loading, setLoading] = useState(true);
@@ -87,26 +89,26 @@ export function SupportPage() {
   const handleUpdateTicketStatus = async (id: number, status: 'open' | 'in_progress' | 'resolved') => {
     try {
       await api.support.updateTicket(id, status);
-      setTickets(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+      setTickets(prev => prev.map(tItem => tItem.id === id ? { ...tItem, status } : tItem));
       if (status === 'resolved') {
         setOverview(prev => ({ ...prev, open_tickets: Math.max(0, prev.open_tickets - 1) }));
       }
     } catch {
-      alert('Failed to update ticket status.');
+      alert(locale === 'ar' ? 'فشل تحديث حالة التذكرة.' : 'Failed to update ticket status.');
     }
   };
 
   const handleExecuteDeletion = async (id: number, email: string) => {
-    if (!window.confirm(`Are you sure you want to permanently execute deletion for "${email}"? This will delete all associated records.`)) {
+    if (!window.confirm(locale === 'ar' ? `هل أنت متأكد من حذف الحساب "${email}" نهائياً؟` : `Are you sure you want to permanently execute deletion for "${email}"? This will delete all associated records.`)) {
       return;
     }
     try {
       await api.support.executeDeletion(id);
       setDeletions(prev => prev.map(d => d.id === id ? { ...d, status: 'completed' } : d));
       setOverview(prev => ({ ...prev, pending_deletions: Math.max(0, prev.pending_deletions - 1) }));
-      alert(`Account for ${email} has been deleted successfully.`);
+      alert(locale === 'ar' ? `تم حذف حساب ${email} بنجاح.` : `Account for ${email} has been deleted successfully.`);
     } catch {
-      alert('Failed to execute account deletion.');
+      alert(locale === 'ar' ? 'فشل تنفيذ حذف الحساب.' : 'Failed to execute account deletion.');
     }
   };
 
@@ -116,36 +118,36 @@ export function SupportPage() {
       setDeletions(prev => prev.map(d => d.id === id ? { ...d, status: 'dismissed' } : d));
       setOverview(prev => ({ ...prev, pending_deletions: Math.max(0, prev.pending_deletions - 1) }));
     } catch {
-      alert('Failed to dismiss request.');
+      alert(locale === 'ar' ? 'فشل رفض الطلب.' : 'Failed to dismiss request.');
     }
   };
 
   return (
     <div>
       <PageHeader
-        title="Support & Requests Center"
-        description="Manage customer inquiries, in-app tickets with screenshots, and account deletion requests"
+        title={t('support.title')}
+        description={t('support.description')}
         icon={<LifeBuoy className="w-5 h-5 text-brand-400" />}
       />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <KPICard
-          label="Pending Deletions (طلبات حذف معلقة)"
+          label={t('support.kpi_deletions')}
           value={overview.pending_deletions}
           format="num"
           icon={<Trash2 className="w-4 h-4" />}
           accent={overview.pending_deletions > 0 ? 'danger' : 'neutral'}
         />
         <KPICard
-          label="Open Support Tickets (تذاكر مفتوحة)"
+          label={t('support.kpi_open')}
           value={overview.open_tickets}
           format="num"
           icon={<MessageSquare className="w-4 h-4" />}
           accent={overview.open_tickets > 0 ? 'warning' : 'success'}
         />
         <KPICard
-          label="Total Customer Tickets"
+          label={t('support.kpi_total')}
           value={overview.total_tickets}
           format="num"
           icon={<LifeBuoy className="w-4 h-4" />}
@@ -164,7 +166,7 @@ export function SupportPage() {
             }`}
           >
             <MessageSquare className="w-4 h-4" />
-            <span>Support Tickets (تذاكر الدعم والشكاوى)</span>
+            <span>{t('support.tab_tickets')}</span>
             {overview.open_tickets > 0 && (
               <span className="px-1.5 py-0.5 rounded-full text-3xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 {overview.open_tickets}
@@ -181,7 +183,7 @@ export function SupportPage() {
             }`}
           >
             <Trash2 className="w-4 h-4" />
-            <span>Deletion Requests & Feedback (طلبات الحذف)</span>
+            <span>{t('support.tab_deletions')}</span>
             {overview.pending_deletions > 0 && (
               <span className="px-1.5 py-0.5 rounded-full text-3xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
                 {overview.pending_deletions}
@@ -193,45 +195,47 @@ export function SupportPage() {
         <button
           onClick={loadData}
           className="p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-800 transition"
-          title="Refresh Data"
+          title={locale === 'ar' ? 'تحديث البيانات' : 'Refresh Data'}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
       {error ? (
-        <ErrorState message="Failed to load support records." onRetry={loadData} />
+        <ErrorState message={locale === 'ar' ? 'فشل تحميل سجلات الدعم والطلبات.' : 'Failed to load support records.'} onRetry={loadData} />
       ) : activeTab === 'tickets' ? (
         /* TAB 1: SUPPORT TICKETS */
         <div className="space-y-4">
           {/* Filters */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-ink-900 border border-ink-800 text-xs">
             <div className="flex items-center gap-3">
-              <span className="text-ink-400 font-medium">Filter App:</span>
+              <span className="text-ink-400 font-medium">{t('finance.th_product')}:</span>
               <select
                 value={ticketApp}
                 onChange={e => setTicketApp(e.target.value)}
                 className="input py-1 px-2.5 bg-ink-950 text-xs"
               >
-                <option value="all">All Apps (جميع التطبيقات)</option>
-                <option value="dawaty">Dawaty (دعوتي)</option>
-                <option value="digital_menu">Digital Menu (المنيو)</option>
+                <option value="all">{t('common.all')}</option>
+                <option value="dawaty">Dawaty</option>
+                <option value="digital_menu">Digital Menu</option>
               </select>
 
-              <span className="text-ink-400 font-medium ml-2">Status:</span>
+              <span className="text-ink-400 font-medium ml-2">{t('common.status')}:</span>
               <select
                 value={ticketStatus}
                 onChange={e => setTicketStatus(e.target.value)}
                 className="input py-1 px-2.5 bg-ink-950 text-xs"
               >
-                <option value="all">All Statuses</option>
-                <option value="open">Open (مفتوح)</option>
-                <option value="in_progress">In Progress (قيد المتابعة)</option>
-                <option value="resolved">Resolved (تم الحل)</option>
+                <option value="all">{t('common.all')}</option>
+                <option value="open">{locale === 'ar' ? 'مفتوحة' : 'Open'}</option>
+                <option value="in_progress">{locale === 'ar' ? 'قيد المتابعة' : 'In Progress'}</option>
+                <option value="resolved">{locale === 'ar' ? 'تم الحل' : 'Resolved'}</option>
               </select>
             </div>
 
-            <span className="text-ink-500 text-2xs">{tickets.length} tickets found</span>
+            <span className="text-ink-500 text-2xs">
+              {locale === 'ar' ? `تم العثور على ${tickets.length} تذكرة` : `${tickets.length} tickets found`}
+            </span>
           </div>
 
           {/* Tickets List */}
@@ -256,7 +260,7 @@ export function SupportPage() {
                       }`}>
                         {t.app === 'dawaty' ? '💌 Dawaty' : '🍽️ Digital Menu'}
                       </span>
-                      <h4 className="font-semibold text-sm text-ink-100">{t.subject || 'Support Request'}</h4>
+                      <h4 className="font-semibold text-sm text-ink-100">{t.subject || (locale === 'ar' ? 'طلب دعم' : 'Support Request')}</h4>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -267,7 +271,7 @@ export function SupportPage() {
                           ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
                           : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                       }`}>
-                        {t.status === 'open' ? 'Open' : t.status === 'in_progress' ? 'In Progress' : 'Resolved'}
+                        {t.status === 'open' ? (locale === 'ar' ? 'مفتوحة' : 'Open') : t.status === 'in_progress' ? (locale === 'ar' ? 'قيد المتابعة' : 'In Progress') : (locale === 'ar' ? 'تم الحل' : 'Resolved')}
                       </span>
                       <span className="text-2xs text-ink-500">{timeAgo(t.created_at)}</span>
                     </div>
@@ -275,7 +279,7 @@ export function SupportPage() {
 
                   {/* Customer Info */}
                   <div className="flex flex-wrap items-center gap-4 text-xs text-ink-400">
-                    <span className="font-medium text-ink-200">From: {t.name}</span>
+                    <span className="font-medium text-ink-200">{locale === 'ar' ? `من: ${t.name}` : `From: ${t.name}`}</span>
                     {t.email && (
                       <a href={`mailto:${t.email}`} className="flex items-center gap-1 text-brand-400 hover:underline">
                         <Mail className="w-3 h-3" /> {t.email}
@@ -307,9 +311,9 @@ export function SupportPage() {
                         />
                         <div className="text-left">
                           <p className="text-2xs font-semibold text-brand-400 flex items-center gap-1">
-                            <Image className="w-3 h-3" /> View Attached Screenshot
+                            <Image className="w-3 h-3" /> {locale === 'ar' ? 'عرض لقطة الشاشة المرفقة' : 'View Attached Screenshot'}
                           </p>
-                          <p className="text-3xs text-ink-500">Click to enlarge</p>
+                          <p className="text-3xs text-ink-500">{locale === 'ar' ? 'انقر للتكبير' : 'Click to enlarge'}</p>
                         </div>
                       </button>
                     </div>
@@ -317,7 +321,7 @@ export function SupportPage() {
 
                   {/* Actions Bar */}
                   <div className="pt-2 flex items-center justify-between border-t border-ink-800/40 text-xs">
-                    <span className="text-2xs text-ink-500">Ticket #{t.id} · {date(t.created_at)}</span>
+                    <span className="text-2xs text-ink-500">{locale === 'ar' ? `تذكرة رقم #${t.id} · ${date(t.created_at)}` : `Ticket #${t.id} · ${date(t.created_at)}`}</span>
 
                     <div className="flex items-center gap-2">
                       {t.status !== 'resolved' ? (
@@ -325,14 +329,14 @@ export function SupportPage() {
                           onClick={() => handleUpdateTicketStatus(t.id, 'resolved')}
                           className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-2xs font-semibold bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-400 border border-emerald-500/30 transition"
                         >
-                          <Check className="w-3 h-3" /> Mark as Resolved
+                          <Check className="w-3 h-3" /> {locale === 'ar' ? 'تحديد كمحلولة' : 'Mark as Resolved'}
                         </button>
                       ) : (
                         <button
                           onClick={() => handleUpdateTicketStatus(t.id, 'open')}
                           className="px-3 py-1.5 rounded-lg text-2xs font-semibold bg-ink-800 hover:bg-ink-700 text-ink-300 transition"
                         >
-                          Reopen Ticket
+                          {locale === 'ar' ? 'إعادة فتح التذكرة' : 'Reopen Ticket'}
                         </button>
                       )}
                     </div>
@@ -348,31 +352,33 @@ export function SupportPage() {
           {/* Filters */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-ink-900 border border-ink-800 text-xs">
             <div className="flex items-center gap-3">
-              <span className="text-ink-400 font-medium">Filter App:</span>
+              <span className="text-ink-400 font-medium">{locale === 'ar' ? 'تصفية التطبيق:' : 'Filter App:'}</span>
               <select
                 value={deletionApp}
                 onChange={e => setDeletionApp(e.target.value)}
                 className="input py-1 px-2.5 bg-ink-950 text-xs"
               >
-                <option value="all">All Apps (جميع التطبيقات)</option>
-                <option value="dawaty">Dawaty (دعوتي)</option>
-                <option value="digital_menu">Digital Menu (المنيو)</option>
+                <option value="all">{t('common.all')}</option>
+                <option value="dawaty">Dawaty</option>
+                <option value="digital_menu">Digital Menu</option>
               </select>
 
-              <span className="text-ink-400 font-medium ml-2">Status:</span>
+              <span className="text-ink-400 font-medium ml-2">{t('common.status')}:</span>
               <select
                 value={deletionStatus}
                 onChange={e => setDeletionStatus(e.target.value)}
                 className="input py-1 px-2.5 bg-ink-950 text-xs"
               >
-                <option value="all">All Statuses</option>
-                <option value="pending">Pending Review (معلق)</option>
-                <option value="completed">Completed (تم الحذف)</option>
-                <option value="dismissed">Dismissed (مرفوض/مؤرشف)</option>
+                <option value="all">{t('common.all')}</option>
+                <option value="pending">{locale === 'ar' ? 'قيد المراجعة' : 'Pending Review'}</option>
+                <option value="completed">{locale === 'ar' ? 'تم الحذف' : 'Completed'}</option>
+                <option value="dismissed">{locale === 'ar' ? 'مؤرشف' : 'Dismissed'}</option>
               </select>
             </div>
 
-            <span className="text-ink-500 text-2xs">{deletions.length} requests found</span>
+            <span className="text-ink-500 text-2xs">
+              {locale === 'ar' ? `تم العثور على ${deletions.length} طلب` : `${deletions.length} requests found`}
+            </span>
           </div>
 
           {/* Deletion Requests List */}
@@ -380,8 +386,8 @@ export function SupportPage() {
             <div className="card p-8">
               <EmptyState
                 icon={<Trash2 className="w-6 h-6 text-rose-400" />}
-                title="No deletion requests"
-                message="No account deletion requests found matching your filter."
+                title={locale === 'ar' ? 'لا توجد طلبات حذف' : 'No deletion requests'}
+                message={locale === 'ar' ? 'لم يتم العثور على طلبات حذف تطابق معايير التصفية.' : 'No account deletion requests found matching your filter.'}
               />
             </div>
           ) : (
@@ -409,7 +415,11 @@ export function SupportPage() {
                           ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                           : 'bg-ink-800 text-ink-400 border border-ink-700'
                       }`}>
-                        {d.status === 'pending' ? 'Pending Review' : d.status === 'completed' ? 'Deleted & Completed' : 'Dismissed'}
+                        {d.status === 'pending'
+                          ? (locale === 'ar' ? 'قيد المراجعة' : 'Pending Review')
+                          : d.status === 'completed'
+                          ? (locale === 'ar' ? 'تم الحذف بنجاح' : 'Deleted & Completed')
+                          : (locale === 'ar' ? 'مؤرشف' : 'Dismissed')}
                       </span>
                       <span className="text-2xs text-ink-500">{timeAgo(d.created_at)}</span>
                     </div>
@@ -417,23 +427,23 @@ export function SupportPage() {
 
                   {/* Requester Contact */}
                   <div className="flex items-center gap-4 text-xs text-ink-400">
-                    <span>Registered Email: <strong className="text-ink-200">{d.email}</strong></span>
-                    {d.phone && <span>Phone: <strong className="text-ink-200">{d.phone}</strong></span>}
+                    <span>{locale === 'ar' ? 'البريد الإلكتروني المسجل:' : 'Registered Email:'} <strong className="text-ink-200">{d.email}</strong></span>
+                    {d.phone && <span>{locale === 'ar' ? 'الهاتف:' : 'Phone:'} <strong className="text-ink-200">{d.phone}</strong></span>}
                   </div>
 
                   {/* Feedback / Reason Box */}
                   <div className="p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs space-y-1">
                     <span className="font-bold text-amber-400 block text-2xs uppercase tracking-wider">
-                      💡 Reason for Deletion & Feedback for Improvement (ملاحظات المستخدم):
+                      💡 {locale === 'ar' ? 'سبب طلب الحذف وملاحظات المستخدم:' : 'Reason for Deletion & User Feedback:'}
                     </span>
                     <p className="text-ink-200 leading-relaxed italic">
-                      {d.reason ? `"${d.reason}"` : <span className="text-ink-500 not-italic">No feedback provided by the user.</span>}
+                      {d.reason ? `"${d.reason}"` : <span className="text-ink-500 not-italic">{locale === 'ar' ? 'لم يقدم المستخدم ملاحظات.' : 'No feedback provided by the user.'}</span>}
                     </p>
                   </div>
 
                   {/* Actions */}
                   <div className="pt-2 flex items-center justify-between border-t border-ink-800/40 text-xs">
-                    <span className="text-2xs text-ink-500">Request #{d.id} · {date(d.created_at)}</span>
+                    <span className="text-2xs text-ink-500">{locale === 'ar' ? `طلب رقم #${d.id} · ${date(d.created_at)}` : `Request #${d.id} · ${date(d.created_at)}`}</span>
 
                     <div className="flex items-center gap-2">
                       {d.status === 'pending' && (
@@ -442,7 +452,7 @@ export function SupportPage() {
                             onClick={() => handleDismissDeletion(d.id)}
                             className="px-3 py-1.5 rounded-lg text-2xs font-semibold bg-ink-800 hover:bg-ink-700 text-ink-300 transition"
                           >
-                            Dismiss (أرشفة)
+                            {locale === 'ar' ? 'أرشفة' : 'Dismiss'}
                           </button>
 
                           <button
@@ -450,7 +460,7 @@ export function SupportPage() {
                             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-2xs font-semibold bg-rose-600 hover:bg-rose-500 text-white shadow-sm transition"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                            Delete Account Now (تنفيذ الحذف الآن)
+                            {locale === 'ar' ? 'تنفيذ الحذف الآن' : 'Delete Account Now'}
                           </button>
                         </>
                       )}

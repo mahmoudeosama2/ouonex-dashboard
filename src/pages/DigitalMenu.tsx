@@ -13,29 +13,31 @@ import { CardSkeleton } from '@/components/Skeleton';
 import { ErrorState, EmptyState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/Layout';
 import { num, egp, compactEGP, date, pct } from '@/lib/format';
+import { useLocale } from '@/context/LocaleContext';
 
 type SubTab = 'restaurants' | 'ai' | 'orders';
 
 export function DigitalMenu() {
+  const { t, locale } = useLocale();
   const [tab, setTab] = useState<SubTab>('restaurants');
   return (
     <div>
-      <PageHeader title="Digital Menu" description="Restaurant menus, AI scan, and orders" icon={<UtensilsCrossed className="w-5 h-5" />} />
+      <PageHeader title={t('menu.title')} description={t('menu.description')} icon={<UtensilsCrossed className="w-5 h-5" />} />
       <div className="flex items-center gap-1 mb-4 border-b border-ink-800">
         {([
-          { key: 'restaurants', label: 'Restaurants', icon: <Store className="w-3.5 h-3.5" /> },
-          { key: 'ai', label: 'AI Scan', icon: <Sparkles className="w-3.5 h-3.5" /> },
-          { key: 'orders', label: 'Orders', icon: <ShoppingBag className="w-3.5 h-3.5" /> },
-        ] as const).map(t => (
+          { key: 'restaurants', label: t('menu.tab_restaurants'), icon: <Store className="w-3.5 h-3.5" /> },
+          { key: 'ai', label: t('menu.tab_ai'), icon: <Sparkles className="w-3.5 h-3.5" /> },
+          { key: 'orders', label: t('menu.tab_orders'), icon: <ShoppingBag className="w-3.5 h-3.5" /> },
+        ] as const).map(tItem => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tItem.key}
+            onClick={() => setTab(tItem.key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === t.key ? 'border-brand-500 text-brand-300' : 'border-transparent text-ink-400 hover:text-ink-200'
+              tab === tItem.key ? 'border-brand-500 text-brand-300' : 'border-transparent text-ink-400 hover:text-ink-200'
             }`}
           >
-            {t.icon}
-            {t.label}
+            {tItem.icon}
+            {tItem.label}
           </button>
         ))}
       </div>
@@ -47,6 +49,7 @@ export function DigitalMenu() {
 }
 
 function RestaurantsTab() {
+  const { t, locale } = useLocale();
   const [rows, setRows] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -95,7 +98,7 @@ function RestaurantsTab() {
   };
 
   const handleBulkDelete = async () => {
-    if (!window.confirm(`Are you sure you want to permanently delete ${selectedIds.length} restaurants and their menus? This cannot be undone.`)) {
+    if (!window.confirm(locale === 'ar' ? `هل أنت متأكد من رغبتك في حذف ${selectedIds.length} مطعم؟ لا يمكن التراجع.` : `Are you sure you want to permanently delete ${selectedIds.length} restaurants and their menus? This cannot be undone.`)) {
       return;
     }
     setDeleting(true);
@@ -105,14 +108,14 @@ function RestaurantsTab() {
       setSelectedIds([]);
       setTotal(prev => Math.max(0, prev - selectedIds.length));
     } catch (err) {
-      alert('Failed to delete selected restaurants.');
+      alert(locale === 'ar' ? 'فشل حذف المطاعم المحددة.' : 'Failed to delete selected restaurants.');
     } finally {
       setDeleting(false);
     }
   };
 
   const handleDeleteSingle = async (r: Restaurant) => {
-    if (!window.confirm(`Are you sure you want to permanently delete restaurant "${r.store_name}" and its entire menu? This cannot be undone.`)) {
+    if (!window.confirm(locale === 'ar' ? `هل أنت متأكد من حذف المطعم "${r.store_name}" وقائمته بالكامل؟` : `Are you sure you want to permanently delete restaurant "${r.store_name}" and its entire menu? This cannot be undone.`)) {
       return;
     }
     setDeleting(true);
@@ -123,7 +126,7 @@ function RestaurantsTab() {
       setSelected(null);
       setTotal(prev => Math.max(0, prev - 1));
     } catch (err) {
-      alert('Failed to delete restaurant.');
+      alert(locale === 'ar' ? 'فشل حذف المطعم.' : 'Failed to delete restaurant.');
     } finally {
       setDeleting(false);
     }
@@ -156,19 +159,24 @@ function RestaurantsTab() {
     if (detail) setSelected(detail);
   };
 
-  if (error) return <ErrorState message="Failed to load restaurants." onRetry={load} />;
+  if (error) return <ErrorState message={locale === 'ar' ? 'فشل تحميل بيانات المطاعم.' : 'Failed to load restaurants.'} onRetry={load} />;
 
   const filters: FilterItem[] = [
     {
-      type: 'select', label: 'Status', value: statusFilter,
-      options: [{ label: 'All', value: 'all' }, { label: 'Active', value: 'active' }, { label: 'Trial', value: 'trial' }, { label: 'Suspended', value: 'suspended' }],
+      type: 'select', label: t('menu.th_status'), value: statusFilter,
+      options: [
+        { label: t('common.all'), value: 'all' },
+        { label: locale === 'ar' ? 'نشط' : 'Active', value: 'active' },
+        { label: locale === 'ar' ? 'تجريبي' : 'Trial', value: 'trial' },
+        { label: locale === 'ar' ? 'موقوف' : 'Suspended', value: 'suspended' },
+      ],
       onChange: v => { setStatusFilter(v); setPage(1); },
     },
   ];
 
   const columns: Column<Restaurant>[] = [
-    { key: 'name', header: 'Restaurant', sortValue: r => r.store_name, render: r => <span className="font-medium text-ink-100">{r.store_name}</span> },
-    { key: 'slug', header: 'Live URL', render: r => (
+    { key: 'name', header: t('menu.th_restaurant'), sortValue: r => r.store_name, render: r => <span className="font-medium text-ink-100">{r.store_name}</span> },
+    { key: 'slug', header: t('menu.th_slug'), render: r => (
       r.menu_published ? (
         <a
           href={`https://${r.slug}.ouonex.com`}
@@ -183,13 +191,13 @@ function RestaurantsTab() {
         <span className="font-mono text-xs text-ink-600">{r.slug}.ouonex.com</span>
       )
     ) },
-    { key: 'status', header: 'Status', sortValue: r => r.status, render: r => <StatusBadge status={r.status} /> },
-    { key: 'plan', header: 'Plan', sortValue: r => r.plan, render: r => <PlanBadge plan={r.plan} /> },
-    { key: 'menu', header: 'Menu Published', render: r => r.menu_published ? <CheckCircle2 className="w-4 h-4 text-success-400" /> : <span className="text-2xs text-ink-500">Unpublished</span> },
-    { key: 'owner', header: 'Owner', sortValue: r => r.owner, render: r => <span className="text-xs text-ink-300">{r.owner}</span> },
-    { key: 'orders', header: 'Orders', sortValue: r => r.orders_count, render: r => <span className="tabular-nums text-ink-200">{num(r.orders_count)}</span> },
-    { key: 'ai', header: 'AI Scans', sortValue: r => r.ai_scans_count, render: r => <span className="tabular-nums text-ink-200">{num(r.ai_scans_count)}</span> },
-    { key: 'created', header: 'Joined', sortValue: r => r.created_at, render: r => <span className="text-xs text-ink-400">{date(r.created_at)}</span> },
+    { key: 'status', header: t('menu.th_status'), sortValue: r => r.status, render: r => <StatusBadge status={r.status} /> },
+    { key: 'plan', header: t('menu.th_plan'), sortValue: r => r.plan, render: r => <PlanBadge plan={r.plan} /> },
+    { key: 'menu', header: locale === 'ar' ? 'نشر المنيو' : 'Menu Published', render: r => r.menu_published ? <CheckCircle2 className="w-4 h-4 text-success-400" /> : <span className="text-2xs text-ink-500">{locale === 'ar' ? 'غير منشور' : 'Unpublished'}</span> },
+    { key: 'owner', header: locale === 'ar' ? 'المالك' : 'Owner', sortValue: r => r.owner, render: r => <span className="text-xs text-ink-300">{r.owner}</span> },
+    { key: 'orders', header: t('menu.th_orders'), sortValue: r => r.orders_count, render: r => <span className="tabular-nums text-ink-200">{num(r.orders_count)}</span> },
+    { key: 'ai', header: t('menu.kpi_ai_scans'), sortValue: r => r.ai_scans_count, render: r => <span className="tabular-nums text-ink-200">{num(r.ai_scans_count)}</span> },
+    { key: 'created', header: t('menu.th_created'), sortValue: r => r.created_at, render: r => <span className="text-xs text-ink-400">{date(r.created_at)}</span> },
   ];
 
   return (
@@ -197,10 +205,10 @@ function RestaurantsTab() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {loading && !kpis.total ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />) : (
           <>
-            <KPICard label="Total Restaurants" value={kpis.total} format="num" icon={<Store className="w-4 h-4" />} />
-            <KPICard label="Active" value={kpis.active} format="num" icon={<UtensilsCrossed className="w-4 h-4" />} accent="success" />
-            <KPICard label="AI Scans" value={kpis.aiScans} format="compactNum" icon={<Sparkles className="w-4 h-4" />} />
-            <KPICard label="AI Cost" value={kpis.aiCost} format="egp" icon={<AlertCircle className="w-4 h-4" />} accent="warning" />
+            <KPICard label={t('menu.kpi_total_restaurants')} value={kpis.total} format="num" icon={<Store className="w-4 h-4" />} />
+            <KPICard label={t('menu.kpi_active_menus')} value={kpis.active} format="num" icon={<UtensilsCrossed className="w-4 h-4" />} accent="success" />
+            <KPICard label={t('menu.kpi_ai_scans')} value={kpis.aiScans} format="compactNum" icon={<Sparkles className="w-4 h-4" />} />
+            <KPICard label={t('menu.kpi_ai_cost')} value={kpis.aiCost} format="egp" icon={<AlertCircle className="w-4 h-4" />} accent="warning" />
           </>
         )}
       </div>
@@ -213,7 +221,7 @@ function RestaurantsTab() {
           className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-ink-900 hover:bg-ink-800 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 shadow-soft transition self-end sm:self-auto"
         >
           <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-          <span>Export to Excel (CSV)</span>
+          <span>{locale === 'ar' ? 'تصدير إلى Excel (CSV)' : 'Export to Excel (CSV)'}</span>
         </button>
       </div>
 
@@ -223,7 +231,7 @@ function RestaurantsTab() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
             <span className="text-xs font-semibold text-ink-100">
-              {selectedIds.length} {selectedIds.length === 1 ? 'restaurant' : 'restaurants'} selected
+              {locale === 'ar' ? `تم تحديد ${selectedIds.length} مطعم` : `${selectedIds.length} ${selectedIds.length === 1 ? 'restaurant' : 'restaurants'} selected`}
             </span>
           </div>
 
@@ -232,7 +240,7 @@ function RestaurantsTab() {
               onClick={() => setSelectedIds([])}
               className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white transition"
             >
-              Clear
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleBulkDelete}
@@ -240,7 +248,7 @@ function RestaurantsTab() {
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition shadow-sm disabled:opacity-50"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              {deleting ? 'Deleting...' : `Delete Selected (${selectedIds.length})`}
+              {deleting ? (locale === 'ar' ? 'جاري الحذف...' : 'Deleting...') : (locale === 'ar' ? `حذف المحدد (${selectedIds.length})` : `Delete Selected (${selectedIds.length})`)}
             </button>
           </div>
         </div>
@@ -258,7 +266,7 @@ function RestaurantsTab() {
         selectedIds={selectedIds}
         onSelectRow={handleSelectRow}
         onSelectAll={handleSelectAll}
-        emptyTitle="No restaurants found"
+        emptyTitle={t('menu.empty_title')}
       />
 
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={selected?.store_name ?? 'Restaurant'} subtitle={selected ? `/${selected.slug}` : ''}>
@@ -286,6 +294,7 @@ function RestaurantDetail({
   onUpdated: (updated: Partial<Restaurant>) => void;
   onDelete: () => void;
 }) {
+  const { locale, t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [impersonating, setImpersonating] = useState(false);
@@ -410,14 +419,14 @@ function RestaurantDetail({
         <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-3 animate-fade-in">
           <div className="flex items-center justify-between">
             <span className="font-bold text-amber-300 flex items-center gap-1.5">
-              <LogIn className="w-4 h-4" /> Restaurant Impersonation (دخول كصاحب المطعم)
+              <LogIn className="w-4 h-4" /> {locale === 'ar' ? 'جلسة تقمص لصاحب المطعم' : 'Restaurant Impersonation'}
             </span>
             <button onClick={() => setImpersonationModal(null)} className="text-ink-400 hover:text-white">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
           <p className="text-2xs text-ink-300">
-            Authenticated as <strong>{impersonationModal.owner?.name}</strong> ({impersonationModal.owner?.email}) for <strong>{impersonationModal.restaurant?.store_name}</strong>.
+            {locale === 'ar' ? 'تم تسجيل الدخول بنجاح باسم' : 'Authenticated as'} <strong>{impersonationModal.owner?.name}</strong> ({impersonationModal.owner?.email}) {locale === 'ar' ? 'لمطعم' : 'for'} <strong>{impersonationModal.restaurant?.store_name}</strong>.
           </p>
           <div className="flex items-center gap-2 p-2 rounded-lg bg-ink-950/80 border border-ink-800">
             <span className="font-mono text-3xs text-ink-400 truncate flex-1">{impersonationModal.impersonation_token}</span>
@@ -426,7 +435,7 @@ function RestaurantDetail({
               className="flex items-center gap-1 text-3xs text-brand-400 hover:text-brand-300 shrink-0 font-medium"
             >
               {copiedToken ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-              {copiedToken ? 'Copied' : 'Copy Token'}
+              {copiedToken ? (locale === 'ar' ? 'تم النسخ' : 'Copied') : (locale === 'ar' ? 'نسخ الرمز' : 'Copy Token')}
             </button>
           </div>
         </div>
@@ -467,29 +476,29 @@ function RestaurantDetail({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">Status</label>
+              <label className="block text-2xs text-ink-400 mb-1">{t('common.status')}</label>
               <select
                 value={formData.status}
                 onChange={e => setFormData({ ...formData, status: e.target.value })}
                 className="input w-full text-xs bg-ink-950"
               >
-                <option value="active">Active (مفعل)</option>
-                <option value="trial">Trial (تجريبي)</option>
-                <option value="suspended">Suspended (موقوف)</option>
-                <option value="inactive">Inactive (معطل)</option>
+                <option value="active">{locale === 'ar' ? 'مفعل' : 'Active'}</option>
+                <option value="trial">{locale === 'ar' ? 'تجريبي' : 'Trial'}</option>
+                <option value="suspended">{locale === 'ar' ? 'موقوف' : 'Suspended'}</option>
+                <option value="inactive">{locale === 'ar' ? 'معطل' : 'Inactive'}</option>
               </select>
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">Currency</label>
+              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'العملة' : 'Currency'}</label>
               <select
                 value={formData.currency}
                 onChange={e => setFormData({ ...formData, currency: e.target.value })}
                 className="input w-full text-xs bg-ink-950"
               >
-                <option value="EGP">EGP (ج.م)</option>
-                <option value="SAR">SAR (ر.س)</option>
-                <option value="USD">USD ($)</option>
-                <option value="AED">AED (د.إ)</option>
+                <option value="EGP">{locale === 'ar' ? 'جنيه مصري (EGP)' : 'Egyptian Pound (EGP)'}</option>
+                <option value="SAR">{locale === 'ar' ? 'ريال سعودي (SAR)' : 'Saudi Riyal (SAR)'}</option>
+                <option value="USD">{locale === 'ar' ? 'دولار أمريكي (USD)' : 'US Dollar (USD)'}</option>
+                <option value="AED">{locale === 'ar' ? 'درهم إماراتي (AED)' : 'UAE Dirham (AED)'}</option>
               </select>
             </div>
           </div>
@@ -500,7 +509,7 @@ function RestaurantDetail({
               onClick={() => setIsEditing(false)}
               className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -508,7 +517,7 @@ function RestaurantDetail({
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-ink-950 hover:bg-amber-400 transition disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </form>
@@ -517,18 +526,18 @@ function RestaurantDetail({
       <div className="flex items-center gap-3">
         <StatusBadge status={r.status} />
         <PlanBadge plan={r.plan} />
-        <span className="text-xs text-ink-400 ml-auto">Joined {date(r.created_at)}</span>
+        <span className="text-xs text-ink-400 ml-auto">{locale === 'ar' ? `تاريخ الانضمام ${date(r.created_at)}` : `Joined ${date(r.created_at)}`}</span>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <DetailStat label="Categories" value={num(r.categories_count)} />
-        <DetailStat label="Products" value={num(r.products_count)} />
-        <DetailStat label="Orders" value={num(r.orders_count)} />
-        <DetailStat label="AI Scans" value={num(r.ai_scans_count)} />
-        <DetailStat label="AI Cost" value={egp(r.ai_cost)} />
-        <DetailStat label="Menu Published" value={r.menu_published ? 'Yes' : 'No'} />
+        <DetailStat label={locale === 'ar' ? 'الأقسام' : 'Categories'} value={num(r.categories_count)} />
+        <DetailStat label={locale === 'ar' ? 'الأطباق والمنتجات' : 'Products'} value={num(r.products_count)} />
+        <DetailStat label={t('menu.th_orders')} value={num(r.orders_count)} />
+        <DetailStat label={t('menu.kpi_ai_scans')} value={num(r.ai_scans_count)} />
+        <DetailStat label={t('menu.kpi_ai_cost')} value={egp(r.ai_cost)} />
+        <DetailStat label={locale === 'ar' ? 'نشر المنيو' : 'Menu Published'} value={r.menu_published ? (locale === 'ar' ? 'نعم' : 'Yes') : (locale === 'ar' ? 'لا' : 'No')} />
       </div>
       <div>
-        <h4 className="text-sm font-semibold text-ink-100 mb-2">Owner</h4>
+        <h4 className="text-sm font-semibold text-ink-100 mb-2">{locale === 'ar' ? 'المالك' : 'Owner'}</h4>
         <p className="text-sm text-ink-200">{r.owner}</p>
       </div>
     </div>
@@ -602,6 +611,7 @@ function AITab() {
 }
 
 function OrdersTab() {
+  const { t, locale } = useLocale();
   const [rows, setRows] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -629,29 +639,36 @@ function OrdersTab() {
   if (notImplemented) {
     return (
       <div className="card">
-        <EmptyState icon={<ShoppingBag className="w-5 h-5" />} title="Orders not yet tracked for this product" message="The Digital Menu backend hasn't shipped an Order model yet. Check back once the endpoint is live." />
+        <EmptyState icon={<ShoppingBag className="w-5 h-5" />} title={locale === 'ar' ? 'الطلبات غير مسجلة بعد لهذا المنتج' : 'Orders not yet tracked for this product'} message={locale === 'ar' ? 'لم يتم تفعيل نموذج الطلبات بعد.' : 'The Digital Menu backend hasn\'t shipped an Order model yet. Check back once the endpoint is live.'} />
       </div>
     );
   }
 
-  if (error) return <ErrorState message="Failed to load orders." onRetry={load} />;
+  if (error) return <ErrorState message={locale === 'ar' ? 'فشل تحميل الطلبات.' : 'Failed to load orders.'} onRetry={load} />;
 
   const filters: FilterItem[] = [
     {
-      type: 'select', label: 'Status', value: statusFilter,
-      options: [{ label: 'All', value: 'all' }, { label: 'Pending', value: 'pending' }, { label: 'Preparing', value: 'preparing' }, { label: 'Ready', value: 'ready' }, { label: 'Completed', value: 'completed' }, { label: 'Cancelled', value: 'cancelled' }],
+      type: 'select', label: t('common.status'), value: statusFilter,
+      options: [
+        { label: t('common.all'), value: 'all' },
+        { label: locale === 'ar' ? 'قيد الانتظار' : 'Pending', value: 'pending' },
+        { label: locale === 'ar' ? 'جاري التحضير' : 'Preparing', value: 'preparing' },
+        { label: locale === 'ar' ? 'جاهز' : 'Ready', value: 'ready' },
+        { label: locale === 'ar' ? 'مكتمل' : 'Completed', value: 'completed' },
+        { label: locale === 'ar' ? 'ملغي' : 'Cancelled', value: 'cancelled' },
+      ],
       onChange: v => { setStatusFilter(v); setPage(1); },
     },
   ];
 
   const columns: Column<Order>[] = [
-    { key: 'id', header: 'Order', sortValue: r => r.id, render: r => <span className="font-mono text-xs text-ink-100">{r.id}</span> },
-    { key: 'restaurant', header: 'Restaurant', sortValue: r => r.restaurant_name, render: r => <span className="text-ink-100">{r.restaurant_name}</span> },
-    { key: 'customer', header: 'Customer', sortValue: r => r.customer, render: r => <span className="text-xs text-ink-300">{r.customer}</span> },
-    { key: 'items', header: 'Items', sortValue: r => r.items, render: r => <span className="tabular-nums text-ink-200">{r.items}</span> },
-    { key: 'total', header: 'Total', sortValue: r => r.total, render: r => <span className="font-semibold text-ink-100 tabular-nums">{egp(r.total)}</span> },
-    { key: 'status', header: 'Status', sortValue: r => r.status, render: r => <StatusBadge status={r.status} /> },
-    { key: 'date', header: 'Date', sortValue: r => r.created_at, render: r => <span className="text-xs text-ink-400">{date(r.created_at)}</span> },
+    { key: 'id', header: locale === 'ar' ? 'رقم الطلب' : 'Order ID', sortValue: r => r.id, render: r => <span className="font-mono text-xs text-ink-100">{r.id}</span> },
+    { key: 'restaurant', header: t('menu.th_restaurant'), sortValue: r => r.restaurant_name, render: r => <span className="text-ink-100">{r.restaurant_name}</span> },
+    { key: 'customer', header: locale === 'ar' ? 'العميل' : 'Customer', sortValue: r => r.customer, render: r => <span className="text-xs text-ink-300">{r.customer}</span> },
+    { key: 'items', header: locale === 'ar' ? 'عدد الأصناف' : 'Items', sortValue: r => r.items, render: r => <span className="tabular-nums text-ink-200">{r.items}</span> },
+    { key: 'total', header: t('finance.th_amount'), sortValue: r => r.total, render: r => <span className="font-semibold text-ink-100 tabular-nums">{egp(r.total)}</span> },
+    { key: 'status', header: t('common.status'), sortValue: r => r.status, render: r => <StatusBadge status={r.status} /> },
+    { key: 'date', header: t('common.date'), sortValue: r => r.created_at, render: r => <span className="text-xs text-ink-400">{date(r.created_at)}</span> },
   ];
 
   return (
@@ -665,7 +682,7 @@ function OrdersTab() {
         perPage={10}
         total={total}
         onPageChange={setPage}
-        emptyTitle="No orders found"
+        emptyTitle={locale === 'ar' ? 'لا توجد طلبات' : 'No orders found'}
       />
     </>
   );
