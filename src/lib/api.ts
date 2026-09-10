@@ -271,9 +271,9 @@ export const api = {
   },
 
   cvMaker: {
-    stats: (): Promise<{ status: string; data: { total_resumes: number; total_exports: number; paid_unlocks: number; active_users: number; templates: Array<{ name: string; count: number; percentage: number }>; categories: Array<{ name: string; count: number; percentage: number }> } }> =>
+    stats: (): Promise<{ status: string; data: { total_resumes: number; total_exports: number; paid_unlocks: number; active_users: number; templates: Array<{ name: string; count: number; percentage: number }>; template_sales: Array<{ name: string; purchases_count: number; creations_count: number; downloads_count: number; purchase_share: number; creation_share: number }>; categories: Array<{ name: string; count: number; percentage: number }> } }> =>
       http('/admin/cv-maker/stats'),
-    list: (params?: { page?: number; per_page?: number; search?: string }): Promise<any> =>
+    list: (params?: { page?: number; per_page?: number; search?: string; template?: string }): Promise<any> =>
       http(`/admin/cv-maker/list${qs(params as Record<string, unknown>)}`),
   },
 };
