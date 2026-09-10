@@ -57,25 +57,73 @@ export function dateTime(iso: string): string {
   });
 }
 
-export function timeAgo(iso: string): string {
+export function timeAgo(iso: string, locale?: string): string {
+  const isAr = locale ? locale === 'ar' : (typeof window !== 'undefined' && localStorage.getItem('ouonex-dashboard-locale') === 'ar');
   const diff = Date.now() - new Date(iso).getTime();
   const s = Math.floor(diff / 1000);
-  if (s < 60) return 'just now';
+  if (s < 60) return isAr ? 'الآن (just now)' : 'just now';
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return isAr ? `منذ ${m} دقيقة (${m}m ago)` : `${m}m ago`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
+  if (h < 24) return isAr ? `منذ ${h} ساعة (${h}h ago)` : `${h}h ago`;
   const d = Math.floor(h / 24);
-  if (d < 30) return `${d}d ago`;
+  if (d < 30) return isAr ? `منذ ${d} يوم (${d}d ago)` : `${d}d ago`;
   const mo = Math.floor(d / 30);
-  if (mo < 12) return `${mo}mo ago`;
-  return `${Math.floor(mo / 12)}y ago`;
+  if (mo < 12) return isAr ? `منذ ${mo} شهر (${mo}mo ago)` : `${mo}mo ago`;
+  return isAr ? `منذ ${Math.floor(mo / 12)} سنة (${Math.floor(mo / 12)}y ago)` : `${Math.floor(mo / 12)}y ago`;
 }
 
-export function relativeDays(iso: string): string {
+export function formatHealthName(h: { name: string; product?: string; name_ar?: string }, locale?: string): string {
+  const isAr = locale ? locale === 'ar' : (typeof window !== 'undefined' && localStorage.getItem('ouonex-dashboard-locale') === 'ar');
+  if (isAr) {
+    if (h.name_ar) return `${h.name_ar} · ${h.name}`;
+    if (h.product === 'digital_menu' || h.name.toLowerCase().includes('digital menu')) {
+      return 'واجهة المنيو الرقمي (Digital Menu API)';
+    }
+    if (h.product === 'dawaty' || h.name.toLowerCase().includes('dawaty')) {
+      return 'واجهة تطبيق دعوتي (Dawaty API)';
+    }
+    if (h.product === 'sms_gateway' || h.name.toLowerCase().includes('sms gateway')) {
+      return 'هاتف بوابة الرسائل (SMS Gateway)';
+    }
+  }
+  return h.name;
+}
+
+export function formatProductLabel(product: string, productAr?: string, locale?: string): string {
+  const isAr = locale ? locale === 'ar' : (typeof window !== 'undefined' && localStorage.getItem('ouonex-dashboard-locale') === 'ar');
+  if (isAr) {
+    if (productAr) return `${productAr} (${product})`;
+    switch (product) {
+      case 'digital_menu':
+        return 'المنيو الرقمي (digital_menu)';
+      case 'dawaty':
+        return 'دعوتي (dawaty)';
+      case 'cv_maker':
+        return 'منشئ السيرة الذاتية (cv_maker)';
+      case 'qr_me':
+        return 'باركود QR الذكي (qr_me)';
+      case 'sms_gateway':
+        return 'بوابة الرسائل (sms_gateway)';
+      default:
+        return product;
+    }
+  }
+  return product;
+}
+
+export function relativeDays(iso: string, locale?: string): string {
+  const isAr = locale ? locale === 'ar' : (typeof window !== 'undefined' && localStorage.getItem('ouonex-dashboard-locale') === 'ar');
   const d = new Date(iso);
   const today = new Date();
   const diff = Math.ceil((d.getTime() - today.getTime()) / 86_400_000);
+  if (isAr) {
+    if (diff === 0) return 'اليوم (today)';
+    if (diff === 1) return 'غداً (tomorrow)';
+    if (diff === -1) return 'أمس (yesterday)';
+    if (diff > 0) return `خلال ${diff} يوم (in ${diff} days)`;
+    return `منذ ${Math.abs(diff)} يوم (${Math.abs(diff)} days ago)`;
+  }
   if (diff === 0) return 'today';
   if (diff === 1) return 'tomorrow';
   if (diff === -1) return 'yesterday';

@@ -74,6 +74,20 @@ const DICT: Record<string, { en: string; ar: string }> = {
   'overview.online': { en: 'Online', ar: 'متصل' },
   'overview.offline': { en: 'Offline', ar: 'غير متصل' },
 
+  // ── Health & System ──
+  'health.digital_menu_api': { en: 'Digital Menu API (Laravel)', ar: 'واجهة المنيو الرقمي (لارافيل)' },
+  'health.dawaty_api': { en: 'Dawaty API (Laravel)', ar: 'واجهة تطبيق دعوتي (لارافيل)' },
+  'health.sms_gateway': { en: 'SMS Gateway', ar: 'بوابة الرسائل القصيرة' },
+  'health.prod_digital_menu': { en: 'Digital Menu', ar: 'المنيو الرقمي' },
+  'health.prod_dawaty': { en: 'Dawaty', ar: 'دعوتي' },
+  'health.prod_sms_gateway': { en: 'SMS Gateway', ar: 'بوابة الرسائل' },
+  'health.reachable': { en: 'Reachable', ar: 'متصل ويعمل' },
+  'health.offline': { en: 'Offline', ar: 'غير متصل' },
+  'health.last_sync': { en: 'Last Sync', ar: 'آخر مزامنة' },
+  'health.latency': { en: 'Latency', ar: 'سرعة الاستجابة' },
+  'health.battery': { en: 'Battery Level', ar: 'مستوى البطارية' },
+  'health.ms': { en: 'ms', ar: 'مللي ثانية' },
+
   // ── Live Analytics Page ──
   'analytics.title': { en: 'Live Analytics & User Behavior', ar: 'التحليلات الحية وسلوك المستخدمين' },
   'analytics.description': { en: 'Real-time monitoring, conversion funnels, and peak traffic across Dawaty & Digital Menu', ar: 'متابعة لحظية ومسارات التحويل وحركة الزيارات عبر تطبيقات المنصة' },

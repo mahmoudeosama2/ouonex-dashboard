@@ -12,7 +12,7 @@ import { CardSkeleton, Skeleton } from '@/components/Skeleton';
 import { ErrorState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/Layout';
 import { ProductBadge } from '@/components/Badge';
-import { egp, num, compactNum, timeAgo } from '@/lib/format';
+import { egp, num, compactNum, timeAgo, formatHealthName } from '@/lib/format';
 import type { PageKey } from '@/lib/rbac';
 import { useLocale } from '@/context/LocaleContext';
 
@@ -247,11 +247,11 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
                     {h.product === 'sms_gateway' ? <Smartphone className="w-4 h-4" /> : <Activity className="w-4 h-4" />}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-ink-100">{h.name}</p>
+                    <p className="text-sm font-semibold text-ink-100">{formatHealthName(h, locale)}</p>
                     <p className="text-2xs text-ink-400">
                       {h.product === 'sms_gateway'
-                        ? `${timeAgo(h.last_sync)} · Battery ${h.latency_ms}%`
-                        : `${timeAgo(h.last_sync)} · ${h.latency_ms}ms`}
+                        ? `${timeAgo(h.last_sync, locale)} · ${t('health.battery')} ${h.latency_ms}%`
+                        : `${timeAgo(h.last_sync, locale)} · ${h.latency_ms} ${t('health.ms')}`}
                     </p>
                   </div>
                 </div>

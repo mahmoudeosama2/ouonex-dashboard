@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   Settings as SettingsIcon, Users, ScrollText, Activity, ShieldCheck,
   CheckCircle2, XCircle, Crown, Lock, Save, Loader2, Bell, Globe, Building,
-  FileText, QrCode, Zap, AlertTriangle,
+  FileText, QrCode, Zap, AlertTriangle, Smartphone,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { TeamMember, AuditLogEntry, HealthIndicator, Role } from '@/lib/types';
@@ -13,7 +13,7 @@ import { CardSkeleton } from '@/components/Skeleton';
 import { useRole } from '@/context/RoleContext';
 import { useToast } from '@/context/ToastContext';
 import { ROLES } from '@/lib/rbac';
-import { dateTime, timeAgo } from '@/lib/format';
+import { dateTime, timeAgo, formatHealthName, formatProductLabel } from '@/lib/format';
 import { useLocale } from '@/context/LocaleContext';
 
 type SubTab = 'team' | 'audit' | 'health' | 'general';
@@ -195,6 +195,7 @@ function AuditTab() {
 }
 
 function HealthTab() {
+  const { t, locale } = useLocale();
   const [health, setHealth] = useState<HealthIndicator[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -224,26 +225,30 @@ function HealthTab() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
               <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${h.reachable ? 'bg-success-500/10 text-success-400' : 'bg-danger-500/10 text-danger-400'}`}>
-                <Activity className="w-4.5 h-4.5" />
+                {h.product === 'sms_gateway' ? <Smartphone className="w-4.5 h-4.5" /> : <Activity className="w-4.5 h-4.5" />}
               </div>
               <div>
-                <p className="text-sm font-semibold text-ink-100">{h.name}</p>
-                <p className="text-2xs text-ink-400">{h.product}</p>
+                <p className="text-sm font-semibold text-ink-100">{formatHealthName(h, locale)}</p>
+                <p className="text-2xs text-ink-400">{formatProductLabel(h.product, h.product_ar, locale)}</p>
               </div>
             </div>
             <span className={`badge ${h.reachable ? 'bg-success-500/15 text-success-400 border border-success-500/30' : 'bg-danger-500/15 text-danger-400 border border-danger-500/30'}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${h.reachable ? 'bg-success-400 animate-pulse' : 'bg-danger-400'}`} />
-              {h.reachable ? 'Reachable' : 'Offline'}
+              {h.reachable ? t('health.reachable') : t('health.offline')}
             </span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-lg bg-ink-950/50 border border-ink-800 p-3">
-              <p className="text-2xs text-ink-400 uppercase tracking-wide mb-1">Last Sync</p>
-              <p className="text-sm font-medium text-ink-100">{timeAgo(h.last_sync)}</p>
+              <p className="text-2xs text-ink-400 uppercase tracking-wide mb-1">{t('health.last_sync')}</p>
+              <p className="text-sm font-medium text-ink-100">{timeAgo(h.last_sync, locale)}</p>
             </div>
             <div className="rounded-lg bg-ink-950/50 border border-ink-800 p-3">
-              <p className="text-2xs text-ink-400 uppercase tracking-wide mb-1">Latency</p>
-              <p className="text-sm font-medium text-ink-100 tabular-nums">{h.latency_ms}ms</p>
+              <p className="text-2xs text-ink-400 uppercase tracking-wide mb-1">
+                {h.product === 'sms_gateway' ? t('health.battery') : t('health.latency')}
+              </p>
+              <p className="text-sm font-medium text-ink-100 tabular-nums">
+                {h.product === 'sms_gateway' ? `${h.latency_ms}%` : `${h.latency_ms} ${t('health.ms')}`}
+              </p>
             </div>
           </div>
         </div>

@@ -157,6 +157,8 @@ export interface TeamMember {
 export interface HealthIndicator {
   product: Product | 'sms_gateway' | string;
   name: string;
+  name_ar?: string;
+  product_ar?: string;
   reachable: boolean;
   last_sync: string;
   latency_ms: number;
