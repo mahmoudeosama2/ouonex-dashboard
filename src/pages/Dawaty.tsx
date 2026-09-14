@@ -18,6 +18,7 @@ import { ErrorState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/Layout';
 import { num, date, relativeDays } from '@/lib/format';
 import { useLocale } from '@/context/LocaleContext';
+import { AppUsersManager } from '@/components/AppUsersManager';
 
 export function Dawaty() {
   const { t, locale } = useLocale();
@@ -30,6 +31,8 @@ export function Dawaty() {
   const [selected, setSelected] = useState<Invitation | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [kpis, setKpis] = useState({ total: 0, published: 0, visits: 0, rsvp: 0 });
+  const [usersCount, setUsersCount] = useState(0);
+  const [activeTab, setActiveTab] = useState<'invitations' | 'users'>('invitations');
   const [toggling, setToggling] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
@@ -41,6 +44,7 @@ export function Dawaty() {
       const res = await api.dawaty.invitations({ status: statusFilter === 'all' ? undefined : statusFilter, page, per_page: 10 });
       setInvitations(res.data);
       setTotal(res.meta.total);
+      api.users.search('', 1, 'dawaty').then(r => setUsersCount(r.meta.total)).catch(() => {});
       const all = await api.dawaty.invitations({ per_page: 200 });
       setKpis({
         total: all.data.length,
@@ -197,29 +201,69 @@ export function Dawaty() {
         <span className="font-mono text-xs text-ink-600">{r.slug}.ouonex.com</span>
       )
     ) },
-    { key: 'status', header: t('dawaty.th_status'), sortValue: r => r.status, render: r => <StatusBadge status={r.status} /> },
+    { key: 'status', header: t('dawaty.th_status'), sortValue: r => r.status, align: 'center', render: r => <StatusBadge status={r.status} /> },
     { key: 'template', header: t('dawaty.th_template'), render: r => <span className="text-xs text-ink-300">{r.template}</span> },
     { key: 'owner', header: t('dawaty.th_owner'), sortValue: r => r.owner, render: r => <span className="text-xs text-ink-300">{r.owner}</span> },
-    { key: 'visits', header: t('dawaty.th_visits'), sortValue: r => r.visit_count, render: r => <span className="tabular-nums text-ink-200">{num(r.visit_count)}</span> },
-    { key: 'rsvp', header: t('dawaty.th_rsvp'), render: r => <span className="text-xs"><span className="text-success-400">{r.rsvp_attending}</span> / <span className="text-danger-400">{r.rsvp_declined}</span> / <span className="text-ink-400">{r.rsvp_pending}</span></span> },
-    { key: 'created', header: t('dawaty.th_created'), sortValue: r => r.created_at, render: r => <span className="text-xs text-ink-400">{date(r.created_at)}</span> },
+    { key: 'visits', header: t('dawaty.th_visits'), sortValue: r => r.visit_count, align: 'center', render: r => <span className="tabular-nums text-ink-200">{num(r.visit_count)}</span> },
+    { key: 'rsvp', header: t('dawaty.th_rsvp'), align: 'center', render: r => <span className="text-xs"><span className="text-success-400">{r.rsvp_attending}</span> / <span className="text-danger-400">{r.rsvp_declined}</span> / <span className="text-ink-400">{r.rsvp_pending}</span></span> },
+    { key: 'created', header: t('dawaty.th_created'), sortValue: r => r.created_at, align: 'center', render: r => <span className="text-xs text-ink-400">{date(r.created_at)}</span> },
   ];
 
   return (
     <div>
       <PageHeader title={t('dawaty.title')} description={t('dawaty.description')} icon={<Heart className="w-5 h-5" />} />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {loading && !kpis.total ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />) : (
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+        {loading && !kpis.total ? Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />) : (
           <>
+            <KPICard label={locale === 'ar' ? 'عدد المستخدمين' : 'Total Users'} value={usersCount} format="num" icon={<Users className="w-4 h-4" />} accent="brand" />
             <KPICard label={t('dawaty.kpi_total')} value={kpis.total} format="num" icon={<FileText className="w-4 h-4" />} />
             <KPICard label={t('dawaty.kpi_published')} value={kpis.published} format="num" icon={<Heart className="w-4 h-4" />} accent="success" />
             <KPICard label={t('dawaty.kpi_visits')} value={kpis.visits} format="compactNum" icon={<Eye className="w-4 h-4" />} />
-            <KPICard label={t('dawaty.kpi_rsvp')} value={kpis.rsvp} format="num" icon={<Users className="w-4 h-4" />} accent="success" />
+            <KPICard label={t('dawaty.kpi_rsvp')} value={kpis.rsvp} format="num" icon={<UserCheck className="w-4 h-4" />} accent="success" />
           </>
         )}
       </div>
 
+      {/* Tabs */}
+      <div className="flex items-center gap-2 mb-6 border-b border-ink-800 pb-3">
+        <button
+          onClick={() => setActiveTab('invitations')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
+            activeTab === 'invitations'
+              ? 'bg-brand-600 text-white shadow-soft'
+              : 'bg-ink-900 text-ink-400 hover:text-ink-200 border border-ink-800'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>{locale === 'ar' ? 'دعوات الزفاف' : 'Invitations List'}</span>
+          <span className="text-3xs px-2 py-0.5 rounded-full bg-ink-950/60 font-mono">
+            {kpis.total || invitations.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('users')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
+            activeTab === 'users'
+              ? 'bg-brand-600 text-white shadow-soft'
+              : 'bg-ink-900 text-ink-400 hover:text-ink-200 border border-ink-800'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>{locale === 'ar' ? 'إدارة المستخدمين' : 'Users Management'}</span>
+          {usersCount > 0 && (
+            <span className="text-3xs px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono border border-rose-500/30">
+              {usersCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'users' ? (
+        <AppUsersManager product="dawaty" productNameAr="دعوتي" productNameEn="Dawaty" icon={<Heart className="w-4 h-4 text-rose-400" />} />
+      ) : (
+        <>
       {/* Funnel widget */}
       <div className="card p-5 mb-6">
         <h3 className="text-sm font-semibold text-ink-100 mb-4">{t('dawaty.funnel_title')}</h3>
@@ -321,6 +365,8 @@ export function Dawaty() {
           />
         )}
       </Drawer>
+      </>
+      )}
     </div>
   );
 }

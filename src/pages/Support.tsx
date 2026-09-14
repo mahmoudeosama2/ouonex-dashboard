@@ -216,8 +216,10 @@ export function SupportPage() {
                 className="input py-1 px-2.5 bg-ink-950 text-xs"
               >
                 <option value="all">{t('common.all')}</option>
-                <option value="dawaty">Dawaty</option>
-                <option value="digital_menu">Digital Menu</option>
+                <option value="dawaty">{t('nav.dawaty')}</option>
+                <option value="digital_menu">{t('nav.digital_menu')}</option>
+                <option value="cv_maker">{t('nav.cv_maker')}</option>
+                <option value="qr_me">{t('nav.qr_me')}</option>
               </select>
 
               <span className="text-ink-400 font-medium ml-2">{t('common.status')}:</span>
@@ -227,14 +229,14 @@ export function SupportPage() {
                 className="input py-1 px-2.5 bg-ink-950 text-xs"
               >
                 <option value="all">{t('common.all')}</option>
-                <option value="open">{locale === 'ar' ? 'مفتوحة' : 'Open'}</option>
-                <option value="in_progress">{locale === 'ar' ? 'قيد المتابعة' : 'In Progress'}</option>
-                <option value="resolved">{locale === 'ar' ? 'تم الحل' : 'Resolved'}</option>
+                <option value="open">{t('support.status_open')}</option>
+                <option value="in_progress">{t('support.status_in_progress')}</option>
+                <option value="resolved">{t('support.status_resolved')}</option>
               </select>
             </div>
 
             <span className="text-ink-500 text-2xs">
-              {locale === 'ar' ? `تم العثور على ${tickets.length} تذكرة` : `${tickets.length} tickets found`}
+              {t('support.found_tickets', { count: tickets.length })}
             </span>
           </div>
 
@@ -352,15 +354,17 @@ export function SupportPage() {
           {/* Filters */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-ink-900 border border-ink-800 text-xs">
             <div className="flex items-center gap-3">
-              <span className="text-ink-400 font-medium">{locale === 'ar' ? 'تصفية التطبيق:' : 'Filter App:'}</span>
+              <span className="text-ink-400 font-medium">{t('finance.th_product')}:</span>
               <select
                 value={deletionApp}
                 onChange={e => setDeletionApp(e.target.value)}
                 className="input py-1 px-2.5 bg-ink-950 text-xs"
               >
                 <option value="all">{t('common.all')}</option>
-                <option value="dawaty">Dawaty</option>
-                <option value="digital_menu">Digital Menu</option>
+                <option value="dawaty">{t('nav.dawaty')}</option>
+                <option value="digital_menu">{t('nav.digital_menu')}</option>
+                <option value="cv_maker">{t('nav.cv_maker')}</option>
+                <option value="qr_me">{t('nav.qr_me')}</option>
               </select>
 
               <span className="text-ink-400 font-medium ml-2">{t('common.status')}:</span>

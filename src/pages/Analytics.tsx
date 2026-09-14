@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   BarChart3, Activity, Users, Flame, Eye, CheckCircle2, ShoppingBag,
   Smartphone, Monitor, RefreshCw, Heart, UtensilsCrossed, Calendar,
-  TrendingUp, Clock, Award, Filter
+  TrendingUp, Clock, Award, Filter, FileText, QrCode
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { PageHeader } from '@/components/Layout';
@@ -12,7 +12,7 @@ import { useLocale } from '@/context/LocaleContext';
 
 export function Analytics() {
   const { t, locale } = useLocale();
-  const [product, setProduct] = useState<'all' | 'dawaty' | 'digital_menu'>('all');
+  const [product, setProduct] = useState<'all' | 'dawaty' | 'digital_menu' | 'cv_maker' | 'qr_me'>('all');
   const [period, setPeriod] = useState<'24h' | '7d' | '30d'>('7d');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -107,7 +107,7 @@ export function Analytics() {
       {/* Control Bar: Filters & Real-time banner */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-ink-900/60 border border-ink-800/80 backdrop-blur-sm">
         {/* Product Filter */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-ink-950 border border-ink-800">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-ink-950 border border-ink-800">
           <button
             onClick={() => setProduct('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
@@ -139,6 +139,28 @@ export function Analytics() {
           >
             <UtensilsCrossed className="w-3.5 h-3.5" />
             Digital Menu
+          </button>
+          <button
+            onClick={() => setProduct('cv_maker')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              product === 'cv_maker'
+                ? 'bg-violet-600 text-white shadow-soft'
+                : 'text-ink-400 hover:text-ink-200'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            CV Maker
+          </button>
+          <button
+            onClick={() => setProduct('qr_me')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              product === 'qr_me'
+                ? 'bg-sky-500 text-ink-950 shadow-soft'
+                : 'text-ink-400 hover:text-ink-200'
+            }`}
+          >
+            <QrCode className="w-3.5 h-3.5" />
+            QR Me
           </button>
         </div>
 
@@ -241,12 +263,18 @@ export function Analytics() {
                 <h3 className="text-base font-bold text-ink-50">{t('analytics.daily_trend')}</h3>
                 <p className="text-xs text-ink-400">{t('analytics.daily_trend_sub')}</p>
               </div>
-              <div className="flex items-center gap-3 text-2xs font-medium">
+              <div className="flex flex-wrap items-center gap-3 text-2xs font-medium">
                 <span className="flex items-center gap-1 text-rose-400">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Dawaty
                 </span>
                 <span className="flex items-center gap-1 text-amber-400">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Digital Menu
+                </span>
+                <span className="flex items-center gap-1 text-violet-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-violet-500" /> CV Maker
+                </span>
+                <span className="flex items-center gap-1 text-sky-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-sky-500" /> QR Me
                 </span>
               </div>
             </div>

@@ -15,6 +15,7 @@ import { ProductBadge } from '@/components/Badge';
 import { egp, num, compactNum, timeAgo, formatHealthName } from '@/lib/format';
 import type { PageKey } from '@/lib/rbac';
 import { useLocale } from '@/context/LocaleContext';
+import { RecentActivityModal } from '@/components/RecentActivityModal';
 
 const ACTIVITY_ICON: Record<string, React.ReactNode> = {
   payment_approved: <CheckCircle2 className="w-4 h-4 text-success-400" />,
@@ -38,6 +39,7 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
   const [health, setHealth] = useState<HealthIndicator[]>([]);
   const [healthUpdated, setHealthUpdated] = useState<Date | null>(null);
   const [healthAgo, setHealthAgo] = useState(0);
+  const [activityModalOpen, setActivityModalOpen] = useState(false);
 
   // Health auto-refresh every 30 seconds
   useEffect(() => {
@@ -202,7 +204,12 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-ink-100">{t('overview.recent_activity')}</h3>
-            <button onClick={() => onNavigate('finance')} className="text-2xs text-brand-400 hover:text-brand-300 font-medium">{t('overview.view_all')}</button>
+            <button
+              onClick={() => setActivityModalOpen(true)}
+              className="text-2xs text-brand-400 hover:text-brand-300 font-medium transition-colors"
+            >
+              {t('overview.view_all')}
+            </button>
           </div>
           {loading ? (
             <div className="space-y-3">
@@ -211,7 +218,11 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
           ) : (
             <div className="space-y-1 -mx-2">
               {activity.map(a => (
-                <div key={a.id} className="flex items-start gap-3 px-2 py-2 rounded-lg hover:bg-ink-800/40 transition-colors">
+                <div
+                  key={a.id}
+                  onClick={() => setActivityModalOpen(true)}
+                  className="flex items-start gap-3 px-2 py-2 rounded-lg hover:bg-ink-800/40 transition-colors cursor-pointer"
+                >
                   <div className="mt-0.5 shrink-0">{ACTIVITY_ICON[a.type]}</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-ink-200 leading-snug">{a.message}</p>
@@ -264,6 +275,13 @@ export function Overview({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
           </div>
         </div>
       </div>
+
+      <RecentActivityModal
+        open={activityModalOpen}
+        onClose={() => setActivityModalOpen(false)}
+        activities={activity}
+        onNavigate={onNavigate}
+      />
     </div>
   );
 }

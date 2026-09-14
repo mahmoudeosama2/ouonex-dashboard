@@ -375,15 +375,22 @@ export const healthIndicators: HealthIndicator[] = [
 ];
 
 // ── Users ────────────────────────────────────────────────
-export function searchUsers(query: string, page = 1, per_page = 10): Paginated<UserSearchResult> {
-  const all: UserSearchResult[] = [];
+const MOCK_USERS_CACHE: UserSearchResult[] = [];
+
+function getOrCreateMockUsers(): UserSearchResult[] {
+  if (MOCK_USERS_CACHE.length > 0) return MOCK_USERS_CACHE;
+
+  const productList: Product[] = ['dawaty', 'digital_menu', 'cv_maker', 'qr_me'];
   for (let i = 0; i < 60; i++) {
     const n = name(i + 1);
-    const prods: Product[] = i % 3 === 0 ? ['dawaty', 'digital_menu'] : i % 2 === 0 ? ['dawaty'] : ['digital_menu'];
-    all.push({
+    const assignedProd = productList[i % 4];
+    const prods: Product[] = i % 5 === 0 ? [assignedProd, productList[(i + 1) % 4]] : [assignedProd];
+    MOCK_USERS_CACHE.push({
       id: `usr_${(i + 1).toString().padStart(4, '0')}`,
       name: n,
       email: `${n.toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`,
+      phone: `+20 10${(i * 1234567).toString().padStart(8, '0').slice(0, 8)}`,
+      status: i % 10 === 0 ? 'suspended' : 'active',
       products: prods,
       payment_count: (i * 3) % 12,
       pending_count: i % 5 === 0 ? 1 : 0,
@@ -395,18 +402,44 @@ export function searchUsers(query: string, page = 1, per_page = 10): Paginated<U
       payments: payments_seed.filter(p => p.user_id === `usr_${(i + 1).toString().padStart(4, '0')}`),
     });
   }
+  return MOCK_USERS_CACHE;
+}
+
+export function searchUsers(query: string, page = 1, per_page = 10, product?: string, status?: string): Paginated<UserSearchResult> {
+  const all = getOrCreateMockUsers();
   let rows = all;
+
   if (query) {
     const q = query.toLowerCase();
-    rows = all.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+    rows = rows.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone && u.phone.includes(q)));
   }
+
+  if (product && product !== 'all') {
+    rows = rows.filter(u => u.products.includes(product as Product));
+  }
+
+  if (status && status !== 'all') {
+    rows = rows.filter(u => (u.status || 'active') === status);
+  }
+
   const total = rows.length;
   const start = (page - 1) * per_page;
   return { data: rows.slice(start, start + per_page), meta: { page, per_page, total } };
 }
 
 export function userDetail(id: string): UserSearchResult | undefined {
-  return searchUsers('', 1, 200).data.find(u => u.id === id);
+  return getOrCreateMockUsers().find(u => u.id === id);
+}
+
+export function updateMockUser(id: string, data: Record<string, unknown>): { status: string; message: string; data: any } {
+  const u = getOrCreateMockUsers().find(user => user.id === id);
+  if (u) {
+    if (data.name) u.name = String(data.name);
+    if (data.email) u.email = String(data.email);
+    if (data.phone) u.phone = String(data.phone);
+    if (data.status) u.status = data.status as any;
+  }
+  return { status: 'success', message: 'User updated', data: u };
 }
 
 // ── Website Content ──────────────────────────────────────

@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   QrCode, Sparkles, Download, Eye, Zap, ShieldCheck, ToggleLeft, ToggleRight,
-  Save, RefreshCw, BarChart2, Layers, CheckCircle2, AlertCircle, Palette, UserCheck
+  Save, RefreshCw, BarChart2, Layers, CheckCircle2, AlertCircle, Palette, UserCheck, Users
 } from 'lucide-react';
 import { PageHeader } from '@/components/Layout';
 import { KPICard } from '@/components/KPICard';
+import { AppUsersManager } from '@/components/AppUsersManager';
 import { useToast } from '@/context/ToastContext';
 import { useLocale } from '@/context/LocaleContext';
 import { api } from '@/lib/api';
@@ -46,7 +47,7 @@ export function QrMe() {
   // Paywall states
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
   const [vipPrice, setVipPrice] = useState(15);
-  const [activeTab, setActiveTab] = useState<'stats' | 'paywall' | 'recent'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'paywall' | 'recent' | 'users'>('stats');
 
   const fetchStats = useCallback(async () => {
     try {
@@ -147,7 +148,7 @@ export function QrMe() {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-sm">
-                {!isPaymentEnabled ? 'Free Mode Active (Google/Apple Review Safe)' : 'VIP Paywall Active'}
+                {!isPaymentEnabled ? t('qr.free_mode_banner') : t('qr.paid_mode_banner')}
               </h3>
               <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full ${
                 !isPaymentEnabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
@@ -156,9 +157,7 @@ export function QrMe() {
               </span>
             </div>
             <p className="text-xs text-ink-300 mt-0.5">
-              {!isPaymentEnabled 
-                ? 'Payment screens are completely hidden in the app. Users get instant VIP exports without paying.'
-                : 'Users must pay via InstaPay / Vodafone Cash to download watermark-free vector SVG/PDF templates.'}
+              {!isPaymentEnabled ? t('qr.free_banner_desc') : t('qr.paid_banner_desc')}
             </p>
           </div>
         </div>
@@ -173,7 +172,7 @@ export function QrMe() {
             }`}
           >
             {!isPaymentEnabled ? <ToggleLeft className="w-4 h-4" /> : <ToggleRight className="w-4 h-4" />}
-            <span>{!isPaymentEnabled ? 'Switch to Paid Mode' : 'Switch to Free Mode'}</span>
+            <span>{!isPaymentEnabled ? t('qr.switch_to_paid') : t('qr.switch_to_free')}</span>
           </button>
         </div>
       </div>
@@ -214,6 +213,7 @@ export function QrMe() {
           { key: 'stats', label: t('qr.tab_stats'), icon: <BarChart2 className="w-4 h-4" /> },
           { key: 'paywall', label: t('qr.tab_paywall'), icon: <Zap className="w-4 h-4" /> },
           { key: 'recent', label: t('qr.tab_recent'), icon: <Layers className="w-4 h-4" /> },
+          { key: 'users', label: t('qr.tab_users'), icon: <Users className="w-4 h-4" /> },
         ].map(tTab => (
           <button
             key={tTab.key}
@@ -302,16 +302,16 @@ export function QrMe() {
               <Zap className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-ink-50">QR Me Dynamic Paywall Config</h3>
-              <p className="text-xs text-ink-400">Changes take effect immediately in the mobile app without releasing updates.</p>
+              <h3 className="text-base font-bold text-ink-50">{t('qr.paywall_config_title')}</h3>
+              <p className="text-xs text-ink-400">{t('qr.paywall_config_desc')}</p>
             </div>
           </div>
 
           <div className="space-y-4 pt-2">
             <div className="flex items-center justify-between p-4 bg-ink-900/70 rounded-xl border border-ink-800">
               <div>
-                <p className="text-sm font-semibold text-ink-100">In-App Paywall Status</p>
-                <p className="text-xs text-ink-400">When OFF, the app runs 100% free with no payment dialogs (safe for Google Play & Apple reviews).</p>
+                <p className="text-sm font-semibold text-ink-100">{t('qr.paywall_status')}</p>
+                <p className="text-xs text-ink-400">{t('qr.paywall_status_desc')}</p>
               </div>
               <button
                 type="button"
@@ -328,7 +328,7 @@ export function QrMe() {
 
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-ink-300">
-                VIP Template / High-Res Export Price (EGP)
+                {t('qr.vip_price_label')}
               </label>
               <input
                 type="number"
@@ -338,7 +338,7 @@ export function QrMe() {
                 className="input w-full"
                 placeholder="15"
               />
-              <p className="text-2xs text-ink-500">Amount users are prompted to transfer via InstaPay when payment is enabled.</p>
+              <p className="text-2xs text-ink-500">{t('qr.vip_price_hint')}</p>
             </div>
           </div>
 
@@ -402,6 +402,11 @@ export function QrMe() {
             </div>
           )}
         </div>
+      )}
+
+      {/* ── Tab 4: App Users ── */}
+      {activeTab === 'users' && (
+        <AppUsersManager product="qr_me" title={t('qr.title')} />
       )}
     </div>
   );

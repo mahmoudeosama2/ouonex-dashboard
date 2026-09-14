@@ -259,6 +259,7 @@ function HealthTab() {
 
 function GeneralTab() {
   const toast = useToast();
+  const { t } = useLocale();
   const [form, setForm] = useState({
     dashboard_name: 'Ouonex Dashboard',
     timezone: 'Africa/Cairo',
@@ -301,7 +302,7 @@ function GeneralTab() {
     setSaving(true);
     try {
       await api.settings.save(form);
-      toast.success('Settings saved', 'Your changes have been applied');
+      toast.success(t('common.save'), t('topbar.all_operational'));
     } catch {
       toast.error('Save failed', 'Could not save settings. Please try again.');
     } finally {
@@ -310,7 +311,7 @@ function GeneralTab() {
   };
 
   if (loading) {
-    return <div className="text-sm text-ink-400">Loading settings...</div>;
+    return <div className="text-sm text-ink-400">{t('common.loading')}</div>;
   }
 
   return (
@@ -318,10 +319,10 @@ function GeneralTab() {
       <div className="card p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Building className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">Organization</h3>
+          <h3 className="text-sm font-semibold text-ink-100">{t('settings.organization')}</h3>
         </div>
         <div>
-          <label className="block text-xs font-medium text-ink-300 mb-1.5">Dashboard name</label>
+          <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.dashboard_name')}</label>
           <input
             type="text"
             value={form.dashboard_name}
@@ -331,7 +332,7 @@ function GeneralTab() {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">Timezone</label>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.timezone')}</label>
             <select
               value={form.timezone}
               onChange={e => setForm(f => ({ ...f, timezone: e.target.value }))}
@@ -344,16 +345,16 @@ function GeneralTab() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">Currency</label>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.currency')}</label>
             <select
               value={form.currency}
               onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
               className="input w-full cursor-pointer"
             >
-              <option value="EGP">EGP — Egyptian Pound</option>
-              <option value="USD">USD — US Dollar</option>
-              <option value="EUR">EUR — Euro</option>
-              <option value="SAR">SAR — Saudi Riyal</option>
+              <option value="EGP">{t('settings.currency_egp')}</option>
+              <option value="USD">{t('settings.currency_usd')}</option>
+              <option value="EUR">{t('settings.currency_eur')}</option>
+              <option value="SAR">{t('settings.currency_sar')}</option>
             </select>
           </div>
         </div>
@@ -374,16 +375,15 @@ function GeneralTab() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-ink-100">Global Emergency Kill Switch</h3>
+                <h3 className="text-sm font-bold text-ink-100">{t('settings.kill_switch')}</h3>
                 <span className={`text-2xs font-bold px-2 py-0.5 rounded-full ${
                   form.global_emergency_free_mode ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-ink-800 text-ink-400'
                 }`}>
-                  {form.global_emergency_free_mode ? 'ACTIVE: ALL APPS 100% FREE' : 'NORMAL: PER-APP RULES'}
+                  {form.global_emergency_free_mode ? t('settings.kill_switch_active') : t('settings.kill_switch_normal')}
                 </span>
               </div>
               <p className="text-xs text-ink-400 mt-0.5">
-                Immediately bypasses and hides payment screens across all 4 apps (Dawaty, Digital Menu, CV Maker, QR Me). 
-                Essential during Google Play & Apple App Store review approvals.
+                {t('settings.kill_switch_desc')}
               </p>
             </div>
           </div>
@@ -405,11 +405,11 @@ function GeneralTab() {
       <div className="card p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Crown className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">Digital Menu Subscriptions</h3>
+          <h3 className="text-sm font-semibold text-ink-100">{t('settings.menu_pricing')}</h3>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">Monthly Price (EGP)</label>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.menu_monthly')}</label>
             <input
               type="number"
               value={form.menu_price_monthly}
@@ -419,7 +419,7 @@ function GeneralTab() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">Yearly Price (EGP)</label>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.menu_yearly')}</label>
             <input
               type="number"
               value={form.menu_price_yearly}
@@ -431,8 +431,8 @@ function GeneralTab() {
         </div>
         <label className="flex items-center justify-between cursor-pointer pt-2">
           <div>
-            <p className="text-sm text-ink-200">Free Mode</p>
-            <p className="text-xs text-ink-500">Provide Digital Menu subscriptions completely for free</p>
+            <p className="text-sm text-ink-200">{t('settings.menu_free_mode')}</p>
+            <p className="text-xs text-ink-500">{t('settings.menu_free_mode_desc')}</p>
           </div>
           <button
             type="button"
@@ -448,10 +448,10 @@ function GeneralTab() {
       <div className="card p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Globe className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">Dawaty Invitations</h3>
+          <h3 className="text-sm font-semibold text-ink-100">{t('settings.dawaty_pricing')}</h3>
         </div>
         <div>
-          <label className="block text-xs font-medium text-ink-300 mb-1.5">Single Invitation Price (EGP)</label>
+          <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.dawaty_single_price')}</label>
           <input
             type="number"
             value={form.dawaty_invitation_price}
@@ -462,8 +462,8 @@ function GeneralTab() {
         </div>
         <label className="flex items-center justify-between cursor-pointer pt-2">
           <div>
-            <p className="text-sm text-ink-200">Free Mode</p>
-            <p className="text-xs text-ink-500">Provide Dawaty wedding invitations completely for free</p>
+            <p className="text-sm text-ink-200">{t('settings.menu_free_mode')}</p>
+            <p className="text-xs text-ink-500">{t('settings.dawaty_free_mode_desc')}</p>
           </div>
           <button
             type="button"
@@ -479,11 +479,11 @@ function GeneralTab() {
       <div className="card p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <FileText className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">CV Maker Pricing & Paywall</h3>
+          <h3 className="text-sm font-semibold text-ink-100">{t('settings.cv_pricing')}</h3>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">Single CV Export (EGP)</label>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.cv_single_export')}</label>
             <input
               type="number"
               value={form.cv_price_single}
@@ -493,7 +493,7 @@ function GeneralTab() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">Unlimited Subscription (EGP)</label>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.cv_unlimited_sub')}</label>
             <input
               type="number"
               value={form.cv_price_subscription}
@@ -505,8 +505,8 @@ function GeneralTab() {
         </div>
         <label className="flex items-center justify-between cursor-pointer pt-2">
           <div>
-            <p className="text-sm text-ink-200">Free Mode (Bypass CV Paywall)</p>
-            <p className="text-xs text-ink-500">Allow users to export clean PDFs without watermark for free</p>
+            <p className="text-sm text-ink-200">{t('settings.cv_free_mode')}</p>
+            <p className="text-xs text-ink-500">{t('settings.cv_free_mode_desc')}</p>
           </div>
           <button
             type="button"
@@ -522,10 +522,10 @@ function GeneralTab() {
       <div className="card p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <QrCode className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">QR Me Custom Barcode Pricing</h3>
+          <h3 className="text-sm font-semibold text-ink-100">{t('settings.qrme_pricing')}</h3>
         </div>
         <div>
-          <label className="block text-xs font-medium text-ink-300 mb-1.5">VIP Template & High-Res Export Price (EGP)</label>
+          <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.qrme_vip_price')}</label>
           <input
             type="number"
             value={form.qr_me_vip_price}
@@ -536,8 +536,8 @@ function GeneralTab() {
         </div>
         <label className="flex items-center justify-between cursor-pointer pt-2">
           <div>
-            <p className="text-sm text-ink-200">Free Mode (Bypass QR Me Paywall)</p>
-            <p className="text-xs text-ink-500">Unlock all vector SVG/PDF exports and VIP templates completely free</p>
+            <p className="text-sm text-ink-200">{t('settings.qrme_free_mode')}</p>
+            <p className="text-xs text-ink-500">{t('settings.qrme_free_mode_desc')}</p>
           </div>
           <button
             type="button"
@@ -553,11 +553,11 @@ function GeneralTab() {
       <div className="card p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Save className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">Payment Gateways</h3>
+          <h3 className="text-sm font-semibold text-ink-100">{t('settings.gateways')}</h3>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">Vodafone Cash Number</label>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.vodafone_cash')}</label>
             <input
               type="text"
               value={form.vodafone_cash_number}
@@ -566,7 +566,7 @@ function GeneralTab() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">InstaPay Address</label>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.instapay')}</label>
             <input
               type="text"
               value={form.instapay_address}
@@ -582,9 +582,9 @@ function GeneralTab() {
         <div className="flex items-center gap-2 mb-1">
           <Globe className="w-4 h-4 text-ink-400" />
           <div>
-            <h3 className="text-sm font-semibold text-ink-100">Smart App Store & Viral Promotion Links</h3>
+            <h3 className="text-sm font-semibold text-ink-100">{t('settings.store_links')}</h3>
             <p className="text-xs text-ink-400 mt-0.5">
-              These URLs power the "Powered by" banners on public web pages. Visitors on iOS are automatically routed to App Store, and visitors on Android to Google Play.
+              {t('settings.store_links_desc')}
             </p>
           </div>
         </div>
@@ -593,11 +593,11 @@ function GeneralTab() {
         <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
           <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
             <QrCode className="w-3.5 h-3.5 text-brand-400" />
-            <span>QR Me App Links</span>
+            <span>{t('settings.qrme_links')}</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">Apple App Store URL (iOS)</label>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.app_store_url')}</label>
               <input
                 type="url"
                 placeholder="https://apps.apple.com/app/qr-me/..."
@@ -607,7 +607,7 @@ function GeneralTab() {
               />
             </div>
             <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">Google Play Store URL (Android)</label>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.play_store_url')}</label>
               <input
                 type="url"
                 placeholder="https://play.google.com/store/apps/details?id=..."
@@ -623,11 +623,11 @@ function GeneralTab() {
         <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
           <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
             <Crown className="w-3.5 h-3.5 text-amber-400" />
-            <span>Digital Menu App Links</span>
+            <span>{t('settings.menu_links')}</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">Apple App Store URL (iOS)</label>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.app_store_url')}</label>
               <input
                 type="url"
                 placeholder="https://apps.apple.com/app/ouonex-menu/..."
@@ -637,7 +637,7 @@ function GeneralTab() {
               />
             </div>
             <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">Google Play Store URL (Android)</label>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.play_store_url')}</label>
               <input
                 type="url"
                 placeholder="https://play.google.com/store/apps/details?id=..."
@@ -653,11 +653,11 @@ function GeneralTab() {
         <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
           <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
             <Building className="w-3.5 h-3.5 text-rose-400" />
-            <span>Dawaty Invitations App Links</span>
+            <span>{t('settings.dawaty_links')}</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">Apple App Store URL (iOS)</label>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.app_store_url')}</label>
               <input
                 type="url"
                 placeholder="https://apps.apple.com/app/dawaty/..."
@@ -667,7 +667,7 @@ function GeneralTab() {
               />
             </div>
             <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">Google Play Store URL (Android)</label>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.play_store_url')}</label>
               <input
                 type="url"
                 placeholder="https://play.google.com/store/apps/details?id=..."
@@ -683,12 +683,12 @@ function GeneralTab() {
       <div className="card p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Bell className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">Notifications</h3>
+          <h3 className="text-sm font-semibold text-ink-100">{t('settings.notifications')}</h3>
         </div>
         <label className="flex items-center justify-between cursor-pointer">
           <div>
-            <p className="text-sm text-ink-200">Email notifications</p>
-            <p className="text-xs text-ink-500">Receive alerts for new pending payments</p>
+            <p className="text-sm text-ink-200">{t('settings.email_notifications')}</p>
+            <p className="text-xs text-ink-500">{t('settings.email_notifications_desc')}</p>
           </div>
           <button
             type="button"
@@ -699,7 +699,7 @@ function GeneralTab() {
           </button>
         </label>
         <div>
-          <label className="block text-xs font-medium text-ink-300 mb-1.5">Auto-refresh interval (seconds)</label>
+          <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.auto_refresh')}</label>
           <input
             type="number"
             min={10}
@@ -712,10 +712,10 @@ function GeneralTab() {
       </div>
 
       <div className="flex items-center justify-end gap-2">
-        <button className="btn-secondary">Cancel</button>
+        <button className="btn-secondary">{t('common.cancel')}</button>
         <button onClick={handleSave} disabled={saving} className="btn-primary">
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          Save changes
+          {saving ? t('common.saving') : t('common.save')}
         </button>
       </div>
     </div>

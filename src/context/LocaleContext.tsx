@@ -204,6 +204,19 @@ const DICT: Record<string, { en: string; ar: string }> = {
   'qr.th_created': { en: 'Created', ar: 'تاريخ الإنشاء' },
   'qr.no_qrs_yet': { en: 'No QR Codes Generated Yet', ar: 'لا توجد أكواد QR منشأة بعد' },
   'qr.no_qrs_desc': { en: 'When users create QR codes in the app, they will appear here in real time.', ar: 'عند إنشاء أكواد QR في التطبيق، ستظهر في هذا الجدول مباشرة.' },
+  'qr.tab_users': { en: 'Users Directory', ar: 'دليل المستخدمين' },
+  'qr.paywall_config_title': { en: 'QR Me Dynamic Paywall Config', ar: 'إعدادات جدار الدفع لتطبيق باركود QR' },
+  'qr.paywall_config_desc': { en: 'Changes take effect immediately in the mobile app without releasing updates.', ar: 'تسري التغييرات فوراً في تطبيق الهاتف دون الحاجة لتحديث التطبيق في المتجر.' },
+  'qr.paywall_status': { en: 'In-App Paywall Status', ar: 'حالة جدار الدفع بالتطبيق' },
+  'qr.paywall_status_desc': { en: 'When OFF, the app runs 100% free with no payment dialogs (safe for Google Play & Apple reviews).', ar: 'عند التعطيل، يعمل التطبيق مجاناً بنسبة 100% دون أي شاشات دفع (آمن تماماً لمراجعة المتاجر).' },
+  'qr.vip_price_label': { en: 'VIP Template / High-Res Export Price (EGP)', ar: 'سعر القالب المميز / التصدير عالي الدقة (ج.م)' },
+  'qr.vip_price_hint': { en: 'Amount users are prompted to transfer via InstaPay when payment is enabled.', ar: 'المبلغ المطلوب دفعه عبر إنستاباي أو المحافظ الإلكترونية عند تفعيل الدفع.' },
+  'qr.free_mode_banner': { en: 'Free Mode Active (Google/Apple Review Safe)', ar: 'الوضع المجاني مفعّل (آمن لمراجعة المتاجر)' },
+  'qr.paid_mode_banner': { en: 'VIP Paywall Active', ar: 'جدار الدفع المميز مفعّل' },
+  'qr.free_banner_desc': { en: 'Payment screens are completely hidden in the app. Users get instant VIP exports without paying.', ar: 'شاشات الدفع مخفية بالكامل في التطبيق، ويحصل المستخدمون على التصدير المميز مجاناً.' },
+  'qr.paid_banner_desc': { en: 'Users must pay via InstaPay / Vodafone Cash to download watermark-free vector SVG/PDF templates.', ar: 'يجب على المستخدمين الدفع عبر إنستاباي أو فودافون كاش لتحميل القوالب بدون علامة مائية بصيغ SVG/PDF.' },
+  'qr.switch_to_paid': { en: 'Switch to Paid Mode', ar: 'التحويل للوضع المدفوع' },
+  'qr.switch_to_free': { en: 'Switch to Free Mode', ar: 'التحويل للوضع المجاني' },
 
   // ── Dawaty Page ──
   'dawaty.title': { en: 'Dawaty', ar: 'دعوتي' },
@@ -339,6 +352,154 @@ const DICT: Record<string, { en: string; ar: string }> = {
   'settings.tab_team': { en: 'Team', ar: 'فريق العمل' },
   'settings.tab_audit': { en: 'Audit Log', ar: 'سجل العمليات' },
   'settings.tab_health': { en: 'Health', ar: 'حالة النظام' },
+
+  // ── Settings Page Details ──
+  'settings.organization': { en: 'Organization', ar: 'بيانات المنظمة' },
+  'settings.dashboard_name': { en: 'Dashboard name', ar: 'اسم لوحة التحكم' },
+  'settings.timezone': { en: 'Timezone', ar: 'المنطقة الزمنية' },
+  'settings.currency': { en: 'Currency', ar: 'العملة' },
+  'settings.currency_egp': { en: 'EGP — Egyptian Pound', ar: 'جنيه مصري (EGP)' },
+  'settings.currency_usd': { en: 'USD — US Dollar', ar: 'دولار أمريكي (USD)' },
+  'settings.currency_eur': { en: 'EUR — Euro', ar: 'يورو (EUR)' },
+  'settings.currency_sar': { en: 'SAR — Saudi Riyal', ar: 'ريال سعودي (SAR)' },
+  'settings.kill_switch': { en: 'Global Emergency Kill Switch', ar: 'مفتاح الطوارئ العام (تخطي الدفع)' },
+  'settings.kill_switch_active': { en: 'ACTIVE: ALL APPS 100% FREE', ar: 'مفعل: جميع التطبيقات مجانية 100%' },
+  'settings.kill_switch_normal': { en: 'NORMAL: PER-APP RULES', ar: 'طبيعي: حسب قواعد كل تطبيق' },
+  'settings.kill_switch_desc': { en: 'Immediately bypasses and hides payment screens across all 4 apps (Dawaty, Digital Menu, CV Maker, QR Me). Essential during Google Play & Apple App Store review approvals.', ar: 'يتخطى ويخفي شاشات الدفع فوراً عبر التطبيقات الـ 4 (دعوتي، المنيو الرقمي، صانع السيرة الذاتية، باركود QR). أساسي أثناء مراجعة التطبيقات لدى Google Play و Apple App Store.' },
+  
+  // Digital Menu Pricing
+  'settings.menu_pricing': { en: 'Digital Menu Subscriptions', ar: 'اشتراكات المنيو الرقمي' },
+  'settings.menu_monthly': { en: 'Monthly Price (EGP)', ar: 'سعر الاشتراك الشهري (ج.م)' },
+  'settings.menu_yearly': { en: 'Yearly Price (EGP)', ar: 'سعر الاشتراك السنوي (ج.م)' },
+  'settings.menu_free_mode': { en: 'Free Mode', ar: 'الوضع المجاني' },
+  'settings.menu_free_mode_desc': { en: 'Provide Digital Menu subscriptions completely for free', ar: 'إتاحة اشتراكات المنيو الرقمي مجاناً بالكامل' },
+
+  // Dawaty Pricing
+  'settings.dawaty_pricing': { en: 'Dawaty Invitations', ar: 'دعوات زفاف منصة دعوتي' },
+  'settings.dawaty_single_price': { en: 'Single Invitation Price (EGP)', ar: 'سعر الدعوة الواحدة (ج.م)' },
+  'settings.dawaty_free_mode_desc': { en: 'Provide Dawaty wedding invitations completely for free', ar: 'إتاحة دعوات الزفاف مجاناً بالكامل' },
+
+  // CV Maker Pricing
+  'settings.cv_pricing': { en: 'CV Maker Pricing & Paywall', ar: 'تسعير وبوابة صانع السيرة الذاتية' },
+  'settings.cv_single_export': { en: 'Single CV Export (EGP)', ar: 'سعر تصدير السي في الفردي (ج.م)' },
+  'settings.cv_unlimited_sub': { en: 'Unlimited Subscription (EGP)', ar: 'اشتراك غير محدود (ج.م)' },
+  'settings.cv_free_mode': { en: 'Free Mode (Bypass CV Paywall)', ar: 'الوضع المجاني (تخطي بوابة الدفع)' },
+  'settings.cv_free_mode_desc': { en: 'Allow users to export clean PDFs without watermark for free', ar: 'السماح للمستخدمين بتحميل PDF بدون علامة مائية مجاناً' },
+
+  // QR Me Pricing
+  'settings.qrme_pricing': { en: 'QR Me Custom Barcode Pricing', ar: 'تسعير باركود QR الذكي' },
+  'settings.qrme_vip_price': { en: 'VIP Template & High-Res Export Price (EGP)', ar: 'سعر تصدير القوالب المميزة ودقة فائقة (ج.م)' },
+  'settings.qrme_free_mode': { en: 'Free Mode (Bypass QR Me Paywall)', ar: 'الوضع المجاني (تخطي بوابة الدفع)' },
+  'settings.qrme_free_mode_desc': { en: 'Unlock all vector SVG/PDF exports and VIP templates completely free', ar: 'فتح تصدير SVG/PDF عالي الدقة والقوالب المميزة مجاناً بالكامل' },
+
+  // Payment Gateways
+  'settings.gateways': { en: 'Payment Gateways', ar: 'بوابات وطرق الدفع اليدوية' },
+  'settings.vodafone_cash': { en: 'Vodafone Cash Number', ar: 'رقم فودافون كاش' },
+  'settings.instapay': { en: 'InstaPay Address', ar: 'عنوان إنستاباي (InstaPay)' },
+
+  // Store & Promotion Links
+  'settings.store_links': { en: 'Smart App Store & Viral Promotion Links', ar: 'روابط المتاجر والترويج الذكي' },
+  'settings.store_links_desc': { en: 'These URLs power the "Powered by" banners on public web pages. Visitors on iOS are automatically routed to App Store, and visitors on Android to Google Play.', ar: 'هذه الروابط تُشغّل بنرات "مدعوم بواسطة" في الصفحات العامة، ويتم توجيه زوار iOS لـ App Store و Android لـ Google Play.' },
+  'settings.qrme_links': { en: 'QR Me App Links', ar: 'روابط تطبيق باركود QR' },
+  'settings.menu_links': { en: 'Digital Menu App Links', ar: 'روابط تطبيق المنيو الرقمي' },
+  'settings.dawaty_links': { en: 'Dawaty Invitations App Links', ar: 'روابط تطبيق دعوتي' },
+  'settings.app_store_url': { en: 'Apple App Store URL (iOS)', ar: 'رابط متجر آبل App Store (iOS)' },
+  'settings.play_store_url': { en: 'Google Play Store URL (Android)', ar: 'رابط متجر جوجل بلاي Play Store (Android)' },
+
+  // Notifications
+  'settings.notifications': { en: 'Notifications', ar: 'الإشعارات والتنبيهات' },
+  'settings.email_notifications': { en: 'Email notifications', ar: 'إشعارات البريد الإلكتروني' },
+  'settings.email_notifications_desc': { en: 'Receive alerts for new pending payments', ar: 'استلام تنبيهات فورية عند وصول مدفوعات جديدة معلقة' },
+  'settings.auto_refresh': { en: 'Auto-refresh interval (seconds)', ar: 'معدل التحديث التلقائي للبيانات (بالثواني)' },
+
+  // Contact Info
+  'contact.info': { en: 'Contact Information', ar: 'معلومات الاتصال والدعم' },
+  'contact.email': { en: 'Support Email Address', ar: 'البريد الإلكتروني للدعم الفني' },
+  'contact.whatsapp': { en: 'WhatsApp Contact Number', ar: 'رقم الواتساب للتواصل' },
+  'contact.whatsapp_hint': { en: 'Include country code (e.g. +20 for Egypt)', ar: 'يرجى تضمين رمز الدولة (مثال: 20+ لمصر)' },
+  'contact.phone': { en: 'Phone Number', ar: 'رقم الهاتف المباشر' },
+
+  // ── Support Extra ──
+  'support.filter_product': { en: 'Product: All', ar: 'المنتج: الكل' },
+  'support.filter_status': { en: 'Status: All', ar: 'الحالة: الكل' },
+  'support.status_open': { en: 'Open', ar: 'مفتوحة' },
+  'support.status_in_progress': { en: 'In Progress', ar: 'قيد المتابعة' },
+  'support.status_resolved': { en: 'Resolved', ar: 'تم الحل' },
+  'support.found_tickets': { en: 'Found {count} tickets', ar: 'تم العثور على {count} تذكرة' },
+  'support.reopen': { en: 'Reopen Ticket', ar: 'إعادة فتح التذكرة' },
+  'support.mark_resolved': { en: 'Mark as Resolved', ar: 'تحديد كمحلولة' },
+  'support.view_screenshot': { en: 'View Attached Screenshot', ar: 'عرض لقطة الشاشة المرفقة' },
+  'support.click_to_zoom': { en: 'Click to zoom', ar: 'انقر للتكبير' },
+  'support.ticket_no': { en: 'Ticket #{id}', ar: 'تذكرة رقم #{id}' },
+  'support.from': { en: 'From', ar: 'من' },
+
+  // ── QR Me Page ──
+  'qrme.title': { en: 'QR Me Barcode Studio', ar: 'باركود QR الذكي' },
+  'qrme.description': { en: 'Real-time barcode generation metrics, scans, VIP unlocks, and paywall configuration', ar: 'إحصائيات توليد الباركود الحية ومعدلات المسح وعمليات الشراء والتحكم في الدفع' },
+  'qrme.paywall_config': { en: 'QR Me Dynamic Paywall Config', ar: 'إعدادات بوابة الدفع الديناميكية لكيو آر مي' },
+  'qrme.paywall_desc': { en: 'Changes take effect immediately in the mobile app without releasing updates.', ar: 'التغييرات تطبق فوراً في تطبيق الهاتف دون الحاجة لتحديث التطبيق في المتجر.' },
+  'qrme.in_app_status': { en: 'In-App Paywall Status', ar: 'حالة بوابة الدفع داخل التطبيق' },
+  'qrme.in_app_status_desc': { en: 'When OFF, the app runs 100% free with no payment dialogs (safe for Google Play & Apple reviews).', ar: 'عند التعطيل، يعمل التطبيق مجاناً 100% بدون أي مطالبات بالدفع (آمن لمراجعات جوجل بلاي وآبل).' },
+  'qrme.vip_price': { en: 'VIP Template / High-Res Export Price (EGP)', ar: 'سعر القوالب المميزة والتصدير الفائق (ج.م)' },
+  'qrme.vip_price_desc': { en: 'Amount users are prompted to transfer via InstaPay when payment is enabled.', ar: 'المبلغ المطلوب تحويله عبر إنستاباي أو فودافون كاش عند تفعيل الدفع.' },
+  'qrme.recent_codes': { en: 'Recently Created QR Codes', ar: 'أحدث الأكواد المنشأة' },
+  'qrme.th_type': { en: 'Type', ar: 'النوع' },
+  'qrme.th_title': { en: 'Title / Name', ar: 'العنوان / الاسم' },
+  'qrme.th_slug': { en: 'Slug / URL', ar: 'المعرف / الرابط' },
+  'qrme.th_scans': { en: 'Scans', ar: 'مرات المسح' },
+  'qrme.th_created': { en: 'Created', ar: 'تاريخ الإنشاء' },
+  'qrme.kpi_qrs': { en: 'Total QR Codes', ar: 'إجمالي الأكواد' },
+  'qrme.kpi_scans': { en: 'Total Scans', ar: 'إجمالي مرات المسح' },
+  'qrme.kpi_users': { en: 'Active Users', ar: 'المستخدمون النشطون' },
+  'qrme.kpi_unlocks': { en: 'VIP Unlocks', ar: 'الترقيات المدفوعة' },
+  'qrme.vip_active': { en: 'VIP Paywall Active', ar: 'بوابة الدفع المميزة نشطة' },
+  'qrme.vip_active_desc': { en: 'Users must pay via InstaPay / Vodafone Cash to download watermark-free vector SVG/PDF templates.', ar: 'يتعين على المستخدمين الدفع عبر إنستاباي أو فودافون كاش لتحميل قوالب SVG/PDF بدون علامة مائية.' },
+
+  // ── CV Maker Page ──
+  'cvmaker.title': { en: 'CV Maker Studio', ar: 'صانع السيرة الذاتية' },
+  'cvmaker.description': { en: 'Real-time resume creation stats, export analytics, and dynamic paywall control', ar: 'إحصائيات توليد وتصدير السير الذاتية ومتابعة القوالب الأكثر طلباً وإدارة الدفع' },
+  'cvmaker.top_templates': { en: 'Top Created Resume Templates', ar: 'أكثر قوالب السيرة الذاتية إنشاءً' },
+  'cvmaker.no_templates': { en: 'No template creations recorded yet in database.', ar: 'لا توجد بيانات قوالب مسجلة حتى الآن.' },
+  'cvmaker.top_categories': { en: 'Top Career Categories', ar: 'أعلى المجالات والتخصصات المهنية' },
+  'cvmaker.no_categories': { en: 'No career category data recorded yet in database.', ar: 'لا توجد بيانات تخصصات مسجلة حتى الآن.' },
+  'cvmaker.vip_premium': { en: 'VIP Premium', ar: 'قالب مميز (VIP)' },
+  'cvmaker.free_tier': { en: 'Free Tier', ar: 'قالب مجاني' },
+  'cvmaker.buyers': { en: '{count} buyers', ar: '{count} عملية شراء' },
+  'cvmaker.paywall_config': { en: 'CV Maker Dynamic Paywall Configuration', ar: 'إعدادات بوابة دفع صانع السيرة الذاتية' },
+  'cvmaker.paywall_desc': { en: 'Settings synchronized in real-time with backend and user mobile apps without requiring app store updates.', ar: 'تتزامن الإعدادات فورياً مع الباك إند وتطبيقات الهواتف دون الحاجة لإطلاق تحديث جديد.' },
+  'cvmaker.global_paywall': { en: 'Global In-App Paywall', ar: 'بوابة الدفع داخل التطبيق' },
+  'cvmaker.global_paywall_desc': { en: 'When enabled, users must pay via InstaPay / Vodafone Cash to download PDFs.', ar: 'عند التفعيل، يدفع المستخدمون عبر إنستاباي أو فودافون كاش لتحميل ملفات PDF.' },
+  'cvmaker.store_bypass': { en: 'Store Review Bypass (Free Mode)', ar: 'تخطي مراجعة المتاجر (الوضع المجاني)' },
+  'cvmaker.store_bypass_desc': { en: 'When reviewing with Apple / Google, toggle this to hide all payment prompts.', ar: 'أثناء مراجعة جوجل وآبل، فعّل هذا الخيار لإخفاء كافة شاشات الدفع.' },
+  'cvmaker.pdf_unlock_price': { en: 'PDF Export Unlock Price (EGP)', ar: 'سعر فتح تصدير الـ PDF (ج.م)' },
+  'cvmaker.pdf_unlock_desc': { en: 'EGP per resume export', ar: 'جنيه لكل تصدير سيرة ذاتية' },
+  'cvmaker.kpi_resumes': { en: 'Total Resumes', ar: 'إجمالي السير الذاتية' },
+  'cvmaker.kpi_exports': { en: 'Total Downloads', ar: 'إجمالي التحميلات' },
+  'cvmaker.kpi_users': { en: 'Active Users', ar: 'المستخدمون النشطون' },
+  'cvmaker.kpi_unlocks': { en: 'Paid Unlocks', ar: 'عمليات الشراء' },
+
+  // ── Recent Activity & User Operations ──
+  'activity.title': { en: 'Recent Activities & System Events', ar: 'أحدث النشاطات وسجل العمليات' },
+  'activity.all_types': { en: 'All Event Types', ar: 'كافة أنواع الأنشطة' },
+  'activity.type_registration': { en: 'User Registrations', ar: 'تسجيل مستخدمين' },
+  'activity.type_payment': { en: 'Payments & Reviews', ar: 'المدفوعات والمراجعات' },
+  'activity.type_ai': { en: 'AI Scans', ar: 'مسح الذكاء الاصطناعي' },
+  'activity.type_invitation': { en: 'Invitations & Menus', ar: 'الدعوات والقوائم' },
+
+  // User Actions
+  'users.add_user': { en: 'Add New User', ar: 'إضافة مستخدم جديد' },
+  'users.edit_user': { en: 'Edit User Profile', ar: 'تعديل بيانات المستخدم' },
+  'users.delete_user': { en: 'Delete Account', ar: 'حذف الحساب' },
+  'users.suspend_user': { en: 'Suspend Account', ar: 'إيقاف الحساب' },
+  'users.activate_user': { en: 'Activate Account', ar: 'تفعيل الحساب' },
+  'users.status_active': { en: 'Active', ar: 'نشط' },
+  'users.status_suspended': { en: 'Suspended', ar: 'معلق' },
+  'users.status_banned': { en: 'Banned', ar: 'محظور' },
+  'users.password_hint': { en: 'Leave blank to keep current password', ar: 'اتركه فارغاً للإبقاء على كلمة المرور الحالية' },
+  'users.target_app': { en: 'Application / Product', ar: 'التطبيق / المنتج' },
+  'users.confirm_delete': { en: 'Are you sure you want to delete this user? This action cannot be undone.', ar: 'هل أنت متأكد من حذف هذا الحساب؟ لا يمكن التراجع عن هذا الإجراء.' },
+  'users.app_users_title': { en: '{app} Users', ar: 'مستخدمو تطبيق {app}' },
+  'users.total_app_users': { en: 'Total {app} Users', ar: 'إجمالي مستخدمي {app}' },
 };
 
 interface LocaleCtx {

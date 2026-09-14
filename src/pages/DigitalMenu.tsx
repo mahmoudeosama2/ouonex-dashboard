@@ -1,5 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
-import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2, FileSpreadsheet, LogIn, Copy, Check } from 'lucide-react';
+import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2, FileSpreadsheet, LogIn, Copy, Check, Users } from 'lucide-react';
 import { exportToCsv } from '@/lib/exportCsv';
 import { api } from '@/lib/api';
 import type { Restaurant, Order, AIUsageSummary } from '@/lib/types';
@@ -14,8 +13,9 @@ import { ErrorState, EmptyState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/Layout';
 import { num, egp, compactEGP, date, pct } from '@/lib/format';
 import { useLocale } from '@/context/LocaleContext';
+import { AppUsersManager } from '@/components/AppUsersManager';
 
-type SubTab = 'restaurants' | 'ai' | 'orders';
+type SubTab = 'restaurants' | 'users' | 'ai' | 'orders';
 
 export function DigitalMenu() {
   const { t, locale } = useLocale();
@@ -26,6 +26,7 @@ export function DigitalMenu() {
       <div className="flex items-center gap-1 mb-4 border-b border-ink-800">
         {([
           { key: 'restaurants', label: t('menu.tab_restaurants'), icon: <Store className="w-3.5 h-3.5" /> },
+          { key: 'users', label: locale === 'ar' ? 'إدارة المستخدمين' : 'Users Management', icon: <Users className="w-3.5 h-3.5" /> },
           { key: 'ai', label: t('menu.tab_ai'), icon: <Sparkles className="w-3.5 h-3.5" /> },
           { key: 'orders', label: t('menu.tab_orders'), icon: <ShoppingBag className="w-3.5 h-3.5" /> },
         ] as const).map(tItem => (
@@ -42,6 +43,7 @@ export function DigitalMenu() {
         ))}
       </div>
       {tab === 'restaurants' && <RestaurantsTab />}
+      {tab === 'users' && <AppUsersManager product="digital_menu" productNameAr="المنيو الرقمي" productNameEn="Digital Menu" icon={<UtensilsCrossed className="w-4 h-4 text-amber-400" />} />}
       {tab === 'ai' && <AITab />}
       {tab === 'orders' && <OrdersTab />}
     </div>
@@ -59,6 +61,7 @@ function RestaurantsTab() {
   const [selected, setSelected] = useState<Restaurant | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [kpis, setKpis] = useState({ total: 0, active: 0, aiScans: 0, aiCost: 0 });
+  const [usersCount, setUsersCount] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
 
@@ -69,6 +72,7 @@ function RestaurantsTab() {
       const res = await api.digitalMenu.restaurants({ status: statusFilter === 'all' ? undefined : statusFilter, page, per_page: 10 });
       setRows(res.data);
       setTotal(res.meta.total);
+      api.users.search('', 1, 'digital_menu').then(r => setUsersCount(r.meta.total)).catch(() => {});
       const all = await api.digitalMenu.restaurants({ per_page: 200 });
       setKpis({
         total: all.data.length,
@@ -191,20 +195,21 @@ function RestaurantsTab() {
         <span className="font-mono text-xs text-ink-600">{r.slug}.ouonex.com</span>
       )
     ) },
-    { key: 'status', header: t('menu.th_status'), sortValue: r => r.status, render: r => <StatusBadge status={r.status} /> },
-    { key: 'plan', header: t('menu.th_plan'), sortValue: r => r.plan, render: r => <PlanBadge plan={r.plan} /> },
-    { key: 'menu', header: locale === 'ar' ? 'نشر المنيو' : 'Menu Published', render: r => r.menu_published ? <CheckCircle2 className="w-4 h-4 text-success-400" /> : <span className="text-2xs text-ink-500">{locale === 'ar' ? 'غير منشور' : 'Unpublished'}</span> },
+    { key: 'status', header: t('menu.th_status'), sortValue: r => r.status, align: 'center', render: r => <StatusBadge status={r.status} /> },
+    { key: 'plan', header: t('menu.th_plan'), sortValue: r => r.plan, align: 'center', render: r => <PlanBadge plan={r.plan} /> },
+    { key: 'menu', header: locale === 'ar' ? 'نشر المنيو' : 'Menu Published', align: 'center', render: r => r.menu_published ? <CheckCircle2 className="w-4 h-4 text-success-400 mx-auto" /> : <span className="text-2xs text-ink-500">{locale === 'ar' ? 'غير منشور' : 'Unpublished'}</span> },
     { key: 'owner', header: locale === 'ar' ? 'المالك' : 'Owner', sortValue: r => r.owner, render: r => <span className="text-xs text-ink-300">{r.owner}</span> },
-    { key: 'orders', header: t('menu.th_orders'), sortValue: r => r.orders_count, render: r => <span className="tabular-nums text-ink-200">{num(r.orders_count)}</span> },
-    { key: 'ai', header: t('menu.kpi_ai_scans'), sortValue: r => r.ai_scans_count, render: r => <span className="tabular-nums text-ink-200">{num(r.ai_scans_count)}</span> },
-    { key: 'created', header: t('menu.th_created'), sortValue: r => r.created_at, render: r => <span className="text-xs text-ink-400">{date(r.created_at)}</span> },
+    { key: 'orders', header: t('menu.th_orders'), sortValue: r => r.orders_count, align: 'center', render: r => <span className="tabular-nums text-ink-200">{num(r.orders_count)}</span> },
+    { key: 'ai', header: t('menu.kpi_ai_scans'), sortValue: r => r.ai_scans_count, align: 'center', render: r => <span className="tabular-nums text-ink-200">{num(r.ai_scans_count)}</span> },
+    { key: 'created', header: t('menu.th_created'), sortValue: r => r.created_at, align: 'center', render: r => <span className="text-xs text-ink-400">{date(r.created_at)}</span> },
   ];
 
   return (
     <>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {loading && !kpis.total ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />) : (
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+        {loading && !kpis.total ? Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />) : (
           <>
+            <KPICard label={locale === 'ar' ? 'عدد المستخدمين' : 'Total Users'} value={usersCount} format="num" icon={<Users className="w-4 h-4" />} accent="brand" />
             <KPICard label={t('menu.kpi_total_restaurants')} value={kpis.total} format="num" icon={<Store className="w-4 h-4" />} />
             <KPICard label={t('menu.kpi_active_menus')} value={kpis.active} format="num" icon={<UtensilsCrossed className="w-4 h-4" />} accent="success" />
             <KPICard label={t('menu.kpi_ai_scans')} value={kpis.aiScans} format="compactNum" icon={<Sparkles className="w-4 h-4" />} />

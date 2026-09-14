@@ -10,6 +10,7 @@ export interface Column<T> {
   sortValue?: (row: T) => string | number;
   className?: string;
   width?: string;
+  align?: 'start' | 'center' | 'end';
 }
 
 interface Props<T> {
@@ -76,23 +77,36 @@ export function DataTable<T extends { id: string }>({
                   />
                 </th>
               )}
-              {columns.map(c => (
-                <th
-                  key={c.key}
-                  className={`text-left px-4 py-3 text-2xs font-semibold text-ink-400 uppercase tracking-wide whitespace-nowrap ${c.width ?? ''}`}
-                >
-                  {c.sortValue ? (
-                    <button onClick={() => handleSort(c.key)} className="inline-flex items-center gap-1 hover:text-ink-200 transition-colors">
-                      {c.header}
-                      {effectiveSort?.key === c.key ? (
-                        effectiveSort.dir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                      ) : (
-                        <ChevronsUpDown className="w-3 h-3 opacity-40" />
-                      )}
-                    </button>
-                  ) : c.header}
-                </th>
-              ))}
+              {columns.map(c => {
+                const isCenter = c.align === 'center' || c.className?.includes('text-center');
+                const isEnd = c.align === 'end' || c.className?.includes('text-right') || c.className?.includes('text-end');
+                const alignClass = isCenter ? 'text-center' : isEnd ? 'text-end' : 'text-start';
+
+                return (
+                  <th
+                    key={c.key}
+                    className={`${alignClass} px-4 py-3 text-2xs font-semibold text-ink-400 uppercase tracking-wide whitespace-nowrap ${c.width ?? ''}`}
+                  >
+                    {c.sortValue ? (
+                      <button
+                        onClick={() => handleSort(c.key)}
+                        className={`inline-flex items-center gap-1.5 hover:text-ink-200 transition-colors ${
+                          isCenter ? 'justify-center mx-auto' : isEnd ? 'justify-end' : 'justify-start'
+                        }`}
+                      >
+                        <span>{c.header}</span>
+                        {effectiveSort?.key === c.key ? (
+                          effectiveSort.dir === 'asc' ? <ChevronUp className="w-3 h-3 text-brand-400" /> : <ChevronDown className="w-3 h-3 text-brand-400" />
+                        ) : (
+                          <ChevronsUpDown className="w-3 h-3 opacity-40" />
+                        )}
+                      </button>
+                    ) : (
+                      c.header
+                    )}
+                  </th>
+                );
+              })}
               {rowActions && <th className="w-px" />}
             </tr>
           </thead>
@@ -130,13 +144,19 @@ export function DataTable<T extends { id: string }>({
                         />
                       </td>
                     )}
-                    {columns.map(c => (
-                      <td key={c.key} className={`px-4 py-3 text-ink-200 ${c.className ?? ''}`}>
-                        {c.render(row)}
-                      </td>
-                    ))}
+                    {columns.map(c => {
+                      const isCenter = c.align === 'center' || c.className?.includes('text-center');
+                      const isEnd = c.align === 'end' || c.className?.includes('text-right') || c.className?.includes('text-end');
+                      const alignClass = isCenter ? 'text-center' : isEnd ? 'text-end' : 'text-start';
+
+                      return (
+                        <td key={c.key} className={`px-4 py-3 text-ink-200 ${alignClass} ${c.className ?? ''}`}>
+                          {c.render(row)}
+                        </td>
+                      );
+                    })}
                     {rowActions && (
-                      <td className="px-4 py-3 text-right" onClick={e => e.stopPropagation()}>
+                      <td className="px-4 py-3 text-end" onClick={e => e.stopPropagation()}>
                         {rowActions(row)}
                       </td>
                     )}

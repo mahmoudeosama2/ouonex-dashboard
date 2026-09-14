@@ -191,12 +191,18 @@ export const api = {
   },
 
   users: {
-    search: (q: string, page?: number): Promise<Paginated<UserSearchResult>> =>
-      MOCK ? delay(mock.searchUsers(q, page)) : http(`/admin/users${qs({ search: q, page: page ?? 1 })}`),
+    search: (q: string, page?: number, product?: string, status?: string): Promise<Paginated<UserSearchResult>> =>
+      MOCK ? delay(mock.searchUsers(q, page, 10, product, status)) : http(`/admin/users${qs({ search: q, page: page ?? 1, product, status })}`),
     detail: (id: string): Promise<UserSearchResult | undefined> =>
       MOCK ? delay(mock.userDetail(id)) : http(`/admin/users/${id}`),
+    create: (data: Record<string, unknown>): Promise<{ status: string; message: string; data: UserSearchResult }> =>
+      MOCK ? delay({ status: 'success', message: 'User created', data: { id: `usr_${Date.now()}`, name: String(data.name), email: String(data.email), phone: String(data.phone || ''), products: [data.product as Product || 'digital_menu'], status: (data.status as any) || 'active', payment_count: 0, pending_count: 0, joined_at: new Date().toISOString(), activity: [], payments: [] } }) : httpPost('/admin/users', data),
     update: (id: string, data: Record<string, unknown>): Promise<{ status: string; message: string; data: any }> =>
-      httpPost<{ status: string; message: string; data: any }>(`/admin/users/${id}`, data),
+      MOCK ? delay(mock.updateMockUser(id, data)) : httpPost<{ status: string; message: string; data: any }>(`/admin/users/${id}`, data),
+    delete: (id: string): Promise<{ status: string; message: string }> =>
+      MOCK ? delay({ status: 'success', message: 'User deleted' }) : httpDelete(`/admin/users/${id}`),
+    toggleStatus: (id: string, status?: string): Promise<{ status: string; message: string; data: any }> =>
+      MOCK ? delay({ status: 'success', message: 'Status updated', data: { id, status } }) : httpPost(`/admin/users/${id}/toggle-status`, { status }),
     impersonate: (id: string): Promise<{ status: string; data: any }> =>
       httpPost(`/admin/users/${id}/impersonate`),
   },

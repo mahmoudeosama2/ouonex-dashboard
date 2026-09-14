@@ -1,4 +1,4 @@
-export type Product = 'dawaty' | 'digital_menu';
+export type Product = 'dawaty' | 'digital_menu' | 'cv_maker' | 'qr_me';
 
 export type PaymentStatus = 'pending_review' | 'paid' | 'rejected';
 export type InvitationStatus = 'draft' | 'published' | 'expired';
@@ -168,6 +168,8 @@ export interface UserSearchResult {
   id: string;
   name: string;
   email: string;
+  phone?: string;
+  status?: 'active' | 'suspended' | 'banned';
   products: Product[];
   payment_count: number;
   pending_count: number;

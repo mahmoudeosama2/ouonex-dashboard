@@ -12,6 +12,7 @@ import { useToast } from '@/context/ToastContext';
 import { useLocale } from '@/context/LocaleContext';
 import { api } from '@/lib/api';
 import { timeAgo, num, egp } from '@/lib/format';
+import { AppUsersManager } from '@/components/AppUsersManager';
 
 interface TemplateSalesItem {
   name: string;
@@ -54,7 +55,7 @@ export function CvMaker() {
   // Paywall states
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
   const [pdfPrice, setPdfPrice] = useState(25);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'template_sales' | 'gallery' | 'paywall' | 'recent'>('template_sales');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'template_sales' | 'users' | 'gallery' | 'paywall' | 'recent'>('template_sales');
 
   // Search and sort in template sales
   const [templateSearch, setTemplateSearch] = useState('');
@@ -263,6 +264,7 @@ export function CvMaker() {
       <div className="flex items-center gap-2 border-b border-ink-800 overflow-x-auto">
         {[
           { key: 'template_sales', label: t('cv.tab_template_sales'), icon: <ShoppingCart className="w-4 h-4" /> },
+          { key: 'users', label: locale === 'ar' ? 'إدارة المستخدمين' : 'Users Management', icon: <Users className="w-4 h-4" /> },
           { key: 'analytics', label: t('cv.tab_analytics'), icon: <BarChart2 className="w-4 h-4" /> },
           { key: 'gallery', label: t('cv.tab_gallery'), icon: <Palette className="w-4 h-4" /> },
           { key: 'paywall', label: t('cv.tab_paywall'), icon: <Zap className="w-4 h-4" /> },
@@ -282,6 +284,11 @@ export function CvMaker() {
           </button>
         ))}
       </div>
+
+      {/* ── Users Tab ── */}
+      {activeTab === 'users' && (
+        <AppUsersManager product="cv_maker" productNameAr="صانع السيرة الذاتية" productNameEn="CV Maker" icon={<FileText className="w-4 h-4 text-blue-400" />} />
+      )}
 
       {/* ── Tab 1: Template Sales & Purchase Demand (Requested Feature) ── */}
       {activeTab === 'template_sales' && (
