@@ -92,8 +92,10 @@ export function CvMaker() {
     Promise.all([
       api.settings.get().then(s => {
         if (s) {
-          setIsPaymentEnabled(s.cv_maker_payment_enabled ?? !(s.cv_maker_free_mode ?? true));
-          if (s.cv_maker_pdf_price) setPdfPrice(s.cv_maker_pdf_price);
+          const isFree = s.cv_free_mode === true || s.cv_maker_free_mode === true || s.cv_maker_payment_enabled === false;
+          setIsPaymentEnabled(!isFree);
+          if (s.cv_maker_pdf_price) setPdfPrice(Number(s.cv_maker_pdf_price));
+          else if (s.cv_price_single) setPdfPrice(Number(s.cv_price_single));
         }
       }).catch(() => {}),
       fetchStats(),
@@ -109,7 +111,9 @@ export function CvMaker() {
       await api.settings.save({
         cv_maker_payment_enabled: newVal,
         cv_maker_free_mode: !newVal,
+        cv_free_mode: !newVal,
         cv_maker_pdf_price: pdfPrice,
+        cv_price_single: pdfPrice,
       });
       toast.success(
         newVal ? 'CV Paywall Activated' : 'Free Mode Enabled',
@@ -128,7 +132,9 @@ export function CvMaker() {
       await api.settings.save({
         cv_maker_payment_enabled: isPaymentEnabled,
         cv_maker_free_mode: !isPaymentEnabled,
+        cv_free_mode: !isPaymentEnabled,
         cv_maker_pdf_price: pdfPrice,
+        cv_price_single: pdfPrice,
       });
       toast.success('Settings Saved', 'CV Maker pricing and paywall flags updated successfully.');
     } catch {
