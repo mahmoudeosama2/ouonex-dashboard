@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   Settings as SettingsIcon, Users, ScrollText, Activity, ShieldCheck,
   CheckCircle2, XCircle, Crown, Lock, Save, Loader2, Bell, Globe, Building,
-  FileText, QrCode, Zap, AlertTriangle, Smartphone,
+  FileText, QrCode, Zap, AlertTriangle, Smartphone, Tag, Rocket, UtensilsCrossed,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { TeamMember, AuditLogEntry, HealthIndicator, Role } from '@/lib/types';
@@ -284,7 +284,28 @@ function GeneralTab() {
     menu_app_store_url: '',
     menu_play_store_url: '',
     dawaty_app_store_url: '',
-    dawaty_play_store_url: ''
+    dawaty_play_store_url: '',
+    // ── Version Control per app ──
+    cv_maker_latest_version: '1.0.0',
+    cv_maker_min_version: '1.0.0',
+    cv_maker_force_update: false,
+    cv_maker_update_title_ar: 'تحديث جديد متوفر!',
+    cv_maker_update_message_ar: 'يرجى التحديث للحصول على أفضل تجربة.',
+    dawety_latest_version: '1.0.0',
+    dawety_min_version: '1.0.0',
+    dawety_force_update: false,
+    dawety_update_title_ar: 'تحديث جديد متوفر!',
+    dawety_update_message_ar: 'يرجى التحديث للحصول على أفضل تجربة.',
+    menu_latest_version: '1.0.0',
+    menu_min_version: '1.0.0',
+    menu_force_update: false,
+    menu_update_title_ar: 'تحديث جديد متوفر!',
+    menu_update_message_ar: 'يرجى التحديث للحصول على أفضل تجربة.',
+    qr_me_latest_version: '1.0.0',
+    qr_me_min_version: '1.0.0',
+    qr_me_force_update: false,
+    qr_me_update_title_ar: 'تحديث جديد متوفر!',
+    qr_me_update_message_ar: 'يرجى التحديث للحصول على أفضل تجربة.',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -709,6 +730,192 @@ function GeneralTab() {
             className="input w-32"
           />
         </div>
+      </div>
+
+      {/* ── APP VERSION CONTROL ── */}
+      <div className="card p-5 space-y-5">
+        <div className="flex items-center gap-2 mb-1">
+          <Rocket className="w-4 h-4 text-brand-400" />
+          <div>
+            <h3 className="text-sm font-semibold text-ink-100">التحكم في إصدارات التطبيقات</h3>
+            <p className="text-xs text-ink-400 mt-0.5">
+              حدد أقل إصدار مقبول لكل تطبيق. المستخدمون الذين يمتلكون إصداراً أقل سيرون إشعار التحديث.
+            </p>
+          </div>
+        </div>
+
+        {([ 
+          {
+            appId: 'cv_maker',
+            label: 'CV Maker',
+            icon: <FileText className="w-3.5 h-3.5 text-brand-400" />,
+            prefix: 'cv_maker',
+            color: 'brand',
+          },
+          {
+            appId: 'dawety',
+            label: 'Dawaty',
+            icon: <Globe className="w-3.5 h-3.5 text-rose-400" />,
+            prefix: 'dawety',
+            color: 'rose',
+          },
+          {
+            appId: 'digital_menu',
+            label: 'Digital Menu',
+            icon: <UtensilsCrossed className="w-3.5 h-3.5 text-amber-400" />,
+            prefix: 'menu',
+            color: 'amber',
+          },
+          {
+            appId: 'qr_me',
+            label: 'QR Me',
+            icon: <QrCode className="w-3.5 h-3.5 text-accent-400" />,
+            prefix: 'qr_me',
+            color: 'accent',
+          },
+        ] as const).map(({ label, icon, prefix }) => {
+          const latestKey = `${prefix}_latest_version` as keyof typeof form;
+          const minKey    = `${prefix}_min_version`    as keyof typeof form;
+          const forceKey  = `${prefix}_force_update`   as keyof typeof form;
+          const titleKey  = `${prefix}_update_title_ar`   as keyof typeof form;
+          const msgKey    = `${prefix}_update_message_ar` as keyof typeof form;
+          const iosKey    = `${prefix}_app_store_url`  as keyof typeof form;
+          const playKey   = `${prefix}_play_store_url` as keyof typeof form;
+
+          const isForce   = !!form[forceKey];
+          const hasUpdate = (form[latestKey] as string) !== (form[minKey] as string);
+
+          return (
+            <div key={prefix} className="p-4 rounded-xl bg-ink-950/40 border border-ink-800 space-y-4">
+              {/* Header row */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-bold text-ink-100">
+                  {icon}
+                  <span>{label}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isForce ? (
+                    <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-danger-500/20 text-danger-300 border border-danger-500/30 flex items-center gap-1">
+                      <AlertTriangle className="w-2.5 h-2.5" /> إجباري
+                    </span>
+                  ) : hasUpdate ? (
+                    <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-warning-500/20 text-warning-300 border border-warning-500/30 flex items-center gap-1">
+                      <Tag className="w-2.5 h-2.5" /> اختياري
+                    </span>
+                  ) : (
+                    <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-success-500/15 text-success-400 border border-success-500/30 flex items-center gap-1">
+                      <CheckCircle2 className="w-2.5 h-2.5" /> محدث
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Versions */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-2xs font-medium text-ink-400 mb-1">
+                    أحدث إصدار (Latest Version)
+                  </label>
+                  <div className="relative">
+                    <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-ink-500" />
+                    <input
+                      type="text"
+                      placeholder="1.2.0"
+                      value={form[latestKey] as string}
+                      onChange={e => setForm(f => ({ ...f, [latestKey]: e.target.value }))}
+                      className="input w-full pl-7 text-xs font-mono"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-2xs font-medium text-ink-400 mb-1">
+                    أقل إصدار مقبول (Min Version)
+                  </label>
+                  <div className="relative">
+                    <AlertTriangle className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-ink-500" />
+                    <input
+                      type="text"
+                      placeholder="1.0.0"
+                      value={form[minKey] as string}
+                      onChange={e => setForm(f => ({ ...f, [minKey]: e.target.value }))}
+                      className="input w-full pl-7 text-xs font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Force Update Toggle */}
+              <label className={`flex items-center justify-between cursor-pointer p-3 rounded-lg transition-all ${
+                isForce ? 'bg-danger-950/50 border border-danger-500/30' : 'bg-ink-900/40 border border-ink-800'
+              }`}>
+                <div>
+                  <p className="text-xs font-medium text-ink-200">تحديث إجباري (Force Update)</p>
+                  <p className="text-2xs text-ink-500 mt-0.5">
+                    {isForce ? '🔴 المستخدمون لا يستطيعون تجاهل التحديث' : 'المستخدم يستطيع تجاهل الإشعار'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, [forceKey]: !f[forceKey] }))}
+                  className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${isForce ? 'bg-danger-600' : 'bg-ink-700'}`}
+                >
+                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${isForce ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                </button>
+              </label>
+
+              {/* Update Message AR */}
+              <div>
+                <label className="block text-2xs font-medium text-ink-400 mb-1">
+                  رسالة التحديث (عربي)
+                </label>
+                <input
+                  type="text"
+                  value={form[titleKey] as string}
+                  onChange={e => setForm(f => ({ ...f, [titleKey]: e.target.value }))}
+                  placeholder="تحديث جديد متوفر!"
+                  className="input w-full text-xs mb-2"
+                  dir="rtl"
+                />
+                <textarea
+                  value={form[msgKey] as string}
+                  onChange={e => setForm(f => ({ ...f, [msgKey]: e.target.value }))}
+                  placeholder="يرجى التحديث للحصول على أفضل تجربة."
+                  className="input w-full text-xs resize-none"
+                  rows={2}
+                  dir="rtl"
+                />
+              </div>
+
+              {/* Store URLs */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-2xs font-medium text-ink-400 mb-1 flex items-center gap-1">
+                    <Smartphone className="w-2.5 h-2.5" /> Google Play URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://play.google.com/store/apps/details?id=..."
+                    value={form[playKey] as string}
+                    onChange={e => setForm(f => ({ ...f, [playKey]: e.target.value }))}
+                    className="input w-full text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-2xs font-medium text-ink-400 mb-1 flex items-center gap-1">
+                    <Smartphone className="w-2.5 h-2.5" /> App Store URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://apps.apple.com/app/..."
+                    value={form[iosKey] as string}
+                    onChange={e => setForm(f => ({ ...f, [iosKey]: e.target.value }))}
+                    className="input w-full text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="flex items-center justify-end gap-2">
