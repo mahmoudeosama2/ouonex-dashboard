@@ -259,8 +259,8 @@ export const api = {
       http('/admin/support/overview'),
     tickets: (f?: { status?: string; app?: string; page?: number; per_page?: number }): Promise<any> =>
       http(`/admin/support/tickets${qs(f as Record<string, unknown>)}`),
-    updateTicket: (id: string | number, status: string): Promise<any> =>
-      httpPut(`/admin/support/tickets/${id}`, { status }),
+    updateTicket: (id: string | number, data: string | { status?: string; admin_reply?: string }): Promise<any> =>
+      httpPut(`/admin/support/tickets/${id}`, typeof data === 'string' ? { status: data } : data),
     deletionRequests: (f?: { status?: string; app?: string; page?: number; per_page?: number }): Promise<any> =>
       http(`/admin/support/deletion-requests${qs(f as Record<string, unknown>)}`),
     executeDeletion: (id: string | number): Promise<any> =>

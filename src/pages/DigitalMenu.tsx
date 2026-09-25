@@ -1,7 +1,8 @@
+import { useState, useEffect, useCallback } from 'react';
 import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2, FileSpreadsheet, LogIn, Copy, Check, Users } from 'lucide-react';
 import { exportToCsv } from '@/lib/exportCsv';
 import { api } from '@/lib/api';
-import type { Restaurant, Order, AIUsageSummary } from '@/lib/types';
+import type { Restaurant, Order, AIUsageSummary, RestaurantStatus } from '@/lib/types';
 import { DataTable, type Column } from '@/components/DataTable';
 import { FilterBar, type FilterItem } from '@/components/FilterBar';
 import { Drawer } from '@/components/Drawer';
@@ -209,7 +210,7 @@ function RestaurantsTab() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
         {loading && !kpis.total ? Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />) : (
           <>
-            <KPICard label={locale === 'ar' ? 'عدد المستخدمين' : 'Total Users'} value={usersCount} format="num" icon={<Users className="w-4 h-4" />} accent="brand" />
+            <KPICard label={locale === 'ar' ? 'عدد المستخدمين' : 'Total Users'} value={usersCount} format="num" icon={<Users className="w-4 h-4" />} />
             <KPICard label={t('menu.kpi_total_restaurants')} value={kpis.total} format="num" icon={<Store className="w-4 h-4" />} />
             <KPICard label={t('menu.kpi_active_menus')} value={kpis.active} format="num" icon={<UtensilsCrossed className="w-4 h-4" />} accent="success" />
             <KPICard label={t('menu.kpi_ai_scans')} value={kpis.aiScans} format="compactNum" icon={<Sparkles className="w-4 h-4" />} />
@@ -484,7 +485,7 @@ function RestaurantDetail({
               <label className="block text-2xs text-ink-400 mb-1">{t('common.status')}</label>
               <select
                 value={formData.status}
-                onChange={e => setFormData({ ...formData, status: e.target.value })}
+                onChange={e => setFormData({ ...formData, status: e.target.value as RestaurantStatus })}
                 className="input w-full text-xs bg-ink-950"
               >
                 <option value="active">{locale === 'ar' ? 'مفعل' : 'Active'}</option>

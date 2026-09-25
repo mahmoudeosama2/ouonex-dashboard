@@ -19,6 +19,8 @@ interface SupportTicket {
   phone?: string;
   subject?: string;
   message: string;
+  admin_reply?: string | null;
+  replied_at?: string | null;
   screenshot_path?: string;
   status: 'open' | 'in_progress' | 'resolved';
   created_at: string;
@@ -46,6 +48,11 @@ export function SupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [ticketStatus, setTicketStatus] = useState('all');
   const [ticketApp, setTicketApp] = useState('all');
+
+  // Reply state
+  const [replyingTicketId, setReplyingTicketId] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
 
   // Deletions state
   const [deletions, setDeletions] = useState<DeletionRequest[]>([]);
@@ -95,6 +102,36 @@ export function SupportPage() {
       }
     } catch {
       alert(locale === 'ar' ? 'فشل تحديث حالة التذكرة.' : 'Failed to update ticket status.');
+    }
+  };
+
+  const handleSendReply = async (id: number) => {
+    if (!replyText.trim()) return;
+    setIsSubmittingReply(true);
+    try {
+      await api.support.updateTicket(id, {
+        status: 'resolved',
+        admin_reply: replyText.trim(),
+      });
+      setTickets(prev =>
+        prev.map(tItem =>
+          tItem.id === id
+            ? {
+                ...tItem,
+                status: 'resolved',
+                admin_reply: replyText.trim(),
+                replied_at: new Date().toISOString(),
+              }
+            : tItem
+        )
+      );
+      setOverview(prev => ({ ...prev, open_tickets: Math.max(0, prev.open_tickets - 1) }));
+      setReplyingTicketId(null);
+      setReplyText('');
+    } catch {
+      alert(locale === 'ar' ? 'فشل إرسال الرد.' : 'Failed to send reply.');
+    } finally {
+      setIsSubmittingReply(false);
     }
   };
 
@@ -321,11 +358,87 @@ export function SupportPage() {
                     </div>
                   )}
 
+                  {/* Admin Reply Box if present */}
+                  {t.admin_reply && (
+                    <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-1.5">
+                      <div className="flex items-center justify-between text-2xs text-emerald-400 font-bold">
+                        <span className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          {locale === 'ar' ? 'رد الإدارة المرسل إلى تطبيق العميل:' : 'Admin Reply Sent to User App:'}
+                        </span>
+                        {t.replied_at && <span className="text-ink-400 font-normal">{timeAgo(t.replied_at)}</span>}
+                      </div>
+                      <p className="text-emerald-100 leading-relaxed whitespace-pre-line font-medium text-xs">
+                        {t.admin_reply}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Inline Reply Composer */}
+                  {replyingTicketId === t.id && (
+                    <div className="p-3.5 rounded-xl bg-ink-950 border border-brand-500/50 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-semibold text-brand-400 flex items-center gap-1.5">
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          {locale === 'ar' ? 'كتابة الرد لإرساله إلى تطبيق المستخدم فوراً:' : 'Write Reply to Send to User Mobile App:'}
+                        </label>
+                        <span className="text-3xs text-ink-500">{t.name} ({t.email})</span>
+                      </div>
+                      <textarea
+                        rows={3}
+                        value={replyText}
+                        onChange={e => setReplyText(e.target.value)}
+                        placeholder={locale === 'ar' ? 'اكتب ردك أو التوجيهات أو حل المشكلة ليظهر في تطبيق العميل...' : 'Type your answer or problem resolution to display in user app...'}
+                        className="w-full p-2.5 rounded-lg bg-ink-900 border border-ink-700 text-xs text-ink-100 focus:outline-none focus:border-brand-500 resize-y"
+                      />
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => { setReplyingTicketId(null); setReplyText(''); }}
+                          className="px-3 py-1.5 rounded-lg text-2xs text-ink-400 hover:text-ink-200 transition"
+                        >
+                          {locale === 'ar' ? 'إلغاء' : 'Cancel'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isSubmittingReply || !replyText.trim()}
+                          onClick={() => handleSendReply(t.id)}
+                          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-2xs font-semibold bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white transition shadow-sm"
+                        >
+                          {isSubmittingReply ? (
+                            <span>{locale === 'ar' ? 'جاري الإرسال...' : 'Sending...'}</span>
+                          ) : (
+                            <>
+                              <MessageSquare className="w-3 h-3" />
+                              <span>{locale === 'ar' ? 'إرسال الرد للتطبيق' : 'Send Reply to App'}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Actions Bar */}
                   <div className="pt-2 flex items-center justify-between border-t border-ink-800/40 text-xs">
                     <span className="text-2xs text-ink-500">{locale === 'ar' ? `تذكرة رقم #${t.id} · ${date(t.created_at)}` : `Ticket #${t.id} · ${date(t.created_at)}`}</span>
 
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (replyingTicketId === t.id) {
+                            setReplyingTicketId(null);
+                            setReplyText('');
+                          } else {
+                            setReplyingTicketId(t.id);
+                            setReplyText(t.admin_reply || '');
+                          }
+                        }}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-2xs font-semibold bg-brand-500/15 hover:bg-brand-500/25 text-brand-400 border border-brand-500/30 transition"
+                      >
+                        <MessageSquare className="w-3 h-3" />
+                        {t.admin_reply ? (locale === 'ar' ? 'تعديل الرد' : 'Edit Reply') : (locale === 'ar' ? 'الرد على التذكرة' : 'Reply to Ticket')}
+                      </button>
+
                       {t.status !== 'resolved' ? (
                         <button
                           onClick={() => handleUpdateTicketStatus(t.id, 'resolved')}
