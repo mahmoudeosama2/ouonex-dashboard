@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Settings as SettingsIcon, Users, ScrollText, Activity, ShieldCheck,
   CheckCircle2, XCircle, Crown, Lock, Save, Loader2, Bell, Globe, Building,
@@ -286,6 +286,10 @@ function GeneralTab() {
     menu_play_store_url: '',
     dawaty_app_store_url: '',
     dawaty_play_store_url: '',
+    cv_maker_app_store_url: '',
+    cv_maker_play_store_url: '',
+    cv_app_store_url: '',
+    cv_play_store_url: '',
     // ── Version Control per app ──
     cv_maker_latest_version: '1.0.0',
     cv_maker_min_version: '1.0.0',
@@ -310,26 +314,75 @@ function GeneralTab() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isLoadedRef = useRef(false);
 
   useEffect(() => {
     api.settings.get().then(res => {
-      setForm(prev => ({ ...prev, ...res }));
+      setForm(prev => ({
+        ...prev,
+        ...res,
+        cv_maker_app_store_url: res.cv_maker_app_store_url || res.cv_app_store_url || '',
+        cv_maker_play_store_url: res.cv_maker_play_store_url || res.cv_play_store_url || '',
+      }));
       setLoading(false);
+      setTimeout(() => {
+        isLoadedRef.current = true;
+      }, 400);
     }).catch(() => {
       setLoading(false);
     });
   }, []);
 
-  const handleSave = async () => {
+  const saveSettingsPayload = async (data: typeof form, showToast = false) => {
+    setAutoSaveStatus('saving');
     setSaving(true);
     try {
-      await api.settings.save(form);
-      toast.success(t('common.save'), t('topbar.all_operational'));
+      await api.settings.save(data);
+      setAutoSaveStatus('saved');
+      if (showToast) {
+        toast.success(t('common.save'), 'تم تطبيق وحفظ الإعدادات تلقائياً بنجاح');
+      }
+      setTimeout(() => {
+        setAutoSaveStatus(prev => prev === 'saved' ? 'idle' : prev);
+      }, 3000);
     } catch {
+      setAutoSaveStatus('error');
       toast.error('Save failed', 'Could not save settings. Please try again.');
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleToggle = (key: keyof typeof form, explicitValue?: any) => {
+    setForm(prev => {
+      const nextVal = explicitValue !== undefined ? explicitValue : !prev[key];
+      const next = { ...prev, [key]: nextVal };
+      saveSettingsPayload(next, true);
+      return next;
+    });
+  };
+
+  const updateField = (key: keyof typeof form, val: any) => {
+    setForm(prev => {
+      const next = { ...prev, [key]: val };
+      if (key === 'cv_maker_app_store_url') (next as any).cv_app_store_url = val;
+      if (key === 'cv_maker_play_store_url') (next as any).cv_play_store_url = val;
+      if (isLoadedRef.current) {
+        setAutoSaveStatus('saving');
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = setTimeout(() => {
+          saveSettingsPayload(next, false);
+        }, 1000);
+      }
+      return next;
+    });
+  };
+
+  const handleSave = async () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    await saveSettingsPayload(form, true);
   };
 
   if (loading) {
@@ -338,6 +391,33 @@ function GeneralTab() {
 
   return (
     <div className="max-w-2xl space-y-5">
+      {/* Auto-save notification banner */}
+      <div className="flex items-center justify-between p-3.5 rounded-xl bg-ink-900/60 border border-ink-800">
+        <div className="flex items-center gap-2">
+          <Zap className="w-4 h-4 text-brand-400 shrink-0" />
+          <span className="text-xs text-ink-300">
+            الحفظ التلقائي مفعّل: تفعيل أي مفتاح أو تعديل أي قيمة يُحفظ ويُطبق فوراً دون الحاجة للنقر اليدوي.
+          </span>
+        </div>
+        <div className="shrink-0">
+          {autoSaveStatus === 'saving' && (
+            <span className="flex items-center gap-1.5 text-xs text-brand-400 bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/20 animate-pulse">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>جاري الحفظ...</span>
+            </span>
+          )}
+          {autoSaveStatus === 'saved' && (
+            <span className="flex items-center gap-1.5 text-xs text-success-400 bg-success-500/10 px-3 py-1 rounded-full border border-success-500/20">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>تم الحفظ تلقائياً ✓</span>
+            </span>
+          )}
+          {autoSaveStatus === 'idle' && (
+            <span className="text-2xs text-ink-500">جاهز ومتزامن</span>
+          )}
+        </div>
+      </div>
+
       <div className="card p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Building className="w-4 h-4 text-ink-400" />
@@ -348,7 +428,7 @@ function GeneralTab() {
           <input
             type="text"
             value={form.dashboard_name}
-            onChange={e => setForm(f => ({ ...f, dashboard_name: e.target.value }))}
+            onChange={e => updateField('dashboard_name', e.target.value)}
             className="input w-full"
           />
         </div>
@@ -357,7 +437,7 @@ function GeneralTab() {
             <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.timezone')}</label>
             <select
               value={form.timezone}
-              onChange={e => setForm(f => ({ ...f, timezone: e.target.value }))}
+              onChange={e => updateField('timezone', e.target.value)}
               className="input w-full cursor-pointer"
             >
               <option value="Africa/Cairo">Africa/Cairo (GMT+2)</option>
@@ -370,7 +450,7 @@ function GeneralTab() {
             <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.currency')}</label>
             <select
               value={form.currency}
-              onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
+              onChange={e => updateField('currency', e.target.value)}
               className="input w-full cursor-pointer"
             >
               <option value="EGP">{t('settings.currency_egp')}</option>
@@ -411,7 +491,7 @@ function GeneralTab() {
           </div>
           <button
             type="button"
-            onClick={() => setForm(f => ({ ...f, global_emergency_free_mode: !f.global_emergency_free_mode }))}
+            onClick={() => handleToggle('global_emergency_free_mode')}
             className={`relative w-12 h-6.5 rounded-full transition-colors shrink-0 ${
               form.global_emergency_free_mode ? 'bg-rose-600' : 'bg-ink-700'
             }`}
@@ -435,7 +515,7 @@ function GeneralTab() {
             <input
               type="number"
               value={form.menu_price_monthly}
-              onChange={e => setForm(f => ({ ...f, menu_price_monthly: Number(e.target.value) }))}
+              onChange={e => updateField('menu_price_monthly', Number(e.target.value))}
               className="input w-full"
               disabled={form.menu_free_mode || form.global_emergency_free_mode}
             />
@@ -445,7 +525,7 @@ function GeneralTab() {
             <input
               type="number"
               value={form.menu_price_yearly}
-              onChange={e => setForm(f => ({ ...f, menu_price_yearly: Number(e.target.value) }))}
+              onChange={e => updateField('menu_price_yearly', Number(e.target.value))}
               className="input w-full"
               disabled={form.menu_free_mode || form.global_emergency_free_mode}
             />
@@ -458,7 +538,7 @@ function GeneralTab() {
           </div>
           <button
             type="button"
-            onClick={() => setForm(f => ({ ...f, menu_free_mode: !f.menu_free_mode }))}
+            onClick={() => handleToggle('menu_free_mode')}
             className={`relative w-11 h-6 rounded-full transition-colors ${form.menu_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
           >
             <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.menu_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -477,19 +557,19 @@ function GeneralTab() {
           <input
             type="number"
             value={form.dawaty_invitation_price}
-            onChange={e => setForm(f => ({ ...f, dawaty_invitation_price: Number(e.target.value) }))}
+            onChange={e => updateField('dawaty_invitation_price', Number(e.target.value))}
             className="input w-full"
             disabled={form.dawaty_free_mode || form.global_emergency_free_mode}
           />
         </div>
         <label className="flex items-center justify-between cursor-pointer pt-2">
           <div>
-            <p className="text-sm text-ink-200">{t('settings.menu_free_mode')}</p>
+            <p className="text-sm text-ink-200">{t('settings.dawaty_free_mode') || 'الوضع المجاني لدعوتي'}</p>
             <p className="text-xs text-ink-500">{t('settings.dawaty_free_mode_desc')}</p>
           </div>
           <button
             type="button"
-            onClick={() => setForm(f => ({ ...f, dawaty_free_mode: !f.dawaty_free_mode }))}
+            onClick={() => handleToggle('dawaty_free_mode')}
             className={`relative w-11 h-6 rounded-full transition-colors ${form.dawaty_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
           >
             <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.dawaty_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -509,7 +589,7 @@ function GeneralTab() {
             <input
               type="number"
               value={form.cv_price_single}
-              onChange={e => setForm(f => ({ ...f, cv_price_single: Number(e.target.value) }))}
+              onChange={e => updateField('cv_price_single', Number(e.target.value))}
               className="input w-full"
               disabled={form.cv_free_mode || form.global_emergency_free_mode}
             />
@@ -519,7 +599,7 @@ function GeneralTab() {
             <input
               type="number"
               value={form.cv_price_subscription}
-              onChange={e => setForm(f => ({ ...f, cv_price_subscription: Number(e.target.value) }))}
+              onChange={e => updateField('cv_price_subscription', Number(e.target.value))}
               className="input w-full"
               disabled={form.cv_free_mode || form.global_emergency_free_mode}
             />
@@ -532,7 +612,7 @@ function GeneralTab() {
           </div>
           <button
             type="button"
-            onClick={() => setForm(f => ({ ...f, cv_free_mode: !f.cv_free_mode }))}
+            onClick={() => handleToggle('cv_free_mode')}
             className={`relative w-11 h-6 rounded-full transition-colors ${form.cv_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
           >
             <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.cv_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -551,7 +631,7 @@ function GeneralTab() {
           <input
             type="number"
             value={form.qr_me_vip_price}
-            onChange={e => setForm(f => ({ ...f, qr_me_vip_price: Number(e.target.value) }))}
+            onChange={e => updateField('qr_me_vip_price', Number(e.target.value))}
             className="input w-full"
             disabled={form.qr_me_free_mode || form.global_emergency_free_mode}
           />
@@ -563,7 +643,7 @@ function GeneralTab() {
           </div>
           <button
             type="button"
-            onClick={() => setForm(f => ({ ...f, qr_me_free_mode: !f.qr_me_free_mode }))}
+            onClick={() => handleToggle('qr_me_free_mode')}
             className={`relative w-11 h-6 rounded-full transition-colors ${form.qr_me_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
           >
             <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.qr_me_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -583,18 +663,24 @@ function GeneralTab() {
             <input
               type="text"
               value={form.vodafone_cash_number}
-              onChange={e => setForm(f => ({ ...f, vodafone_cash_number: e.target.value }))}
+              onChange={e => updateField('vodafone_cash_number', e.target.value)}
               className="input w-full"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.instapay')}</label>
+            <label className="block text-xs font-medium text-ink-300 mb-1.5">
+              {t('settings.instapay')}
+            </label>
             <input
               type="text"
+              placeholder="مثال: 01019603225 أو username@instapay"
               value={form.instapay_address}
-              onChange={e => setForm(f => ({ ...f, instapay_address: e.target.value }))}
-              className="input w-full"
+              onChange={e => updateField('instapay_address', e.target.value)}
+              className="input w-full font-mono text-xs"
             />
+            <p className="text-2xs text-ink-500 mt-1">
+              رقم الهاتف المسجل أو عنوان IPA. سيظهر في التطبيقات للنسخ أو الدفع الفوري.
+            </p>
           </div>
         </div>
         <div>
@@ -605,7 +691,7 @@ function GeneralTab() {
             type="text"
             placeholder="مثال: https://ipn.eg/S/username أو رابط الدفع المباشر"
             value={form.instapay_link || ''}
-            onChange={e => setForm(f => ({ ...f, instapay_link: e.target.value }))}
+            onChange={e => updateField('instapay_link', e.target.value)}
             className="input w-full font-mono text-xs"
           />
           <p className="text-2xs text-ink-500 mt-1">
@@ -626,6 +712,36 @@ function GeneralTab() {
           </div>
         </div>
 
+        {/* CV Maker Links */}
+        <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
+            <FileText className="w-3.5 h-3.5 text-brand-400" />
+            <span>{t('settings.cv_links')}</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.app_store_url')}</label>
+              <input
+                type="url"
+                placeholder="https://apps.apple.com/app/cv-maker/..."
+                value={form.cv_maker_app_store_url}
+                onChange={e => updateField('cv_maker_app_store_url', e.target.value)}
+                className="input w-full text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.play_store_url')}</label>
+              <input
+                type="url"
+                placeholder="https://play.google.com/store/apps/details?id=..."
+                value={form.cv_maker_play_store_url}
+                onChange={e => updateField('cv_maker_play_store_url', e.target.value)}
+                className="input w-full text-xs"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* QR Me Links */}
         <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
           <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
@@ -639,7 +755,7 @@ function GeneralTab() {
                 type="url"
                 placeholder="https://apps.apple.com/app/qr-me/..."
                 value={form.qr_me_app_store_url}
-                onChange={e => setForm(f => ({ ...f, qr_me_app_store_url: e.target.value }))}
+                onChange={e => updateField('qr_me_app_store_url', e.target.value)}
                 className="input w-full text-xs"
               />
             </div>
@@ -649,7 +765,7 @@ function GeneralTab() {
                 type="url"
                 placeholder="https://play.google.com/store/apps/details?id=..."
                 value={form.qr_me_play_store_url}
-                onChange={e => setForm(f => ({ ...f, qr_me_play_store_url: e.target.value }))}
+                onChange={e => updateField('qr_me_play_store_url', e.target.value)}
                 className="input w-full text-xs"
               />
             </div>
@@ -669,7 +785,7 @@ function GeneralTab() {
                 type="url"
                 placeholder="https://apps.apple.com/app/ouonex-menu/..."
                 value={form.menu_app_store_url}
-                onChange={e => setForm(f => ({ ...f, menu_app_store_url: e.target.value }))}
+                onChange={e => updateField('menu_app_store_url', e.target.value)}
                 className="input w-full text-xs"
               />
             </div>
@@ -679,7 +795,7 @@ function GeneralTab() {
                 type="url"
                 placeholder="https://play.google.com/store/apps/details?id=..."
                 value={form.menu_play_store_url}
-                onChange={e => setForm(f => ({ ...f, menu_play_store_url: e.target.value }))}
+                onChange={e => updateField('menu_play_store_url', e.target.value)}
                 className="input w-full text-xs"
               />
             </div>
@@ -699,7 +815,7 @@ function GeneralTab() {
                 type="url"
                 placeholder="https://apps.apple.com/app/dawaty/..."
                 value={form.dawaty_app_store_url}
-                onChange={e => setForm(f => ({ ...f, dawaty_app_store_url: e.target.value }))}
+                onChange={e => updateField('dawaty_app_store_url', e.target.value)}
                 className="input w-full text-xs"
               />
             </div>
@@ -709,7 +825,7 @@ function GeneralTab() {
                 type="url"
                 placeholder="https://play.google.com/store/apps/details?id=..."
                 value={form.dawaty_play_store_url}
-                onChange={e => setForm(f => ({ ...f, dawaty_play_store_url: e.target.value }))}
+                onChange={e => updateField('dawaty_play_store_url', e.target.value)}
                 className="input w-full text-xs"
               />
             </div>
@@ -729,7 +845,7 @@ function GeneralTab() {
           </div>
           <button
             type="button"
-            onClick={() => setForm(f => ({ ...f, email_notifications: !f.email_notifications }))}
+            onClick={() => handleToggle('email_notifications')}
             className={`relative w-11 h-6 rounded-full transition-colors ${form.email_notifications ? 'bg-brand-600' : 'bg-ink-700'}`}
           >
             <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.email_notifications ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -742,7 +858,7 @@ function GeneralTab() {
             min={10}
             max={120}
             value={form.auto_refresh_seconds}
-            onChange={e => setForm(f => ({ ...f, auto_refresh_seconds: Number(e.target.value) }))}
+            onChange={e => updateField('auto_refresh_seconds', Number(e.target.value))}
             className="input w-32"
           />
         </div>
@@ -838,7 +954,7 @@ function GeneralTab() {
                       type="text"
                       placeholder="1.2.0"
                       value={form[latestKey] as string}
-                      onChange={e => setForm(f => ({ ...f, [latestKey]: e.target.value }))}
+                      onChange={e => updateField(latestKey, e.target.value)}
                       className="input w-full pl-7 text-xs font-mono"
                     />
                   </div>
@@ -853,7 +969,7 @@ function GeneralTab() {
                       type="text"
                       placeholder="1.0.0"
                       value={form[minKey] as string}
-                      onChange={e => setForm(f => ({ ...f, [minKey]: e.target.value }))}
+                      onChange={e => updateField(minKey, e.target.value)}
                       className="input w-full pl-7 text-xs font-mono"
                     />
                   </div>
@@ -872,7 +988,7 @@ function GeneralTab() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setForm(f => ({ ...f, [forceKey]: !f[forceKey] }))}
+                  onClick={() => handleToggle(forceKey)}
                   className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${isForce ? 'bg-danger-600' : 'bg-ink-700'}`}
                 >
                   <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${isForce ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -887,14 +1003,14 @@ function GeneralTab() {
                 <input
                   type="text"
                   value={form[titleKey] as string}
-                  onChange={e => setForm(f => ({ ...f, [titleKey]: e.target.value }))}
+                  onChange={e => updateField(titleKey, e.target.value)}
                   placeholder="تحديث جديد متوفر!"
                   className="input w-full text-xs mb-2"
                   dir="rtl"
                 />
                 <textarea
                   value={form[msgKey] as string}
-                  onChange={e => setForm(f => ({ ...f, [msgKey]: e.target.value }))}
+                  onChange={e => updateField(msgKey, e.target.value)}
                   placeholder="يرجى التحديث للحصول على أفضل تجربة."
                   className="input w-full text-xs resize-none"
                   rows={2}
@@ -912,7 +1028,7 @@ function GeneralTab() {
                     type="url"
                     placeholder="https://play.google.com/store/apps/details?id=..."
                     value={form[playKey] as string}
-                    onChange={e => setForm(f => ({ ...f, [playKey]: e.target.value }))}
+                    onChange={e => updateField(playKey, e.target.value)}
                     className="input w-full text-xs"
                   />
                 </div>
@@ -924,7 +1040,7 @@ function GeneralTab() {
                     type="url"
                     placeholder="https://apps.apple.com/app/..."
                     value={form[iosKey] as string}
-                    onChange={e => setForm(f => ({ ...f, [iosKey]: e.target.value }))}
+                    onChange={e => updateField(iosKey, e.target.value)}
                     className="input w-full text-xs"
                   />
                 </div>
@@ -934,12 +1050,27 @@ function GeneralTab() {
         })}
       </div>
 
-      <div className="flex items-center justify-end gap-2">
-        <button className="btn-secondary">{t('common.cancel')}</button>
-        <button onClick={handleSave} disabled={saving} className="btn-primary">
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {saving ? t('common.saving') : t('common.save')}
-        </button>
+      <div className="flex items-center justify-between gap-4 pt-2">
+        <div className="flex items-center gap-2">
+          {autoSaveStatus === 'saving' && (
+            <span className="flex items-center gap-1.5 text-xs text-brand-400 bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/20 animate-pulse">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>جاري الحفظ التلقائي...</span>
+            </span>
+          )}
+          {autoSaveStatus === 'saved' && (
+            <span className="flex items-center gap-1.5 text-xs text-success-400 bg-success-500/10 px-3 py-1 rounded-full border border-success-500/20">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>تم الحفظ والتطبيق بنجاح ✓</span>
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={handleSave} disabled={saving} className="btn-primary">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
       </div>
     </div>
   );

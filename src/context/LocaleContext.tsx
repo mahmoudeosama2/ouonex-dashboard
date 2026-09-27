@@ -395,7 +395,7 @@ const DICT: Record<string, { en: string; ar: string }> = {
   // Payment Gateways
   'settings.gateways': { en: 'Payment Gateways', ar: 'بوابات وطرق الدفع اليدوية' },
   'settings.vodafone_cash': { en: 'Vodafone Cash Number', ar: 'رقم فودافون كاش' },
-  'settings.instapay': { en: 'InstaPay Address', ar: 'عنوان إنستاباي (InstaPay)' },
+  'settings.instapay': { en: 'InstaPay Mobile / Address', ar: 'رقم هاتف أو عنوان إنستاباي (InstaPay)' },
 
   // Store & Promotion Links
   'settings.store_links': { en: 'Smart App Store & Viral Promotion Links', ar: 'روابط المتاجر والترويج الذكي' },
@@ -403,6 +403,7 @@ const DICT: Record<string, { en: string; ar: string }> = {
   'settings.qrme_links': { en: 'QR Me App Links', ar: 'روابط تطبيق باركود QR' },
   'settings.menu_links': { en: 'Digital Menu App Links', ar: 'روابط تطبيق المنيو الرقمي' },
   'settings.dawaty_links': { en: 'Dawaty Invitations App Links', ar: 'روابط تطبيق دعوتي' },
+  'settings.cv_links': { en: 'CV Maker App Links', ar: 'روابط تطبيق صانع السيرة الذاتية (CV Maker)' },
   'settings.app_store_url': { en: 'Apple App Store URL (iOS)', ar: 'رابط متجر آبل App Store (iOS)' },
   'settings.play_store_url': { en: 'Google Play Store URL (Android)', ar: 'رابط متجر جوجل بلاي Play Store (Android)' },
 
