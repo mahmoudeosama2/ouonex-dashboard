@@ -14,7 +14,9 @@ const MAP: Record<string, { label: string; cls: string; dot: string }> = {
   preparing: { label: 'Preparing', cls: 'bg-accent-500/15 text-accent-400 border border-accent-500/30', dot: 'bg-accent-400' },
   ready: { label: 'Ready', cls: 'bg-brand-500/15 text-brand-400 border border-brand-500/30', dot: 'bg-brand-400' },
   completed: { label: 'Completed', cls: 'bg-success-500/15 text-success-400 border border-success-500/30', dot: 'bg-success-400' },
-  cancelled: { label: 'Cancelled', cls: 'bg-ink-500/15 text-ink-400 border border-ink-600/40', dot: 'bg-ink-500' },
+  inactive: { label: 'Inactive', cls: 'bg-ink-500/15 text-ink-300 border border-ink-600/40', dot: 'bg-ink-400' },
+  pending_payment: { label: 'Pending Payment', cls: 'bg-warning-500/15 text-warning-400 border border-warning-500/30', dot: 'bg-warning-400' },
+  pending_approval: { label: 'Pending Approval', cls: 'bg-amber-500/15 text-amber-400 border border-amber-500/30', dot: 'bg-amber-400' },
   success: { label: 'Success', cls: 'bg-success-500/15 text-success-400 border border-success-500/30', dot: 'bg-success-400' },
   failed: { label: 'Failed', cls: 'bg-danger-500/15 text-danger-400 border border-danger-500/30', dot: 'bg-danger-400' },
 };

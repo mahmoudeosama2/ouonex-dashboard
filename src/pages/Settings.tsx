@@ -279,6 +279,7 @@ function GeneralTab() {
     qr_me_free_mode: true,
     vodafone_cash_number: '01019603225',
     instapay_address: 'instapay@address',
+    instapay_link: '',
     qr_me_app_store_url: '',
     qr_me_play_store_url: '',
     menu_app_store_url: '',
@@ -595,6 +596,21 @@ function GeneralTab() {
               className="input w-full"
             />
           </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-ink-300 mb-1.5">
+            رابط الدفع المباشر لتطبيق انستا باي (InstaPay Direct Link)
+          </label>
+          <input
+            type="text"
+            placeholder="مثال: https://ipn.eg/S/username أو رابط الدفع المباشر"
+            value={form.instapay_link || ''}
+            onChange={e => setForm(f => ({ ...f, instapay_link: e.target.value }))}
+            className="input w-full font-mono text-xs"
+          />
+          <p className="text-2xs text-ink-500 mt-1">
+            عند إدخال هذا الرابط، سيظهر زر في كافة التطبيقات لفتح تطبيق انستاباي مباشرة على هاتف العميل لتحويل المبلغ فوراً.
+          </p>
         </div>
       </div>
 

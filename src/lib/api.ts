@@ -165,7 +165,7 @@ export const api = {
     restaurants: (f?: { status?: string; page?: number; per_page?: number }): Promise<Paginated<Restaurant>> =>
       MOCK ? delay(mock.restaurants(f)) : http(`/admin/digital-menu/restaurants${qs(f as Record<string, unknown>)}`),
     restaurant: (id: string): Promise<Restaurant | undefined> =>
-      MOCK ? delay(mock.restaurantDetail(id)) : http(`/admin/digital-menu/restaurants/${id}`),
+      MOCK ? delay(mock.restaurantDetail(id)) : http<{ data: Restaurant }>(`/admin/digital-menu/restaurants/${id}`).then(r => (r && typeof r === 'object' && 'data' in r && r.data ? (r as any).data : (r as unknown as Restaurant))),
     update: (id: string, data: Record<string, unknown>): Promise<{ status: string; message: string; data: Restaurant }> =>
       httpPost<{ status: string; message: string; data: Restaurant }>(`/admin/digital-menu/restaurants/${id}`, data),
     delete: (id: string): Promise<any> =>
@@ -174,6 +174,10 @@ export const api = {
       httpPost('/admin/digital-menu/restaurants/bulk-delete', { ids }),
     impersonate: (id: string): Promise<{ status: string; data: any }> =>
       httpPost(`/admin/digital-menu/restaurants/${id}/impersonate`),
+    togglePublish: (id: string): Promise<{ status: string; message: string; data: { id: string; menu_published: boolean } }> =>
+      httpPost(`/admin/digital-menu/restaurants/${id}/toggle-publish`),
+    activateSubscription: (id: string, plan: string = 'monthly'): Promise<{ status: string; message: string; data: any }> =>
+      httpPost(`/admin/digital-menu/restaurants/${id}/activate-subscription`, { plan }),
     orders: (f?: { status?: string; page?: number; per_page?: number }): Promise<Paginated<Order>> =>
       MOCK ? delay(mock.orders(f)) : http(`/admin/digital-menu/orders${qs(f as Record<string, unknown>)}`),
   },

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2, FileSpreadsheet, LogIn, Copy, Check, Users } from 'lucide-react';
+import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2, FileSpreadsheet, LogIn, Copy, Check, Users, Mail, Phone, Zap, Loader2 } from 'lucide-react';
 import { exportToCsv } from '@/lib/exportCsv';
 import { api } from '@/lib/api';
 import type { Restaurant, Order, AIUsageSummary, RestaurantStatus } from '@/lib/types';
@@ -160,8 +160,28 @@ function RestaurantsTab() {
   const handleRowClick = async (r: Restaurant) => {
     setSelected(r);
     setDrawerOpen(true);
-    const detail = await api.digitalMenu.restaurant(r.id);
-    if (detail) setSelected(detail);
+    try {
+      const detail = await api.digitalMenu.restaurant(r.id);
+      if (detail && typeof detail === 'object') {
+        const actual = 'data' in detail && (detail as any).data ? (detail as any).data : detail;
+        setSelected(prev => (prev ? { ...prev, ...actual } : actual));
+      }
+    } catch (err) {
+      console.error('Failed to load restaurant details:', err);
+    }
+  };
+
+  const handleTogglePublish = async (r: Restaurant) => {
+    try {
+      const res = await api.digitalMenu.togglePublish(r.id);
+      const newVal = res.data.menu_published;
+      setRows(prev => prev.map(row => row.id === r.id ? { ...row, menu_published: newVal } : row));
+      if (selected?.id === r.id) {
+        setSelected(prev => (prev ? { ...prev, menu_published: newVal } : prev));
+      }
+    } catch {
+      alert(locale === 'ar' ? 'فشل تغيير حالة نشر المنيو.' : 'Failed to toggle menu publication.');
+    }
   };
 
   if (error) return <ErrorState message={locale === 'ar' ? 'فشل تحميل بيانات المطاعم.' : 'Failed to load restaurants.'} onRetry={load} />;
@@ -184,21 +204,34 @@ function RestaurantsTab() {
     { key: 'slug', header: t('menu.th_slug'), render: r => (
       r.menu_published ? (
         <a
-          href={`https://${r.slug}.ouonex.com`}
+          href={`https://menu.ouonex.com/${r.slug}`}
           target="_blank"
           rel="noopener noreferrer"
           className="font-mono text-xs text-brand-400 hover:text-brand-300 hover:underline flex items-center gap-1 transition-colors"
           onClick={e => e.stopPropagation()}
         >
-          {r.slug}.ouonex.com <ExternalLink className="w-3 h-3" />
+          menu.ouonex.com/{r.slug} <ExternalLink className="w-3 h-3" />
         </a>
       ) : (
-        <span className="font-mono text-xs text-ink-600">{r.slug}.ouonex.com</span>
+        <span className="font-mono text-xs text-ink-600">menu.ouonex.com/{r.slug}</span>
       )
     ) },
     { key: 'status', header: t('menu.th_status'), sortValue: r => r.status, align: 'center', render: r => <StatusBadge status={r.status} /> },
     { key: 'plan', header: t('menu.th_plan'), sortValue: r => r.plan, align: 'center', render: r => <PlanBadge plan={r.plan} /> },
-    { key: 'menu', header: locale === 'ar' ? 'نشر المنيو' : 'Menu Published', align: 'center', render: r => r.menu_published ? <CheckCircle2 className="w-4 h-4 text-success-400 mx-auto" /> : <span className="text-2xs text-ink-500">{locale === 'ar' ? 'غير منشور' : 'Unpublished'}</span> },
+    { key: 'menu', header: locale === 'ar' ? 'نشر المنيو' : 'Menu Published', align: 'center', render: r => (
+      <button
+        type="button"
+        onClick={e => { e.stopPropagation(); handleTogglePublish(r); }}
+        title={locale === 'ar' ? (r.menu_published ? 'انقر لإلغاء النشر' : 'انقر لنشر المنيو') : (r.menu_published ? 'Click to unpublish' : 'Click to publish')}
+        className="px-2 py-1 rounded hover:bg-ink-800 transition-colors mx-auto flex items-center justify-center gap-1 group"
+      >
+        {r.menu_published ? (
+          <CheckCircle2 className="w-4 h-4 text-success-400 group-hover:text-amber-400" />
+        ) : (
+          <span className="text-2xs text-ink-500 group-hover:text-brand-400 font-medium">{locale === 'ar' ? 'غير منشور' : 'Unpublished'}</span>
+        )}
+      </button>
+    ) },
     { key: 'owner', header: locale === 'ar' ? 'المالك' : 'Owner', sortValue: r => r.owner, render: r => <span className="text-xs text-ink-300">{r.owner}</span> },
     { key: 'orders', header: t('menu.th_orders'), sortValue: r => r.orders_count, align: 'center', render: r => <span className="tabular-nums text-ink-200">{num(r.orders_count)}</span> },
     { key: 'ai', header: t('menu.kpi_ai_scans'), sortValue: r => r.ai_scans_count, align: 'center', render: r => <span className="tabular-nums text-ink-200">{num(r.ai_scans_count)}</span> },
@@ -275,11 +308,22 @@ function RestaurantsTab() {
         emptyTitle={t('menu.empty_title')}
       />
 
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={selected?.store_name ?? 'Restaurant'} subtitle={selected ? `/${selected.slug}` : ''}>
+      <Drawer 
+        open={drawerOpen} 
+        onClose={() => setDrawerOpen(false)} 
+        title={selected?.store_name ?? 'Restaurant'} 
+        subtitle={selected?.slug ? `menu.ouonex.com/${selected.slug}` : ''}
+      >
         {selected && (
           <RestaurantDetail
             r={selected}
             onDelete={() => handleDeleteSingle(selected)}
+            onOwnerDeleted={() => {
+              setRows(prev => prev.filter(item => item.id !== selected.id));
+              setDrawerOpen(false);
+              setSelected(null);
+              setTotal(prev => Math.max(0, prev - 1));
+            }}
             onUpdated={(updated) => {
               setSelected({ ...selected, ...updated });
               setRows(prev => prev.map(item => item.id === selected.id ? { ...item, ...updated } : item));
@@ -294,42 +338,65 @@ function RestaurantsTab() {
 function RestaurantDetail({ 
   r, 
   onUpdated,
-  onDelete
+  onDelete,
+  onOwnerDeleted,
 }: { 
   r: Restaurant; 
   onUpdated: (updated: Partial<Restaurant>) => void;
   onDelete: () => void;
+  onOwnerDeleted: () => void;
 }) {
   const { locale, t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isEditingOwner, setIsEditingOwner] = useState(false);
+  const [savingOwner, setSavingOwner] = useState(false);
+  const [deletingOwner, setDeletingOwner] = useState(false);
   const [impersonating, setImpersonating] = useState(false);
   const [impersonationModal, setImpersonationModal] = useState<any>(null);
   const [copiedToken, setCopiedToken] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+
   const [formData, setFormData] = useState({
-    store_name: r.store_name,
-    slug: r.slug,
-    status: r.status,
+    store_name: r.store_name ?? '',
+    slug: r.slug ?? '',
+    status: r.status ?? 'active',
+    menu_published: r.menu_published ?? true,
     currency: 'EGP',
     delivery_fee: 15,
   });
 
+  const [ownerFormData, setOwnerFormData] = useState({
+    name: r.owner ?? '',
+    email: r.owner_email ?? '',
+    phone: r.owner_phone ?? '',
+    password: '',
+  });
+
   useEffect(() => {
     setFormData({
-      store_name: r.store_name,
-      slug: r.slug,
-      status: r.status,
+      store_name: r.store_name ?? '',
+      slug: r.slug ?? '',
+      status: r.status ?? 'active',
+      menu_published: r.menu_published ?? true,
       currency: 'EGP',
       delivery_fee: 15,
     });
+    setOwnerFormData({
+      name: r.owner ?? '',
+      email: r.owner_email ?? '',
+      phone: r.owner_phone ?? '',
+      password: '',
+    });
     setIsEditing(false);
+    setIsEditingOwner(false);
     setSuccessMsg('');
     setImpersonationModal(null);
   }, [r]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!r.id) return;
     setSaving(true);
     setSuccessMsg('');
     try {
@@ -338,6 +405,7 @@ function RestaurantDetail({
         name: formData.store_name,
         slug: formData.slug,
         status: formData.status,
+        menu_published: formData.menu_published,
         currency: formData.currency,
         delivery_fee: formData.delivery_fee,
       });
@@ -346,17 +414,64 @@ function RestaurantDetail({
         store_name: formData.store_name,
         slug: formData.slug,
         status: formData.status as any,
+        menu_published: formData.menu_published,
       });
-      setSuccessMsg('Restaurant updated successfully!');
+      setSuccessMsg(locale === 'ar' ? 'تم تحديث بيانات المطعم بنجاح!' : 'Restaurant updated successfully!');
       setIsEditing(false);
     } catch (err) {
-      alert('Failed to update restaurant.');
+      alert(locale === 'ar' ? 'فشل تحديث بيانات المطعم.' : 'Failed to update restaurant.');
     } finally {
       setSaving(false);
     }
   };
 
+  const handleSaveOwner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!r.owner_id) return;
+    setSavingOwner(true);
+    try {
+      const payload: Record<string, unknown> = {
+        name: ownerFormData.name,
+        email: ownerFormData.email,
+        phone: ownerFormData.phone,
+      };
+      if (ownerFormData.password.trim()) {
+        payload.password = ownerFormData.password.trim();
+      }
+      await api.users.update(r.owner_id, payload);
+      onUpdated({
+        owner: ownerFormData.name,
+        owner_email: ownerFormData.email,
+        owner_phone: ownerFormData.phone,
+      });
+      setIsEditingOwner(false);
+      setSuccessMsg(locale === 'ar' ? 'تم تحديث بيانات حساب المالك بنجاح!' : 'Owner details updated successfully!');
+    } catch (err) {
+      alert(locale === 'ar' ? 'فشل تحديث بيانات المالك.' : 'Failed to update owner profile.');
+    } finally {
+      setSavingOwner(false);
+    }
+  };
+
+  const handleDeleteOwner = async () => {
+    if (!r.owner_id) return;
+    const confirmMsg = locale === 'ar'
+      ? `هل أنت متأكد من رغبتك في حذف حساب المالك "${r.owner}" ومطعمه بالكامل نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.`
+      : `Are you sure you want to permanently delete owner "${r.owner}" and their restaurant? This cannot be undone.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeletingOwner(true);
+    try {
+      await api.users.delete(r.owner_id);
+      onOwnerDeleted();
+    } catch (err) {
+      alert(locale === 'ar' ? 'فشل حذف حساب المالك.' : 'Failed to delete owner account.');
+      setDeletingOwner(false);
+    }
+  };
+
   const handleImpersonate = async () => {
+    if (!r.id) return;
     setImpersonating(true);
     try {
       const res = await api.digitalMenu.impersonate(r.id);
@@ -365,6 +480,31 @@ function RestaurantDetail({
       alert('Failed to generate restaurant impersonation token.');
     } finally {
       setImpersonating(false);
+    }
+  };
+
+  const [activatingSub, setActivatingSub] = useState(false);
+
+  const handleActivateSubscription = async () => {
+    if (!r.id) return;
+    const confirmMsg = locale === 'ar'
+      ? `هل أنت متأكد من تفعيل اشتراك ودفع مطعم "${r.store_name}" يدوياً؟ سيتم تفعيل الحساب فوراً ونشر المنيو وإرسال إشعار للمالك.`
+      : `Are you sure you want to manually activate subscription and payment for "${r.store_name}"?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setActivatingSub(true);
+    try {
+      await api.digitalMenu.activateSubscription(r.id);
+      onUpdated({
+        status: 'active',
+        menu_published: true,
+        plan: 'monthly',
+      });
+      setSuccessMsg(locale === 'ar' ? 'تم تفعيل الاشتراك والدفع بنجاح وتحديث حالة المطعم إلى نشط!' : 'Subscription activated successfully!');
+    } catch (err) {
+      alert(locale === 'ar' ? 'فشل تفعيل الاشتراك.' : 'Failed to activate subscription.');
+    } finally {
+      setActivatingSub(false);
     }
   };
 
@@ -394,7 +534,7 @@ function RestaurantDetail({
         <div className="flex items-center gap-1.5">
           <button
             onClick={handleImpersonate}
-            disabled={impersonating}
+            disabled={impersonating || !r.id}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition disabled:opacity-50"
             title="Login as restaurant owner"
           >
@@ -410,14 +550,41 @@ function RestaurantDetail({
             {isEditing ? 'Cancel' : 'Edit Restaurant'}
           </button>
 
-          <button
-            onClick={onDelete}
-            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition"
-            title="Delete Restaurant"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
         </div>
+      </div>
+
+      {/* Quick Subscription & Payment Activation Banner */}
+      <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 ${
+        r.status === 'active'
+          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+          : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+      }`}>
+        <div className="flex items-center gap-2.5">
+          <Zap className="w-4 h-4 shrink-0 text-amber-400" />
+          <div className="text-xs">
+            <span className="font-bold">
+              {r.status === 'active'
+                ? (locale === 'ar' ? 'الاشتراك والدفع مفعّل ونشط' : 'Active Subscription')
+                : (locale === 'ar' ? 'حساب المطعم غير مفعل أو بانتظار الدفع' : 'Subscription Inactive / Pending Payment')}
+            </span>
+            <p className="text-2xs text-ink-400">
+              {r.status === 'active'
+                ? (locale === 'ar' ? 'المنيو منشور ومتاح للجمهور والطلبات نشطة.' : 'Public menu is online.')
+                : (locale === 'ar' ? 'يمكنك تفعيل الاشتراك يدوياً وتأكيد الدفع بنقرة واحدة.' : 'Manually approve payment & activate.')}
+            </p>
+          </div>
+        </div>
+        {r.status !== 'active' && (
+          <button
+            type="button"
+            onClick={handleActivateSubscription}
+            disabled={activatingSub}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-all shrink-0 disabled:opacity-50 cursor-pointer"
+          >
+            {activatingSub ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+            <span>{locale === 'ar' ? '⚡ تفعيل الاشتراك والدفع الآن' : '⚡ Activate Now'}</span>
+          </button>
+        )}
       </div>
 
       {/* Impersonation Bridge Modal / Panel */}
@@ -454,7 +621,7 @@ function RestaurantDetail({
         </div>
       )}
 
-      {/* Edit Form */}
+      {/* Edit Restaurant Form */}
       {isEditing ? (
         <form onSubmit={handleSave} className="p-4 rounded-xl bg-ink-950/80 border border-ink-800/80 space-y-3 animate-fade-in">
           <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">Edit Restaurant Details</h4>
@@ -480,7 +647,7 @@ function RestaurantDetail({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-2xs text-ink-400 mb-1">{t('common.status')}</label>
               <select
@@ -488,10 +655,23 @@ function RestaurantDetail({
                 onChange={e => setFormData({ ...formData, status: e.target.value as RestaurantStatus })}
                 className="input w-full text-xs bg-ink-950"
               >
-                <option value="active">{locale === 'ar' ? 'مفعل' : 'Active'}</option>
-                <option value="trial">{locale === 'ar' ? 'تجريبي' : 'Trial'}</option>
-                <option value="suspended">{locale === 'ar' ? 'موقوف' : 'Suspended'}</option>
-                <option value="inactive">{locale === 'ar' ? 'معطل' : 'Inactive'}</option>
+                <option value="active">{locale === 'ar' ? 'مفعل (Active)' : 'Active'}</option>
+                <option value="trial">{locale === 'ar' ? 'تجريبي (Trial)' : 'Trial'}</option>
+                <option value="pending_payment">{locale === 'ar' ? 'في انتظار الدفع' : 'Pending Payment'}</option>
+                <option value="pending_approval">{locale === 'ar' ? 'في انتظار المراجعة' : 'Pending Approval'}</option>
+                <option value="suspended">{locale === 'ar' ? 'موقوف (Suspended)' : 'Suspended'}</option>
+                <option value="inactive">{locale === 'ar' ? 'معطل (Inactive)' : 'Inactive'}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'نشر المنيو للجمهور' : 'Menu Published'}</label>
+              <select
+                value={formData.menu_published ? 'yes' : 'no'}
+                onChange={e => setFormData({ ...formData, menu_published: e.target.value === 'yes' })}
+                className="input w-full text-xs bg-ink-950"
+              >
+                <option value="yes">{locale === 'ar' ? 'منشور (مفعل)' : 'Published'}</option>
+                <option value="no">{locale === 'ar' ? 'غير منشور (مخفي)' : 'Unpublished'}</option>
               </select>
             </div>
             <div>
@@ -530,21 +710,140 @@ function RestaurantDetail({
       ) : null}
 
       <div className="flex items-center gap-3">
-        <StatusBadge status={r.status} />
-        <PlanBadge plan={r.plan} />
-        <span className="text-xs text-ink-400 ml-auto">{locale === 'ar' ? `تاريخ الانضمام ${date(r.created_at)}` : `Joined ${date(r.created_at)}`}</span>
+        <StatusBadge status={r.status || 'active'} />
+        <PlanBadge plan={r.plan || 'free'} />
+        <span className="text-xs text-ink-400 ml-auto">{locale === 'ar' ? `تاريخ الانضمام ${date(r.created_at || new Date().toISOString())}` : `Joined ${date(r.created_at || new Date().toISOString())}`}</span>
       </div>
+
       <div className="grid grid-cols-2 gap-3">
-        <DetailStat label={locale === 'ar' ? 'الأقسام' : 'Categories'} value={num(r.categories_count)} />
-        <DetailStat label={locale === 'ar' ? 'الأطباق والمنتجات' : 'Products'} value={num(r.products_count)} />
-        <DetailStat label={t('menu.th_orders')} value={num(r.orders_count)} />
-        <DetailStat label={t('menu.kpi_ai_scans')} value={num(r.ai_scans_count)} />
-        <DetailStat label={t('menu.kpi_ai_cost')} value={egp(r.ai_cost)} />
+        <DetailStat label={locale === 'ar' ? 'الأقسام' : 'Categories'} value={num(r.categories_count ?? 0)} />
+        <DetailStat label={locale === 'ar' ? 'الأطباق والمنتجات' : 'Products'} value={num(r.products_count ?? 0)} />
+        <DetailStat label={t('menu.th_orders')} value={num(r.orders_count ?? 0)} />
+        <DetailStat label={t('menu.kpi_ai_scans')} value={num(r.ai_scans_count ?? 0)} />
+        <DetailStat label={t('menu.kpi_ai_cost')} value={egp(r.ai_cost ?? 0)} />
         <DetailStat label={locale === 'ar' ? 'نشر المنيو' : 'Menu Published'} value={r.menu_published ? (locale === 'ar' ? 'نعم' : 'Yes') : (locale === 'ar' ? 'لا' : 'No')} />
       </div>
-      <div>
-        <h4 className="text-sm font-semibold text-ink-100 mb-2">{locale === 'ar' ? 'المالك' : 'Owner'}</h4>
-        <p className="text-sm text-ink-200">{r.owner}</p>
+
+      {/* Owner Profile Management Card */}
+      <div className="p-4 rounded-xl bg-ink-900/80 border border-ink-800 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-sm shadow-soft">
+              {(r.owner || 'U').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-ink-100">{r.owner}</span>
+                <span className="text-3xs font-mono px-1.5 py-0.5 rounded bg-ink-800 text-ink-400">UID: {r.owner_id}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-2xs text-ink-400 mt-0.5">
+                {r.owner_email && (
+                  <span className="flex items-center gap-1 text-ink-300">
+                    <Mail className="w-3 h-3 text-brand-400" />
+                    {r.owner_email}
+                  </span>
+                )}
+                {r.owner_phone && (
+                  <span className="flex items-center gap-1 text-ink-300">
+                    <Phone className="w-3 h-3 text-emerald-400" />
+                    {r.owner_phone}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setIsEditingOwner(!isEditingOwner)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-2xs font-semibold bg-ink-800 hover:bg-ink-700 text-ink-200 transition"
+              title={locale === 'ar' ? 'تعديل بيانات بروفايل المالك' : 'Edit Owner Profile'}
+            >
+              {isEditingOwner ? <X className="w-3 h-3" /> : <Edit3 className="w-3 h-3" />}
+              <span>{isEditingOwner ? (locale === 'ar' ? 'إلغاء' : 'Cancel') : (locale === 'ar' ? 'تعديل الحساب' : 'Edit Account')}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDeleteOwner}
+              disabled={deletingOwner}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-2xs font-semibold bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 transition disabled:opacity-50"
+              title={locale === 'ar' ? 'حذف حساب المالك نهائياً' : 'Delete Owner Account'}
+            >
+              <Trash2 className="w-3 h-3" />
+              <span>{deletingOwner ? (locale === 'ar' ? 'جاري الحذف...' : 'Deleting...') : (locale === 'ar' ? 'حذف الحساب' : 'Delete Account')}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Edit Owner Inline Form */}
+        {isEditingOwner && (
+          <form onSubmit={handleSaveOwner} className="pt-3 border-t border-ink-800/80 space-y-2.5 animate-fade-in">
+            <h5 className="text-2xs font-bold uppercase tracking-wider text-brand-400">
+              {locale === 'ar' ? 'تعديل بيانات حساب المالك' : 'Edit Owner Profile Details'}
+            </h5>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="block text-3xs text-ink-400 mb-0.5">{locale === 'ar' ? 'الاسم بالكامل' : 'Full Name'}</label>
+                <input
+                  type="text"
+                  required
+                  value={ownerFormData.name}
+                  onChange={e => setOwnerFormData({ ...ownerFormData, name: e.target.value })}
+                  className="input w-full text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-3xs text-ink-400 mb-0.5">{locale === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
+                <input
+                  type="email"
+                  required
+                  value={ownerFormData.email}
+                  onChange={e => setOwnerFormData({ ...ownerFormData, email: e.target.value })}
+                  className="input w-full text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-3xs text-ink-400 mb-0.5">{locale === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
+                <input
+                  type="text"
+                  value={ownerFormData.phone}
+                  onChange={e => setOwnerFormData({ ...ownerFormData, phone: e.target.value })}
+                  className="input w-full text-xs"
+                  placeholder="+201..."
+                />
+              </div>
+              <div>
+                <label className="block text-3xs text-ink-400 mb-0.5">{locale === 'ar' ? 'كلمة المرور الجديدة (اختياري)' : 'New Password (Optional)'}</label>
+                <input
+                  type="password"
+                  value={ownerFormData.password}
+                  onChange={e => setOwnerFormData({ ...ownerFormData, password: e.target.value })}
+                  className="input w-full text-xs"
+                  placeholder="******"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsEditingOwner(false)}
+                className="px-2.5 py-1 rounded-lg text-2xs text-ink-400 hover:text-white"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={savingOwner}
+                className="flex items-center gap-1 px-3 py-1 rounded-lg text-2xs font-semibold bg-brand-500 text-white hover:bg-brand-400 disabled:opacity-50"
+              >
+                <Save className="w-3 h-3" />
+                {savingOwner ? (locale === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (locale === 'ar' ? 'حفظ التعديلات' : 'Save Changes')}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ export type Product = 'dawaty' | 'digital_menu' | 'cv_maker' | 'qr_me';
 
 export type PaymentStatus = 'pending_review' | 'paid' | 'rejected';
 export type InvitationStatus = 'draft' | 'published' | 'expired';
-export type RestaurantStatus = 'active' | 'suspended' | 'trial';
+export type RestaurantStatus = 'active' | 'suspended' | 'trial' | 'inactive' | 'pending_payment' | 'pending_approval' | 'draft';
 export type Plan = 'free' | 'pro' | 'enterprise';
 
 export type Role = 'owner' | 'admin' | 'finance' | 'support' | 'viewer';
@@ -92,6 +92,8 @@ export interface Restaurant {
   menu_published: boolean;
   owner: string;
   owner_id: string;
+  owner_email?: string;
+  owner_phone?: string;
   created_at: string;
   categories_count: number;
   products_count: number;
