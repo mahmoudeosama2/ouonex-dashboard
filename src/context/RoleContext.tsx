@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Role } from '@/lib/types';
 import { canAccess, canApprovePayments, canManageTeam, canViewSettings, type PageKey } from '@/lib/rbac';
+import { useAuth } from './AuthContext';
 
 interface RoleCtx {
   role: Role;
@@ -10,28 +11,37 @@ interface RoleCtx {
   canManageTeam: boolean;
   canViewSettings: boolean;
   actorName: string;
+  isOwner: boolean;
+  assignedApps: string[];
+  permissions: PageKey[];
 }
 
 const Ctx = createContext<RoleCtx | null>(null);
 
-const ACTOR: Record<Role, string> = {
-  owner: 'You',
-  admin: 'You',
-  finance: 'Nour Hassan',
-  support: 'Omar Fouad',
-  viewer: 'Salma Ibrahim',
-};
-
 export function RoleProvider({ children, initialRole }: { children: ReactNode; initialRole?: Role }) {
-  const [role, setRole] = useState<Role>(initialRole ?? 'owner');
+  const { admin, role: authRole } = useAuth();
+  const [role, setRole] = useState<Role>(initialRole ?? authRole ?? 'owner');
+
+  useEffect(() => {
+    if (authRole) setRole(authRole);
+  }, [authRole]);
+
+  const customPermissions = admin?.permissions as PageKey[] | undefined;
+  const assignedApps = (admin?.assigned_apps ?? []) as string[];
+  const isOwner = role === 'owner';
+  const actorName = admin?.name || 'You';
+
   const v: RoleCtx = {
     role,
     setRole,
-    can: (p) => canAccess(role, p),
-    canApprove: canApprovePayments(role),
+    can: (p) => canAccess(role, p, customPermissions, assignedApps),
+    canApprove: canApprovePayments(role, customPermissions),
     canManageTeam: canManageTeam(role),
-    canViewSettings: canViewSettings(role),
-    actorName: ACTOR[role],
+    canViewSettings: canViewSettings(role, customPermissions),
+    actorName,
+    isOwner,
+    assignedApps,
+    permissions: customPermissions ?? [],
   };
   return <Ctx.Provider value={v}>{children}</Ctx.Provider>;
 }
@@ -41,3 +51,4 @@ export function useRole(): RoleCtx {
   if (!c) throw new Error('useRole must be inside RoleProvider');
   return c;
 }
+

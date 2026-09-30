@@ -33,16 +33,24 @@ export function StatusBadge({ status }: { status: Status }) {
   );
 }
 
-export function PlanBadge({ plan }: { plan: 'free' | 'pro' | 'enterprise' }) {
-  const cls = plan === 'enterprise' ? 'bg-brand-500/15 text-brand-400 border border-brand-500/30'
-    : plan === 'pro' ? 'bg-accent-500/15 text-accent-400 border border-accent-500/30'
+import type { Product, Plan } from '@/lib/types';
+
+export function PlanBadge({ plan }: { plan: Plan }) {
+  const cls = plan === 'enterprise' || plan === 'yearly' ? 'bg-brand-500/15 text-brand-400 border border-brand-500/30'
+    : plan === 'pro' || plan === 'monthly' ? 'bg-accent-500/15 text-accent-400 border border-accent-500/30'
     : 'bg-ink-500/15 text-ink-300 border border-ink-600/40';
   return <span className={`badge ${cls}`}>{plan}</span>;
 }
 
-export function ProductBadge({ product }: { product: 'dawaty' | 'digital_menu' }) {
+export function ProductBadge({ product }: { product: Product }) {
   if (product === 'dawaty') {
     return <span className="badge bg-pink-500/10 text-pink-300 border border-pink-500/30">Dawaty</span>;
+  }
+  if (product === 'cv_maker') {
+    return <span className="badge bg-purple-500/10 text-purple-300 border border-purple-500/30">CV Maker</span>;
+  }
+  if (product === 'qr_me') {
+    return <span className="badge bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">QR Me</span>;
   }
   return <span className="badge bg-brand-500/10 text-brand-300 border border-brand-500/30">Digital Menu</span>;
 }

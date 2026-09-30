@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2, FileSpreadsheet, LogIn, Copy, Check, Users, Mail, Phone, Zap, Loader2 } from 'lucide-react';
+import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2, FileSpreadsheet, LogIn, Copy, Check, Users, Mail, Phone, Zap, Loader2, ShieldCheck, UserCheck } from 'lucide-react';
 import { exportToCsv } from '@/lib/exportCsv';
 import { api } from '@/lib/api';
-import type { Restaurant, Order, AIUsageSummary, RestaurantStatus } from '@/lib/types';
+import type { Restaurant, Order, AIUsageSummary, RestaurantStatus, TeamMember } from '@/lib/types';
 import { DataTable, type Column } from '@/components/DataTable';
 import { FilterBar, type FilterItem } from '@/components/FilterBar';
 import { Drawer } from '@/components/Drawer';
@@ -14,7 +14,10 @@ import { ErrorState, EmptyState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/Layout';
 import { num, egp, compactEGP, date, pct } from '@/lib/format';
 import { useLocale } from '@/context/LocaleContext';
+import { useRole } from '@/context/RoleContext';
+import { useToast } from '@/context/ToastContext';
 import { AppUsersManager } from '@/components/AppUsersManager';
+
 
 type SubTab = 'restaurants' | 'users' | 'ai' | 'orders';
 
@@ -53,6 +56,8 @@ export function DigitalMenu() {
 
 function RestaurantsTab() {
   const { t, locale } = useLocale();
+  const { isOwner } = useRole();
+  const toast = useToast();
   const [rows, setRows] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -65,12 +70,59 @@ function RestaurantsTab() {
   const [usersCount, setUsersCount] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [assigningId, setAssigningId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOwner) {
+      api.team.list().then(m => setTeamMembers(m)).catch(() => {});
+    }
+  }, [isOwner]);
+
+  const handleAssignStaff = async (restaurantId: string, adminId: string | null) => {
+    setAssigningId(restaurantId);
+    try {
+      await api.digitalMenu.assign(restaurantId, adminId || null);
+      const assignedAdmin = adminId ? teamMembers.find(m => String(m.id) === String(adminId)) : null;
+      setRows(prev => prev.map(r => r.id === restaurantId ? {
+        ...r,
+        assigned_admin_id: adminId ? Number(adminId) : null,
+        assigned_admin: assignedAdmin ? {
+          id: Number(assignedAdmin.id),
+          name: assignedAdmin.name,
+          email: assignedAdmin.email,
+          role: assignedAdmin.role,
+        } : null,
+      } : r));
+      if (selected?.id === restaurantId) {
+        setSelected(prev => prev ? {
+          ...prev,
+          assigned_admin_id: adminId ? Number(adminId) : null,
+          assigned_admin: assignedAdmin ? {
+            id: Number(assignedAdmin.id),
+            name: assignedAdmin.name,
+            email: assignedAdmin.email,
+            role: assignedAdmin.role,
+          } : null,
+        } : null);
+      }
+      toast.success(
+        locale === 'ar' ? 'تم تعيين الموظف بنجاح' : 'Staff Assigned',
+        assignedAdmin ? assignedAdmin.name : (locale === 'ar' ? 'تم إلغاء التعيين' : 'Unassigned')
+      );
+    } catch (err: any) {
+      toast.error('Error', err?.message || (locale === 'ar' ? 'فشل تعيين الموظف.' : 'Failed to assign staff.'));
+    } finally {
+      setAssigningId(null);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(false);
     try {
       const res = await api.digitalMenu.restaurants({ status: statusFilter === 'all' ? undefined : statusFilter, page, per_page: 10 });
+
       setRows(res.data);
       setTotal(res.meta.total);
       api.users.search('', 1, 'digital_menu').then(r => setUsersCount(r.meta.total)).catch(() => {});
@@ -233,6 +285,30 @@ function RestaurantsTab() {
       </button>
     ) },
     { key: 'owner', header: locale === 'ar' ? 'المالك' : 'Owner', sortValue: r => r.owner, render: r => <span className="text-xs text-ink-300">{r.owner}</span> },
+    ...(isOwner ? [{
+      key: 'assigned_admin',
+      header: locale === 'ar' ? 'المسؤول المعين' : 'Assigned Staff',
+      render: (r: Restaurant) => (
+        <div onClick={e => e.stopPropagation()} className="flex items-center gap-1.5">
+          {assigningId === r.id ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-400" />
+          ) : (
+            <select
+              value={r.assigned_admin_id ? String(r.assigned_admin_id) : ''}
+              onChange={e => handleAssignStaff(r.id, e.target.value || null)}
+              className="bg-ink-850 border border-ink-700 hover:border-ink-600 rounded px-2 py-1 text-2xs text-ink-200 focus:outline-none focus:border-brand-500"
+            >
+              <option value="">{locale === 'ar' ? '— غير محدد —' : '— Unassigned —'}</option>
+              {teamMembers.map(m => (
+                <option key={m.id} value={String(m.id)}>
+                  {m.name} ({m.role})
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )
+    }] : []),
     { key: 'orders', header: t('menu.th_orders'), sortValue: r => r.orders_count, align: 'center', render: r => <span className="tabular-nums text-ink-200">{num(r.orders_count)}</span> },
     { key: 'ai', header: t('menu.kpi_ai_scans'), sortValue: r => r.ai_scans_count, align: 'center', render: r => <span className="tabular-nums text-ink-200">{num(r.ai_scans_count)}</span> },
     { key: 'created', header: t('menu.th_created'), sortValue: r => r.created_at, align: 'center', render: r => <span className="text-xs text-ink-400">{date(r.created_at)}</span> },

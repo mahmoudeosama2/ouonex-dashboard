@@ -42,13 +42,13 @@ interface Props {
 }
 
 export function Layout({ current, onNavigate, children, pendingCount = 0, supportCount = 0 }: Props) {
-  const { role, setRole, actorName } = useRole();
+  const { role, setRole, actorName, can, isOwner } = useRole();
   const { logout } = useAuth();
   const { t, locale, toggle, isRTL } = useLocale();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [roleMenu, setRoleMenu] = useState(false);
 
-  const visible = NAV.filter(n => canAccess(role, n.key));
+  const visible = NAV.filter(n => can(n.key));
 
   const sidebar = (
     <div className="flex flex-col h-full">
@@ -182,21 +182,30 @@ export function Layout({ current, onNavigate, children, pendingCount = 0, suppor
               {roleMenu && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setRoleMenu(false)} />
-                  <div className="absolute right-0 top-full mt-1.5 w-72 card shadow-pop z-50 p-2 animate-scale-in">
-                    <p className="text-2xs font-semibold text-ink-400 uppercase tracking-wide px-3 py-2">{t('topbar.switch_role')}</p>
-                    {ROLES.map(r => (
-                      <button
-                        key={r.id}
-                        onClick={() => { setRole(r.id); setRoleMenu(false); }}
-                        className={`w-full flex items-start gap-3 px-3 py-2 rounded-lg text-start transition-colors ${role === r.id ? 'bg-brand-600/10' : 'hover:bg-ink-800/60'}`}
-                      >
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-ink-100">{r.label}</p>
-                          <p className="text-2xs text-ink-400">{r.description}</p>
-                        </div>
-                        {role === r.id && <div className="w-2 h-2 rounded-full bg-brand-400 mt-1.5" />}
-                      </button>
-                    ))}
+                  <div className={`absolute top-full mt-1.5 w-72 max-w-[calc(100vw-2rem)] card shadow-pop z-50 p-2 animate-scale-in ${isRTL ? 'left-0 right-auto' : 'right-0 left-auto'}`}>
+                    {isOwner ? (
+                      <>
+                        <p className="text-2xs font-semibold text-ink-400 uppercase tracking-wide px-3 py-2">{t('topbar.switch_role')}</p>
+                        {ROLES.map(r => (
+                          <button
+                            key={r.id}
+                            onClick={() => { setRole(r.id); setRoleMenu(false); }}
+                            className={`w-full flex items-start gap-3 px-3 py-2 rounded-lg text-start transition-colors ${role === r.id ? 'bg-brand-600/10' : 'hover:bg-ink-800/60'}`}
+                          >
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-ink-100">{r.label}</p>
+                              <p className="text-2xs text-ink-400">{r.description}</p>
+                            </div>
+                            {role === r.id && <div className="w-2 h-2 rounded-full bg-brand-400 mt-1.5" />}
+                          </button>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="px-3 py-2 mb-1">
+                        <p className="text-xs font-bold text-ink-100">{actorName}</p>
+                        <p className="text-2xs text-ink-400 capitalize">{role}</p>
+                      </div>
+                    )}
                     <div className="border-t border-ink-800 mt-1 pt-1">
                       <button onClick={() => { logout(); }} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-ink-300 hover:bg-ink-800/60 transition-colors">
                         <LogOut className="w-4 h-4" /> {t('topbar.sign_out')}

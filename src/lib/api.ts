@@ -5,7 +5,7 @@ import type {
   OverviewKPIs, RevenuePoint, UserGrowthPoint, ProductComparison,
   ActivityItem, Payment, Invitation, Restaurant, Order, AIScan,
   AIUsageSummary, AuditLogEntry, TeamMember, HealthIndicator,
-  UserSearchResult, Paginated, Product, WebsiteContent,
+  UserSearchResult, Paginated, Product, WebsiteContent, Role, AiApiKey,
 } from './types';
 
 import * as mock from './mock-data';
@@ -174,6 +174,8 @@ export const api = {
       httpPost('/admin/digital-menu/restaurants/bulk-delete', { ids }),
     impersonate: (id: string): Promise<{ status: string; data: any }> =>
       httpPost(`/admin/digital-menu/restaurants/${id}/impersonate`),
+    assign: (id: string, assigned_admin_id: string | null): Promise<any> =>
+      httpPost(`/admin/digital-menu/restaurants/${id}/assign`, { assigned_admin_id }),
     togglePublish: (id: string): Promise<{ status: string; message: string; data: { id: string; menu_published: boolean } }> =>
       httpPost(`/admin/digital-menu/restaurants/${id}/toggle-publish`),
     activateSubscription: (id: string, plan: string = 'monthly'): Promise<{ status: string; message: string; data: any }> =>
@@ -187,6 +189,20 @@ export const api = {
       MOCK ? delay(mock.aiScans(f)) : http(`/admin/ai/usage${qs(f as Record<string, unknown>)}`),
     summary: (f?: { from?: string; to?: string }): Promise<AIUsageSummary> =>
       MOCK ? delay(mock.aiUsageSummary(f)) : http(`/admin/ai/usage/summary${qs(f as Record<string, unknown>)}`),
+    keys: {
+      list: (): Promise<{ status: string; data: AiApiKey[] }> =>
+        http('/admin/ai/keys'),
+      create: (data: { account_label: string; api_key: string; priority?: number; provider?: string }): Promise<{ status: string; message: string; data: AiApiKey }> =>
+        httpPost('/admin/ai/keys', data),
+      update: (id: string, data: { account_label?: string; api_key?: string; priority?: number; is_active?: boolean }): Promise<{ status: string; message: string; data: AiApiKey }> =>
+        httpPut(`/admin/ai/keys/${id}`, data),
+      delete: (id: string): Promise<{ status: string; message: string }> =>
+        httpDelete(`/admin/ai/keys/${id}`),
+      resetCooldown: (id: string): Promise<{ status: string; message: string; data: any }> =>
+        httpPost(`/admin/ai/keys/${id}/reset-cooldown`),
+      test: (api_key: string, provider?: string): Promise<{ success: boolean; message: string }> =>
+        httpPost('/admin/ai/keys/test', { api_key, provider }),
+    },
   },
 
   audit: {
@@ -209,11 +225,19 @@ export const api = {
       MOCK ? delay({ status: 'success', message: 'Status updated', data: { id, status } }) : httpPost(`/admin/users/${id}/toggle-status`, { status }),
     impersonate: (id: string): Promise<{ status: string; data: any }> =>
       httpPost(`/admin/users/${id}/impersonate`),
+    assign: (id: string, assigned_admin_id: string | null): Promise<any> =>
+      httpPost(`/admin/users/${id}/assign`, { assigned_admin_id }),
   },
 
   team: {
     list: (): Promise<TeamMember[]> =>
       MOCK ? delay(mock.teamMembers) : http('/admin/team'),
+    create: (data: { name: string; email: string; password: string; role: Role; permissions?: string[]; assigned_apps?: string[]; phone?: string }): Promise<any> =>
+      httpPost('/admin/team', data),
+    update: (id: string, data: Partial<{ name: string; email: string; password?: string; role: Role; permissions: string[]; assigned_apps: string[]; status: 'active' | 'inactive'; phone?: string }>): Promise<any> =>
+      httpPut(`/admin/team/${id}`, data),
+    delete: (id: string): Promise<any> =>
+      httpDelete(`/admin/team/${id}`),
     health: (): Promise<HealthIndicator[]> =>
       MOCK ? delay(mock.healthIndicators) : http('/admin/health'),
   },

@@ -406,7 +406,7 @@ export function QrMe() {
 
       {/* ── Tab 4: App Users ── */}
       {activeTab === 'users' && (
-        <AppUsersManager product="qr_me" title={t('qr.title')} />
+        <AppUsersManager product="qr_me" productNameAr="كيو آر مي" productNameEn="QR Me" />
       )}
     </div>
   );

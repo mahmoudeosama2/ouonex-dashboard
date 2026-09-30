@@ -34,8 +34,9 @@ export function Login() {
         throw new Error(body.error?.message ?? body.message ?? 'Invalid email or password');
       }
       const token = body.data?.token ?? body.token ?? body.access_token;
-      const role = (body.data?.admin?.role ?? body.role ?? 'owner') as Role;
-      auth.login(token, role);
+      const adminData = body.data?.admin;
+      const role = (adminData?.role ?? body.role ?? 'owner') as Role;
+      auth.login(token, role, adminData);
       toast.success('Welcome back', 'Signed in to Ouonex Dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');

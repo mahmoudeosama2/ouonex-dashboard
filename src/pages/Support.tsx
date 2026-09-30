@@ -174,7 +174,7 @@ export function SupportPage() {
           value={overview.pending_deletions}
           format="num"
           icon={<Trash2 className="w-4 h-4" />}
-          accent={overview.pending_deletions > 0 ? 'danger' : 'neutral'}
+          accent={overview.pending_deletions > 0 ? 'danger' : 'default'}
         />
         <KPICard
           label={t('support.kpi_open')}

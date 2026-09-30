@@ -37,6 +37,12 @@ export function pct(n: number, digits = 1): string {
   return `${n.toFixed(digits)}%`;
 }
 
+export function durationSec(ms?: number | null): string {
+  if (ms === undefined || ms === null) return '—';
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
 export function date(iso: string): string {
   return new Date(iso).toLocaleDateString('en-EG', {
     day: 'numeric',

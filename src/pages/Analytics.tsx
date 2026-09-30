@@ -69,7 +69,7 @@ export function Analytics() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title={t('analytics.title')} subtitle={locale === 'ar' ? 'جاري التحميل...' : 'Loading metrics...'} />
+        <PageHeader title={t('analytics.title')} description={locale === 'ar' ? 'جاري التحميل...' : 'Loading metrics...'} />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <CardSkeleton /><CardSkeleton /><CardSkeleton /><CardSkeleton />
         </div>
@@ -80,8 +80,8 @@ export function Analytics() {
   if (error || !overview) {
     return (
       <div className="space-y-6">
-        <PageHeader title={t('analytics.title')} subtitle={locale === 'ar' ? 'تحليلات النظام' : 'System insights'} />
-        <ErrorState onRetry={() => loadData()} />
+        <PageHeader title={t('analytics.title')} description={locale === 'ar' ? 'تحليلات النظام' : 'System insights'} />
+        <ErrorState message={locale === 'ar' ? 'تعذر تحميل التحليلات' : 'Failed to load analytics'} onRetry={() => loadData()} />
       </div>
     );
   }
@@ -95,8 +95,8 @@ export function Analytics() {
       {/* Header */}
       <PageHeader
         title={t('analytics.title')}
-        subtitle={t('analytics.description')}
-        badge={
+        description={t('analytics.description')}
+        actions={
           <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             {t('analytics.live_sync')}
@@ -308,7 +308,7 @@ export function Analytics() {
                         className="w-full bg-rose-500/80 hover:bg-rose-400 transition-all"
                       />
                     </div>
-                    <span className="text-3xs text-ink-400 group-hover:text-white transition whitespace-nowrap h-4 text-center">
+                    <span className="text-2xs font-mono font-medium text-ink-400 group-hover:text-white transition whitespace-nowrap h-4 text-center tracking-tight">
                       {showLabel ? item.date : ''}
                     </span>
                   </div>

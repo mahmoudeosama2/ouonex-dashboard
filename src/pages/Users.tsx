@@ -605,7 +605,7 @@ function UserDetail({
             <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'حالة الحساب' : 'Account Status'}</label>
             <select
               value={formData.status}
-              onChange={e => setFormData({ ...formData, status: e.target.value })}
+              onChange={e => setFormData({ ...formData, status: e.target.value as 'active' | 'suspended' | 'banned' })}
               className="input w-full text-xs bg-ink-950"
             >
               <option value="active">{locale === 'ar' ? 'نشط' : 'Active'}</option>

@@ -1,11 +1,25 @@
+import type { PageKey } from './rbac';
+export type { PageKey } from './rbac';
+
 export type Product = 'dawaty' | 'digital_menu' | 'cv_maker' | 'qr_me';
 
 export type PaymentStatus = 'pending_review' | 'paid' | 'rejected';
 export type InvitationStatus = 'draft' | 'published' | 'expired';
 export type RestaurantStatus = 'active' | 'suspended' | 'trial' | 'inactive' | 'pending_payment' | 'pending_approval' | 'draft';
-export type Plan = 'free' | 'pro' | 'enterprise';
+export type Plan = 'free' | 'pro' | 'enterprise' | 'monthly' | 'yearly';
 
-export type Role = 'owner' | 'admin' | 'finance' | 'support' | 'viewer';
+export type Role = 'owner' | 'admin' | 'employee' | 'finance' | 'support' | 'sales' | 'viewer';
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  permissions: PageKey[];
+  assigned_apps: Product[];
+  status: 'active' | 'inactive';
+  phone?: string;
+}
 
 export interface Paginated<T> {
   data: T[];
@@ -74,6 +88,7 @@ export interface Invitation {
   owner_id: string;
   created_at: string;
   event_date: string;
+  date?: string;
   visit_count: number;
   rsvp_attending: number;
   rsvp_declined: number;
@@ -100,6 +115,8 @@ export interface Restaurant {
   orders_count: number;
   ai_scans_count: number;
   ai_cost: number;
+  assigned_admin_id?: string | number | null;
+  assigned_admin?: { id: string | number; name: string; email: string; role?: any } | null;
 }
 
 export interface Order {
@@ -113,15 +130,53 @@ export interface Order {
   items: number;
 }
 
+export interface AiApiKey {
+  id: string;
+  provider: string;
+  account_label: string;
+  masked_key: string;
+  priority: number;
+  is_active: boolean;
+  status: 'active' | 'rate_limited' | 'quota_exceeded' | 'error';
+  cooldown_until?: string | null;
+  total_requests: number;
+  total_tokens: number;
+  failed_requests: number;
+  last_used_at?: string | null;
+  last_error?: string | null;
+  created_at?: string | null;
+}
+
 export interface AIScan {
   id: string;
   product: Product;
   restaurant_name?: string;
   status: 'success' | 'failed';
+  model?: string;
+  tokens_in?: number;
+  tokens_out?: number;
+  total_tokens?: number;
+  account_label?: string;
   cost: number;
   duration_ms: number;
   error?: string;
   created_at: string;
+}
+
+export interface AIErrorDetail {
+  error: string;
+  raw_error?: string;
+  category?: string;
+  count: number;
+  last_seen_at?: string | null;
+  first_seen_at?: string | null;
+  model?: string;
+  recent_occurrences?: {
+    scan_id: string;
+    restaurant_name: string;
+    created_at: string;
+    duration_ms: number;
+  }[];
 }
 
 export interface AIUsageSummary {
@@ -129,8 +184,15 @@ export interface AIUsageSummary {
   successRate: number;
   failedCount: number;
   totalCost: number;
+  totalTokensIn?: number;
+  totalTokensOut?: number;
+  totalTokens?: number;
+  todayScans?: number;
+  todayTokens?: number;
+  activeKeysCount?: number;
+  totalKeysCount?: number;
   costOverTime: { date: string; cost: number }[];
-  topErrors: { error: string; count: number }[];
+  topErrors: AIErrorDetail[];
   byRestaurant: { name: string; scans: number; cost: number }[];
 }
 
@@ -152,8 +214,15 @@ export interface TeamMember {
   name: string;
   email: string;
   role: Role;
+  permissions?: PageKey[];
+  assigned_apps?: Product[];
+  status?: 'active' | 'inactive';
+  phone?: string;
+  assigned_restaurants_count?: number;
+  assigned_users_count?: number;
   avatar_color: string;
   last_active: string;
+  created_at?: string;
 }
 
 export interface HealthIndicator {
@@ -173,6 +242,8 @@ export interface UserSearchResult {
   phone?: string;
   status?: 'active' | 'suspended' | 'banned';
   products: Product[];
+  assigned_admin_id?: string | null;
+  assigned_admin?: { id: string; name: string; email: string; role?: string } | null;
   payment_count: number;
   pending_count: number;
   joined_at: string;

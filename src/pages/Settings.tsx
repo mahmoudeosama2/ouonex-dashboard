@@ -3,6 +3,7 @@ import {
   Settings as SettingsIcon, Users, ScrollText, Activity, ShieldCheck,
   CheckCircle2, XCircle, Crown, Lock, Save, Loader2, Bell, Globe, Building,
   FileText, QrCode, Zap, AlertTriangle, Smartphone, Tag, Rocket, UtensilsCrossed,
+  UserPlus, Edit2, Trash2, Mail, Phone, Key, Check, CheckSquare, Square, Store, X, Search, Shield,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { TeamMember, AuditLogEntry, HealthIndicator, Role } from '@/lib/types';
@@ -12,9 +13,10 @@ import { PageHeader } from '@/components/Layout';
 import { CardSkeleton } from '@/components/Skeleton';
 import { useRole } from '@/context/RoleContext';
 import { useToast } from '@/context/ToastContext';
-import { ROLES } from '@/lib/rbac';
+import { ROLES, ALL_PAGES, ALL_APPS, PAGE_ACCESS, type PageKey } from '@/lib/rbac';
 import { dateTime, timeAgo, formatHealthName, formatProductLabel } from '@/lib/format';
 import { useLocale } from '@/context/LocaleContext';
+
 
 type SubTab = 'team' | 'audit' | 'health' | 'general';
 
@@ -61,9 +63,40 @@ export function Settings() {
 }
 
 function TeamTab({ canManage }: { canManage: boolean }) {
+  const { t, locale } = useLocale();
+  const toast = useToast();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+
+  // Modal State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    role: Role;
+    status: 'active' | 'inactive';
+    assigned_apps: string[];
+    permissions: PageKey[];
+  }>({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: 'employee',
+    status: 'active',
+    assigned_apps: ['digital_menu'],
+    permissions: ['overview', 'digital_menu', 'users'],
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -80,53 +113,663 @@ function TeamTab({ canManage }: { canManage: boolean }) {
 
   useEffect(() => { load(); }, [load]);
 
-  if (error) return <ErrorState message="Failed to load team members." onRetry={load} />;
-  if (loading) return <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">{Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}</div>;
+  const openCreateModal = () => {
+    setModalMode('create');
+    setEditingId(null);
+    setFormError(null);
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      password: '',
+      role: 'employee',
+      status: 'active',
+      assigned_apps: ['digital_menu'],
+      permissions: ['overview', 'digital_menu', 'users', 'support'],
+    });
+    setModalOpen(true);
+  };
+
+  const openEditModal = (m: TeamMember) => {
+    setModalMode('edit');
+    setEditingId(m.id);
+    setFormError(null);
+    setFormData({
+      name: m.name,
+      email: m.email,
+      phone: m.phone || '',
+      password: '',
+      role: m.role,
+      status: m.status || 'active',
+      assigned_apps: Array.isArray(m.assigned_apps) ? m.assigned_apps : [],
+      permissions: Array.isArray(m.permissions) ? (m.permissions as PageKey[]) : (PAGE_ACCESS[m.role] || ['overview']),
+    });
+    setModalOpen(true);
+  };
+
+  const handleApplyRoleDefaults = (role: Role) => {
+    const defaultPages = (PAGE_ACCESS[role] || ['overview']) as PageKey[];
+    const defaultPagesStr = defaultPages as string[];
+    const defaultApps: string[] = [];
+    if (defaultPagesStr.includes('digital_menu')) defaultApps.push('digital_menu');
+    if (defaultPagesStr.includes('dawety')) defaultApps.push('dawety');
+    if (defaultPagesStr.includes('cv_maker')) defaultApps.push('cv_maker');
+    if (defaultPagesStr.includes('qr_me')) defaultApps.push('qr_me');
+
+    setFormData(prev => ({
+      ...prev,
+      role,
+      permissions: defaultPages,
+      assigned_apps: defaultApps.length > 0 ? defaultApps : prev.assigned_apps,
+    }));
+  };
+
+  const toggleApp = (appId: string) => {
+    setFormData(prev => {
+      const exists = prev.assigned_apps.includes(appId);
+      const nextApps = exists ? prev.assigned_apps.filter(a => a !== appId) : [...prev.assigned_apps, appId];
+      // If toggled ON, ensure corresponding page is in permissions
+      let nextPerms = [...prev.permissions];
+      if (!exists && (appId === 'digital_menu' || appId === 'dawety' || appId === 'cv_maker' || appId === 'qr_me')) {
+        if (!nextPerms.includes(appId as PageKey)) {
+          nextPerms.push(appId as PageKey);
+        }
+      }
+      return { ...prev, assigned_apps: nextApps, permissions: nextPerms };
+    });
+  };
+
+  const togglePermission = (pageKey: PageKey) => {
+    setFormData(prev => {
+      const exists = prev.permissions.includes(pageKey);
+      const next = exists ? prev.permissions.filter(p => p !== pageKey) : [...prev.permissions, pageKey];
+      return { ...prev, permissions: next };
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+
+    if (!formData.name.trim() || !formData.email.trim()) {
+      setFormError(locale === 'ar' ? 'يرجى إدخال الاسم والبريد الإلكتروني.' : 'Name and Email are required.');
+      return;
+    }
+
+    if (modalMode === 'create' && (!formData.password || formData.password.length < 6)) {
+      setFormError(locale === 'ar' ? 'كلمة المرور مطلوبة وتكون 6 أحرف على الأقل.' : 'Password is required (min 6 characters).');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      if (modalMode === 'create') {
+        const res = await api.team.create({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim() || undefined,
+          password: formData.password,
+          role: formData.role,
+          assigned_apps: formData.assigned_apps,
+          permissions: formData.permissions,
+        });
+        toast.success(
+          locale === 'ar' ? 'تمت إضافة الموظف بنجاح' : 'Team Member Created',
+          formData.name
+        );
+        setModalOpen(false);
+        load();
+      } else if (editingId) {
+        const payload: any = {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim() || undefined,
+          role: formData.role,
+          status: formData.status,
+          assigned_apps: formData.assigned_apps,
+          permissions: formData.permissions,
+        };
+        if (formData.password.trim()) {
+          payload.password = formData.password.trim();
+        }
+        await api.team.update(editingId, payload);
+        toast.success(
+          locale === 'ar' ? 'تم تحديث بيانات وصلاحيات الموظف' : 'Team Member Updated',
+          formData.name
+        );
+        setModalOpen(false);
+        load();
+      }
+    } catch (err: any) {
+      setFormError(err?.message || (locale === 'ar' ? 'حدث خطأ أثناء حفظ البيانات.' : 'Failed to save team member.'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (m: TeamMember) => {
+    if (m.role === 'owner') {
+      alert(locale === 'ar' ? 'لا يمكن حذف حساب المالك الرئيسي.' : 'Cannot delete the primary owner account.');
+      return;
+    }
+    const confirmed = window.confirm(
+      locale === 'ar'
+        ? `هل أنت متأكد من رغبتك في حذف حساب "${m.name}"؟ سيتم إلغاء تعيين أي مطاعم أو عملاء منسوبين إليه وإعادتهم للمالك.`
+        : `Are you sure you want to delete "${m.name}"? Any assigned restaurants or clients will be reverted to the unassigned pool.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await api.team.delete(m.id);
+      toast.success(
+        locale === 'ar' ? 'تم حذف الحساب' : 'Member Deleted',
+        m.name
+      );
+      setMembers(prev => prev.filter(x => x.id !== m.id));
+    } catch (err: any) {
+      toast.error('Error', err?.message || (locale === 'ar' ? 'فشل حذف الحساب.' : 'Failed to delete member.'));
+    }
+  };
 
   const roleLabel = (r: Role) => ROLES.find(x => x.id === r)?.label ?? r;
 
+  const filteredMembers = members.filter(m => {
+    const matchesSearch = !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.email.toLowerCase().includes(search.toLowerCase());
+    const matchesRole = roleFilter === 'all' || m.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
+
+  if (error) return <ErrorState message={locale === 'ar' ? 'فشل تحميل بيانات فريق العمل.' : 'Failed to load team members.'} onRetry={load} />;
+  if (loading) return <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">{Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}</div>;
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-ink-400">{members.length} team members</p>
+      {/* Header & Controls */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-5">
+        <div className="flex items-center gap-3">
+          <p className="text-sm font-medium text-ink-300">
+            {locale === 'ar' ? `${members.length} عضو في فريق العمل` : `${members.length} team members`}
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-ink-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder={locale === 'ar' ? 'بحث بالاسم أو البريد...' : 'Search by name or email...'}
+                className="input text-xs pl-8 pr-3 py-1.5 w-44 sm:w-56"
+              />
+            </div>
+            <select
+              value={roleFilter}
+              onChange={e => setRoleFilter(e.target.value)}
+              className="input text-xs py-1.5 px-2 bg-ink-950 text-ink-300"
+            >
+              <option value="all">{locale === 'ar' ? 'جميع الأدوار' : 'All Roles'}</option>
+              {ROLES.map(r => (
+                <option key={r.id} value={r.id}>{r.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {canManage ? (
-          <button className="btn-primary">Invite member</button>
+          <button
+            onClick={openCreateModal}
+            className="btn-primary text-xs flex items-center justify-center gap-1.5 py-2 px-3.5 shadow-md shadow-brand-500/20"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>{locale === 'ar' ? 'إضافة موظف جديد' : 'Add Employee'}</span>
+          </button>
         ) : (
           <div className="flex items-center gap-1.5 text-xs text-ink-400 px-3 py-2 rounded-lg bg-ink-800/60">
             <Lock className="w-3.5 h-3.5" />
-            <span>Only the Owner can manage team</span>
+            <span>{locale === 'ar' ? 'فقط المالك يمكنه إدارة الفريق والصلاحيات' : 'Only the Owner can manage team'}</span>
           </div>
         )}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {members.map(m => (
-          <div key={m.id} className="card card-hover p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ backgroundColor: m.avatar_color }}>
-              {m.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-ink-100 truncate">{m.name}</p>
-                {m.role === 'owner' && <Crown className="w-3.5 h-3.5 text-warning-400 shrink-0" />}
+
+      {/* Team Member Cards Grid */}
+      {filteredMembers.length === 0 ? (
+        <EmptyState
+          title={locale === 'ar' ? 'لا يوجد أعضاء مطابقين' : 'No team members found'}
+          message={locale === 'ar' ? 'جرب البحث بكلمة أخرى أو أضف موظفاً جديداً.' : 'Try a different search term or add an employee.'}
+        />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {filteredMembers.map(m => {
+            const isOwner = m.role === 'owner';
+            const isActive = (m.status || 'active') === 'active';
+            const apps = Array.isArray(m.assigned_apps) ? m.assigned_apps : [];
+            const perms = Array.isArray(m.permissions) ? m.permissions : [];
+
+            return (
+              <div key={m.id} className="card card-hover p-4 flex flex-col justify-between gap-3 border border-ink-800 hover:border-ink-700 transition">
+                <div>
+                  {/* Top Row: Avatar, Name, Email, Status, Role */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0 shadow-sm"
+                        style={{ backgroundColor: m.avatar_color || '#4f46e5' }}
+                      >
+                        {m.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold text-ink-100 truncate">{m.name}</p>
+                          {isOwner && (
+                            <span title="Primary Owner">
+                              <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-ink-400 truncate flex items-center gap-1">
+                          <Mail className="w-3 h-3 text-ink-500 shrink-0" />
+                          <span>{m.email}</span>
+                        </p>
+                        {m.phone && (
+                          <p className="text-3xs text-ink-500 truncate flex items-center gap-1 font-mono mt-0.5">
+                            <Phone className="w-2.5 h-2.5 text-ink-500 shrink-0" />
+                            <span>{m.phone}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span className={`badge text-2xs font-semibold ${
+                        m.role === 'owner' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30' :
+                        m.role === 'admin' ? 'bg-brand-500/15 text-brand-400 border border-brand-500/30' :
+                        m.role === 'sales' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
+                        m.role === 'support' ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30' :
+                        m.role === 'finance' ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30' :
+                        'bg-ink-500/15 text-ink-300 border border-ink-600/40'
+                      }`}>
+                        {roleLabel(m.role)}
+                      </span>
+                      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-3xs font-medium ${
+                        isActive
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : 'bg-danger-500/10 text-danger-400 border border-danger-500/20'
+                      }`}>
+                        <span className={`w-1 h-1 rounded-full ${isActive ? 'bg-emerald-400' : 'bg-danger-400'}`} />
+                        {isActive ? (locale === 'ar' ? 'نشط' : 'Active') : (locale === 'ar' ? 'معطل' : 'Inactive')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Mid Row: Client Scopes & Metrics */}
+                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-ink-800/60">
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-ink-950/60 border border-ink-800/80">
+                      <Store className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-3xs text-ink-400 uppercase font-semibold">{locale === 'ar' ? 'المطاعم المخصصة' : 'Assigned Restaurants'}</p>
+                        <p className="text-xs font-bold text-ink-100 tabular-nums">
+                          {isOwner ? (locale === 'ar' ? 'الكل (مالك)' : 'All (Owner)') : `${m.assigned_restaurants_count || 0}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-ink-950/60 border border-ink-800/80">
+                      <Users className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-3xs text-ink-400 uppercase font-semibold">{locale === 'ar' ? 'العملاء المخصصون' : 'Assigned Clients'}</p>
+                        <p className="text-xs font-bold text-ink-100 tabular-nums">
+                          {isOwner ? (locale === 'ar' ? 'الكل (مالك)' : 'All (Owner)') : `${m.assigned_users_count || 0}`}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Apps & Permissions preview */}
+                  <div className="mt-2.5 space-y-1.5">
+                    <div className="flex items-center justify-between text-3xs text-ink-400">
+                      <span>{locale === 'ar' ? 'التطبيقات المصرح بها:' : 'Assigned Apps:'}</span>
+                      <span className="text-ink-300 font-medium">
+                        {isOwner ? (locale === 'ar' ? 'كافة التطبيقات' : 'All Apps') : (apps.length > 0 ? `${apps.length} تطبيقات` : (locale === 'ar' ? 'لا يوجد' : 'None'))}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {isOwner ? (
+                        <span className="badge text-3xs bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                          {locale === 'ar' ? 'وصول شامل لجميع الأنظمة' : 'Full Unrestricted Access'}
+                        </span>
+                      ) : apps.length > 0 ? (
+                        apps.map(appId => {
+                          const appObj = ALL_APPS.find(a => a.id === appId);
+                          return (
+                            <span key={appId} className="badge text-3xs bg-ink-800 text-ink-200 border border-ink-700">
+                              {appObj?.name || appId}
+                            </span>
+                          );
+                        })
+                      ) : (
+                        <span className="text-3xs text-ink-500 italic">{locale === 'ar' ? 'لم يتم ربط أي تطبيقات' : 'No apps assigned'}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Row: Actions */}
+                <div className="flex items-center justify-between pt-2 border-t border-ink-800/60 mt-1">
+                  <span className="text-3xs text-ink-500">
+                    {m.last_active ? `${locale === 'ar' ? 'آخر نشاط' : 'Active'} ${timeAgo(m.last_active, locale)}` : ''}
+                  </span>
+
+                  {canManage && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => openEditModal(m)}
+                        className="px-2.5 py-1 text-xs font-medium rounded-lg text-ink-200 hover:text-white bg-ink-800 hover:bg-ink-700 border border-ink-700 transition flex items-center gap-1"
+                        title={locale === 'ar' ? 'تعديل البيانات والصلاحيات' : 'Edit details & permissions'}
+                      >
+                        <Edit2 className="w-3 h-3 text-brand-400" />
+                        <span>{locale === 'ar' ? 'تعديل' : 'Edit'}</span>
+                      </button>
+
+                      {!isOwner && (
+                        <button
+                          onClick={() => handleDelete(m)}
+                          className="p-1.5 text-ink-400 hover:text-danger-400 hover:bg-danger-500/10 rounded-lg transition"
+                          title={locale === 'ar' ? 'حذف الحساب' : 'Delete Account'}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="text-xs text-ink-400 truncate">{m.email}</p>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Modal: Add / Edit Team Member */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-sm animate-fade-in">
+          <div className="card max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-ink-700 max-h-[92vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-ink-800">
+              <h3 className="text-base font-bold text-ink-50 flex items-center gap-2">
+                <Shield className="w-5 h-5 text-brand-400" />
+                <span>
+                  {modalMode === 'create'
+                    ? (locale === 'ar' ? 'إضافة موظف جديد وتحديد صلاحياته' : 'Add Employee & Assign Permissions')
+                    : (locale === 'ar' ? 'تعديل بيانات وصلاحيات الموظف' : 'Edit Employee & Permissions')}
+                </span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="text-ink-400 hover:text-ink-200 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <div className="text-right shrink-0">
-              <span className={`badge ${
-                m.role === 'owner' ? 'bg-warning-500/15 text-warning-400 border border-warning-500/30' :
-                m.role === 'admin' ? 'bg-brand-500/15 text-brand-400 border border-brand-500/30' :
-                m.role === 'finance' ? 'bg-success-500/15 text-success-400 border border-success-500/30' :
-                m.role === 'support' ? 'bg-accent-500/15 text-accent-400 border border-accent-500/30' :
-                'bg-ink-500/15 text-ink-300 border border-ink-600/40'
-              }`}>{roleLabel(m.role)}</span>
-              <p className="text-2xs text-ink-500 mt-1">Active {timeAgo(m.last_active)}</p>
-            </div>
+
+            {formError && (
+              <div className="p-3 rounded-xl bg-danger-500/10 border border-danger-500/25 text-danger-300 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Basic Information */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-brand-400 flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" />
+                  <span>{locale === 'ar' ? 'البيانات الشخصية وبيانات الدخول' : 'Personal & Login Credentials'}</span>
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                      {locale === 'ar' ? 'الاسم الكامل *' : 'Full Name *'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={e => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="e.g. Mostafa Mahmoud"
+                      className="input w-full text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                      {locale === 'ar' ? 'البريد الإلكتروني *' : 'Email Address *'}
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="staff@ouonex.com"
+                      className="input w-full text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                      {locale === 'ar' ? 'رقم الهاتف' : 'Phone Number'}
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="+2010..."
+                      className="input w-full text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                      {modalMode === 'create'
+                        ? (locale === 'ar' ? 'كلمة المرور * (للدخول للداش بورد والتطبيق)' : 'Password * (for Dashboard & Apps)')
+                        : (locale === 'ar' ? 'كلمة مرور جديدة (اتركه فارغاً للإبقاء على الحالية)' : 'New Password (leave empty to keep current)')}
+                    </label>
+                    <input
+                      type="password"
+                      required={modalMode === 'create'}
+                      value={formData.password}
+                      onChange={e => setFormData({ ...formData, password: e.target.value })}
+                      placeholder={modalMode === 'create' ? '••••••••' : (locale === 'ar' ? 'بدون تغيير' : 'Unchanged')}
+                      className="input w-full text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                      {locale === 'ar' ? 'الدور الوظيفي' : 'Role'}
+                    </label>
+                    <select
+                      value={formData.role}
+                      onChange={e => {
+                        const nextRole = e.target.value as Role;
+                        setFormData({ ...formData, role: nextRole });
+                        handleApplyRoleDefaults(nextRole);
+                      }}
+                      className="input w-full text-xs bg-ink-950"
+                    >
+                      <option value="employee">{locale === 'ar' ? 'موظف تشغيل (Employee)' : 'Employee (Operations)'}</option>
+                      <option value="sales">{locale === 'ar' ? 'مسؤول مبيعات وعملاء (Sales)' : 'Sales & Clients'}</option>
+                      <option value="support">{locale === 'ar' ? 'دعم فني وطلبات (Support)' : 'Support Specialist'}</option>
+                      <option value="finance">{locale === 'ar' ? 'مالية ومدفوعات (Finance)' : 'Finance Manager'}</option>
+                      <option value="admin">{locale === 'ar' ? 'مدير عام (Admin)' : 'General Administrator'}</option>
+                    </select>
+                  </div>
+
+                  {modalMode === 'edit' && (
+                    <div>
+                      <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                        {locale === 'ar' ? 'حالة الحساب' : 'Account Status'}
+                      </label>
+                      <select
+                        value={formData.status}
+                        onChange={e => setFormData({ ...formData, status: e.target.value as any })}
+                        className="input w-full text-xs bg-ink-950"
+                      >
+                        <option value="active">{locale === 'ar' ? 'نشط (مسموح بالدخول)' : 'Active (Login allowed)'}</option>
+                        <option value="inactive">{locale === 'ar' ? 'معطل (موقوف مؤقتاً)' : 'Inactive (Suspended)'}</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Assigned Apps Section */}
+              <div className="space-y-2.5 pt-3 border-t border-ink-800">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-brand-400 flex items-center gap-1.5">
+                    <Store className="w-3.5 h-3.5" />
+                    <span>{locale === 'ar' ? 'التطبيقات المسموح للموظف بإدارتها' : 'Permitted Applications'}</span>
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, assigned_apps: ALL_APPS.map(a => a.id) }))}
+                      className="text-3xs text-brand-400 hover:text-brand-300 font-semibold"
+                    >
+                      {locale === 'ar' ? 'تحديد الكل' : 'Select All'}
+                    </button>
+                    <span className="text-ink-600">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, assigned_apps: [] }))}
+                      className="text-3xs text-ink-400 hover:text-ink-200"
+                    >
+                      {locale === 'ar' ? 'إلغاء التحديد' : 'Clear'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {ALL_APPS.map(app => {
+                    const isChecked = formData.assigned_apps.includes(app.id);
+                    return (
+                      <div
+                        key={app.id}
+                        onClick={() => toggleApp(app.id)}
+                        className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition select-none ${
+                          isChecked
+                            ? 'bg-brand-500/10 border-brand-500/40 text-brand-200'
+                            : 'bg-ink-950/50 border-ink-800/80 text-ink-400 hover:bg-ink-900/60'
+                        }`}
+                      >
+                        {isChecked ? (
+                          <CheckSquare className="w-4 h-4 text-brand-400 shrink-0" />
+                        ) : (
+                          <Square className="w-4 h-4 text-ink-500 shrink-0" />
+                        )}
+                        <span className="text-xs font-medium">{app.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Dashboard Pages Permissions Section */}
+              <div className="space-y-2.5 pt-3 border-t border-ink-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-brand-400 flex items-center gap-1.5">
+                      <Key className="w-3.5 h-3.5" />
+                      <span>{locale === 'ar' ? 'صفحات الداش بورد المصرح بفتحها' : 'Allowed Dashboard Pages'}</span>
+                    </h4>
+                    <p className="text-3xs text-ink-400 mt-0.5">
+                      {locale === 'ar'
+                        ? 'الموظف سيرى فقط الصفحات المحددة في القائمة الجانبية ولن يتمكن من فتح غيرها.'
+                        : 'Staff will only see these pages in the navigation sidebar.'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, permissions: ALL_PAGES.map(p => p.key) }))}
+                      className="text-3xs text-brand-400 hover:text-brand-300 font-semibold"
+                    >
+                      {locale === 'ar' ? 'تحديد الكل' : 'Select All'}
+                    </button>
+                    <span className="text-ink-600">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, permissions: ['overview'] }))}
+                      className="text-3xs text-ink-400 hover:text-ink-200"
+                    >
+                      {locale === 'ar' ? 'الافتراضي فقط' : 'Overview only'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {ALL_PAGES.map(page => {
+                    const isChecked = formData.permissions.includes(page.key);
+                    return (
+                      <div
+                        key={page.key}
+                        onClick={() => togglePermission(page.key)}
+                        className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition select-none ${
+                          isChecked
+                            ? 'bg-brand-500/10 border-brand-500/40 text-brand-200 font-semibold'
+                            : 'bg-ink-950/40 border-ink-800/80 text-ink-400 hover:bg-ink-900/40'
+                        }`}
+                      >
+                        {isChecked ? (
+                          <CheckSquare className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+                        ) : (
+                          <Square className="w-3.5 h-3.5 text-ink-600 shrink-0" />
+                        )}
+                        <span className="text-xs truncate">
+                          {locale === 'ar' ? page.labelAr : page.labelEn}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-ink-800">
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => setModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl text-ink-300 hover:bg-ink-800 transition"
+                >
+                  {locale === 'ar' ? 'إلغاء' : 'Cancel'}
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="btn-primary text-xs flex items-center gap-1.5 py-2 px-5 shadow-lg shadow-brand-500/20"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>{locale === 'ar' ? 'جاري الحفظ...' : 'Saving...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>{modalMode === 'create' ? (locale === 'ar' ? 'إنشاء حساب الموظف' : 'Create Account') : (locale === 'ar' ? 'حفظ التعديلات' : 'Save Changes')}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 function AuditTab() {
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
@@ -259,7 +902,7 @@ function HealthTab() {
 
 function GeneralTab() {
   const toast = useToast();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [form, setForm] = useState({
     dashboard_name: 'Ouonex Dashboard',
     timezone: 'Africa/Cairo',
@@ -536,13 +1179,22 @@ function GeneralTab() {
             <p className="text-sm text-ink-200">{t('settings.menu_free_mode')}</p>
             <p className="text-xs text-ink-500">{t('settings.menu_free_mode_desc')}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => handleToggle('menu_free_mode')}
-            className={`relative w-11 h-6 rounded-full transition-colors ${form.menu_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
-          >
-            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.menu_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
-          </button>
+          <div className="flex items-center gap-2.5">
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-all ${
+              form.menu_free_mode
+                ? 'bg-brand-500/20 text-brand-300 border-brand-500/40'
+                : 'bg-ink-800 text-ink-400 border-ink-700'
+            }`}>
+              {form.menu_free_mode ? (locale === 'ar' ? 'مفعّل (مجاني)' : 'Enabled (Free)') : (locale === 'ar' ? 'معطّل (مدفوع)' : 'Disabled (Paid)')}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleToggle('menu_free_mode')}
+              className={`relative w-11 h-6 rounded-full transition-colors ${form.menu_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.menu_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
         </label>
       </div>
 
@@ -567,13 +1219,22 @@ function GeneralTab() {
             <p className="text-sm text-ink-200">{t('settings.dawaty_free_mode') || 'الوضع المجاني لدعوتي'}</p>
             <p className="text-xs text-ink-500">{t('settings.dawaty_free_mode_desc')}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => handleToggle('dawaty_free_mode')}
-            className={`relative w-11 h-6 rounded-full transition-colors ${form.dawaty_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
-          >
-            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.dawaty_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
-          </button>
+          <div className="flex items-center gap-2.5">
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-all ${
+              form.dawaty_free_mode
+                ? 'bg-brand-500/20 text-brand-300 border-brand-500/40'
+                : 'bg-ink-800 text-ink-400 border-ink-700'
+            }`}>
+              {form.dawaty_free_mode ? (locale === 'ar' ? 'مفعّل (مجاني)' : 'Enabled (Free)') : (locale === 'ar' ? 'معطّل (مدفوع)' : 'Disabled (Paid)')}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleToggle('dawaty_free_mode')}
+              className={`relative w-11 h-6 rounded-full transition-colors ${form.dawaty_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.dawaty_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
         </label>
       </div>
 
@@ -610,13 +1271,22 @@ function GeneralTab() {
             <p className="text-sm text-ink-200">{t('settings.cv_free_mode')}</p>
             <p className="text-xs text-ink-500">{t('settings.cv_free_mode_desc')}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => handleToggle('cv_free_mode')}
-            className={`relative w-11 h-6 rounded-full transition-colors ${form.cv_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
-          >
-            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.cv_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
-          </button>
+          <div className="flex items-center gap-2.5">
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-all ${
+              form.cv_free_mode
+                ? 'bg-brand-500/20 text-brand-300 border-brand-500/40'
+                : 'bg-ink-800 text-ink-400 border-ink-700'
+            }`}>
+              {form.cv_free_mode ? (locale === 'ar' ? 'مفعّل (مجاني)' : 'Enabled (Free)') : (locale === 'ar' ? 'معطّل (مدفوع)' : 'Disabled (Paid)')}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleToggle('cv_free_mode')}
+              className={`relative w-11 h-6 rounded-full transition-colors ${form.cv_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.cv_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
         </label>
       </div>
 
@@ -641,15 +1311,25 @@ function GeneralTab() {
             <p className="text-sm text-ink-200">{t('settings.qrme_free_mode')}</p>
             <p className="text-xs text-ink-500">{t('settings.qrme_free_mode_desc')}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => handleToggle('qr_me_free_mode')}
-            className={`relative w-11 h-6 rounded-full transition-colors ${form.qr_me_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
-          >
-            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.qr_me_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
-          </button>
+          <div className="flex items-center gap-2.5">
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-all ${
+              form.qr_me_free_mode
+                ? 'bg-brand-500/20 text-brand-300 border-brand-500/40'
+                : 'bg-ink-800 text-ink-400 border-ink-700'
+            }`}>
+              {form.qr_me_free_mode ? (locale === 'ar' ? 'مفعّل (مجاني)' : 'Enabled (Free)') : (locale === 'ar' ? 'معطّل (مدفوع)' : 'Disabled (Paid)')}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleToggle('qr_me_free_mode')}
+              className={`relative w-11 h-6 rounded-full transition-colors ${form.qr_me_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.qr_me_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
         </label>
       </div>
+
 
       {/* ── Payment Gateways ── */}
       <div className="card p-5 space-y-4">
@@ -843,13 +1523,22 @@ function GeneralTab() {
             <p className="text-sm text-ink-200">{t('settings.email_notifications')}</p>
             <p className="text-xs text-ink-500">{t('settings.email_notifications_desc')}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => handleToggle('email_notifications')}
-            className={`relative w-11 h-6 rounded-full transition-colors ${form.email_notifications ? 'bg-brand-600' : 'bg-ink-700'}`}
-          >
-            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.email_notifications ? 'translate-x-5' : 'translate-x-0.5'}`} />
-          </button>
+          <div className="flex items-center gap-2.5">
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-all ${
+              form.email_notifications
+                ? 'bg-brand-500/20 text-brand-300 border-brand-500/40'
+                : 'bg-ink-800 text-ink-400 border-ink-700'
+            }`}>
+              {form.email_notifications ? (locale === 'ar' ? 'مفعّل' : 'Enabled') : (locale === 'ar' ? 'معطّل' : 'Disabled')}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleToggle('email_notifications')}
+              className={`relative w-11 h-6 rounded-full transition-colors ${form.email_notifications ? 'bg-brand-600' : 'bg-ink-700'}`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.email_notifications ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
         </label>
         <div>
           <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.auto_refresh')}</label>

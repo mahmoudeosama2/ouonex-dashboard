@@ -216,7 +216,7 @@ export function Dawaty() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
         {loading && !kpis.total ? Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />) : (
           <>
-            <KPICard label={locale === 'ar' ? 'عدد المستخدمين' : 'Total Users'} value={usersCount} format="num" icon={<Users className="w-4 h-4" />} accent="brand" />
+            <KPICard label={locale === 'ar' ? 'عدد المستخدمين' : 'Total Users'} value={usersCount} format="num" icon={<Users className="w-4 h-4" />} accent="default" />
             <KPICard label={t('dawaty.kpi_total')} value={kpis.total} format="num" icon={<FileText className="w-4 h-4" />} />
             <KPICard label={t('dawaty.kpi_published')} value={kpis.published} format="num" icon={<Heart className="w-4 h-4" />} accent="success" />
             <KPICard label={t('dawaty.kpi_visits')} value={kpis.visits} format="compactNum" icon={<Eye className="w-4 h-4" />} />
@@ -441,11 +441,12 @@ function InvitationDetail({
 
       const updated = res.data ?? res;
       onUpdated({
+        ...updated,
         couple_names: `${formData.groom_name} & ${formData.bride_name}`,
         slug: formData.slug,
         status: formData.status as any,
+        event_date: formData.wedding_date,
         date: formData.wedding_date,
-        ...updated,
       });
       setSuccessMsg('Invitation updated successfully!');
       setIsEditing(false);
@@ -626,7 +627,7 @@ function InvitationDetail({
               <label className="block text-2xs text-ink-400 mb-1">{t('common.status')}</label>
               <select
                 value={formData.status}
-                onChange={e => setFormData({ ...formData, status: e.target.value })}
+                onChange={e => setFormData({ ...formData, status: e.target.value as any })}
                 className="input w-full text-xs bg-ink-950"
               >
                 <option value="published">{locale === 'ar' ? 'منشورة ونشطة' : 'Published'}</option>
