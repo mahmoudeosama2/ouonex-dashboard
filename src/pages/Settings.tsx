@@ -4,9 +4,10 @@ import {
   CheckCircle2, XCircle, Crown, Lock, Save, Loader2, Bell, Globe, Building,
   FileText, QrCode, Zap, AlertTriangle, Smartphone, Tag, Rocket, UtensilsCrossed,
   UserPlus, Edit2, Trash2, Mail, Phone, Key, Check, CheckSquare, Square, Store, X, Search, Shield,
+  Cpu, HardDrive, Database, Server, RefreshCw, Gauge,
 } from 'lucide-react';
 import { api } from '@/lib/api';
-import type { TeamMember, AuditLogEntry, HealthIndicator, Role } from '@/lib/types';
+import type { TeamMember, AuditLogEntry, HealthIndicator, Role, ServerMetrics } from '@/lib/types';
 import { DataTable, type Column } from '@/components/DataTable';
 import { ErrorState, EmptyState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/Layout';
@@ -838,64 +839,467 @@ function AuditTab() {
 }
 
 function HealthTab() {
-  const { t, locale } = useLocale();
-  const [health, setHealth] = useState<HealthIndicator[]>([]);
+  const { t, locale, isRTL } = useLocale();
+  const [metrics, setMetrics] = useState<ServerMetrics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [secondsAgo, setSecondsAgo] = useState(0);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(false);
+  const loadData = useCallback(async (isManual = false) => {
+    if (isManual) setRefreshing(true);
     try {
-      const res = await api.team.health();
-      setHealth(res);
-    } catch {
-      setError(true);
+      const data = await api.system.serverMetrics();
+      setMetrics(data);
+      setLastUpdated(new Date());
+      setSecondsAgo(0);
+      setError(false);
+    } catch (err) {
+      console.error('Failed to fetch server metrics:', err);
+      if (!metrics) setError(true);
     } finally {
       setLoading(false);
+      if (isManual) setRefreshing(false);
     }
+  }, [metrics]);
+
+  useEffect(() => {
+    loadData();
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [autoRefresh, loadData]);
 
-  if (error) return <ErrorState message="Failed to load health indicators." onRetry={load} />;
-  if (loading) return <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">{Array.from({ length: 2 }).map((_, i) => <CardSkeleton key={i} />)}</div>;
+  useEffect(() => {
+    if (!lastUpdated) return;
+    const timer = setInterval(() => {
+      setSecondsAgo(Math.floor((Date.now() - lastUpdated.getTime()) / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [lastUpdated]);
+
+  if (error && !metrics) {
+    return <ErrorState message={isRTL ? "تعذر الاتصال بمركز القياسات الحية للخادم." : "Failed to load live server telemetry."} onRetry={() => loadData(true)} />;
+  }
+
+  if (loading && !metrics) {
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {Array.from({ length: 2 }).map((_, i) => <CardSkeleton key={i} />)}
+        </div>
+      </div>
+    );
+  }
+
+  const stressColor = 
+    metrics?.stress_level === 'critical' ? 'text-danger-400 bg-danger-500/15 border-danger-500/30' :
+    metrics?.stress_level === 'moderate' ? 'text-warning-400 bg-warning-500/15 border-warning-500/30' :
+    'text-success-400 bg-success-500/15 border-success-500/30';
+
+  const stressBarColor = 
+    metrics?.stress_level === 'critical' ? 'bg-danger-500' :
+    metrics?.stress_level === 'moderate' ? 'bg-warning-500' :
+    'bg-success-500';
+
+  const getUsageColor = (pct: number) => {
+    if (pct >= 85) return { text: 'text-danger-400', bar: 'bg-danger-500', track: 'bg-danger-500/20' };
+    if (pct >= 65) return { text: 'text-warning-400', bar: 'bg-warning-500', track: 'bg-warning-500/20' };
+    return { text: 'text-emerald-400', bar: 'bg-emerald-500', track: 'bg-ink-800' };
+  };
+
+  const cpuColor = getUsageColor(metrics?.cpu.usage_percent || 0);
+  const memColor = getUsageColor(metrics?.memory.usage_percent || 0);
+  const diskColor = getUsageColor(metrics?.storage.usage_percent || 0);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {health.map(h => (
-        <div key={h.product} className="card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${h.reachable ? 'bg-success-500/10 text-success-400' : 'bg-danger-500/10 text-danger-400'}`}>
-                {h.product === 'sms_gateway' ? <Smartphone className="w-4.5 h-4.5" /> : <Activity className="w-4.5 h-4.5" />}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-ink-100">{formatHealthName(h, locale)}</p>
-                <p className="text-2xs text-ink-400">{formatProductLabel(h.product, h.product_ar, locale)}</p>
-              </div>
+    <div className="space-y-6">
+      {/* Top Telemetry Header Bar */}
+      <div className="card p-5 bg-gradient-to-r from-ink-950 via-ink-900 to-ink-950 border border-ink-800 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-ink-800/80 border border-ink-700/60 flex items-center justify-center text-brand-400 shadow-inner">
+              <Server className="w-6 h-6" />
             </div>
-            <span className={`badge ${h.reachable ? 'bg-success-500/15 text-success-400 border border-success-500/30' : 'bg-danger-500/15 text-danger-400 border border-danger-500/30'}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${h.reachable ? 'bg-success-400 animate-pulse' : 'bg-danger-400'}`} />
-              {h.reachable ? t('health.reachable') : t('health.offline')}
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-base font-bold text-ink-100">
+                  {isRTL ? 'مركز مراقبة الخادم والعتاد الحي' : 'Live Server & Hardware Telemetry'}
+                </h2>
+                <span className={`badge px-2.5 py-0.5 text-xs font-semibold rounded-full border ${stressColor}`}>
+                  <span className="w-2 h-2 rounded-full bg-current animate-pulse mr-1" />
+                  {isRTL ? metrics?.stress_status_ar : metrics?.stress_status_en}
+                </span>
+              </div>
+              <p className="text-xs text-ink-400 mt-1 flex items-center gap-2">
+                <span>{metrics?.system.os_name}</span>
+                <span>•</span>
+                <span>PHP {metrics?.system.php_version}</span>
+                <span>•</span>
+                <span>Laravel {metrics?.system.laravel_version}</span>
+                <span>•</span>
+                <span className="text-ink-300 font-medium">
+                  {isRTL ? `جاهزية الخادم: ${metrics?.system.uptime_human}` : `Uptime: ${metrics?.system.uptime_human}`}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors flex items-center gap-1.5 ${
+                autoRefresh 
+                  ? 'bg-brand-500/10 text-brand-300 border-brand-500/30' 
+                  : 'bg-ink-900 text-ink-400 border-ink-800 hover:text-ink-200'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-brand-400 animate-ping' : 'bg-ink-600'}`} />
+              {isRTL 
+                ? (autoRefresh ? 'تحديث تلقائي: نشط (15ث)' : 'تحديث تلقائي: متوقف') 
+                : (autoRefresh ? 'Auto-Refresh: ON (15s)' : 'Auto-Refresh: OFF')}
+            </button>
+
+            <button
+              onClick={() => loadData(true)}
+              disabled={refreshing}
+              className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-3"
+              title={isRTL ? 'تحديث فوري للبيانات' : 'Refresh Telemetry'}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-brand-400' : ''}`} />
+              <span>{isRTL ? 'تحديث القياسات' : 'Refresh'}</span>
+            </button>
+
+            {lastUpdated && (
+              <span className="text-2xs text-ink-500 whitespace-nowrap">
+                {isRTL ? `منذ ${secondsAgo} ثانية` : `${secondsAgo}s ago`}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Global Stress Score Meter */}
+        <div className="mt-5 pt-4 border-t border-ink-800/80">
+          <div className="flex items-center justify-between text-xs mb-1.5">
+            <span className="text-ink-400 font-medium flex items-center gap-1.5">
+              <Gauge className="w-3.5 h-3.5 text-brand-400" />
+              {isRTL ? 'مؤشر الضغط الكلي على موارد الخادم (Overall Stress Gauge)' : 'Overall Server Load & Stress Gauge'}
+            </span>
+            <span className="font-mono font-bold text-ink-100">
+              {metrics?.stress_score}%
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-lg bg-ink-950/50 border border-ink-800 p-3">
-              <p className="text-2xs text-ink-400 uppercase tracking-wide mb-1">{t('health.last_sync')}</p>
-              <p className="text-sm font-medium text-ink-100">{timeAgo(h.last_sync, locale)}</p>
+          <div className="w-full h-2.5 bg-ink-950 rounded-full overflow-hidden border border-ink-800/80">
+            <div 
+              className={`h-full transition-all duration-700 ease-out rounded-full ${stressBarColor}`} 
+              style={{ width: `${Math.min(100, Math.max(5, metrics?.stress_score || 0))}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Diagnostic Alerts (if any) */}
+        {metrics?.alerts && metrics.alerts.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {metrics.alerts.map((alert, idx) => (
+              <div 
+                key={idx}
+                className={`p-3 rounded-lg border text-xs flex items-center gap-2.5 ${
+                  alert.level === 'critical'
+                    ? 'bg-danger-500/10 border-danger-500/30 text-danger-300'
+                    : 'bg-warning-500/10 border-warning-500/30 text-warning-300'
+                }`}
+              >
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span className="font-medium">
+                  {isRTL ? alert.message_ar : alert.message_en}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 4 Core Hardware Metric Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* CPU Load Card */}
+        <div className="card p-5 border border-ink-800 hover:border-ink-700 transition-colors">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-ink-400 flex items-center gap-1.5">
+              <Cpu className="w-4 h-4 text-brand-400" />
+              {isRTL ? 'المعالج (CPU)' : 'CPU Compute'}
+            </span>
+            <span className="badge bg-ink-800/80 text-ink-300 text-2xs px-2 py-0.5 rounded">
+              {metrics?.cpu.cores} {isRTL ? 'أنوية' : 'Cores'}
+            </span>
+          </div>
+
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className={`text-2xl font-black font-mono tracking-tight ${cpuColor.text}`}>
+              {metrics?.cpu.usage_percent}%
+            </span>
+            <span className="text-2xs text-ink-400 font-medium">
+              {isRTL ? 'الاستهلاك الفعلي' : 'Current Usage'}
+            </span>
+          </div>
+
+          <div className="w-full h-2 bg-ink-950 rounded-full overflow-hidden mb-3 border border-ink-800">
+            <div 
+              className={`h-full transition-all duration-500 rounded-full ${cpuColor.bar}`}
+              style={{ width: `${Math.min(100, metrics?.cpu.usage_percent || 0)}%` }}
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-1 pt-2 border-t border-ink-800/60 text-center">
+            <div>
+              <p className="text-3xs text-ink-500 uppercase">1m Load</p>
+              <p className="text-xs font-mono font-semibold text-ink-200">{metrics?.cpu.load_1m}</p>
             </div>
-            <div className="rounded-lg bg-ink-950/50 border border-ink-800 p-3">
-              <p className="text-2xs text-ink-400 uppercase tracking-wide mb-1">
-                {h.product === 'sms_gateway' ? t('health.battery') : t('health.latency')}
-              </p>
-              <p className="text-sm font-medium text-ink-100 tabular-nums">
-                {h.product === 'sms_gateway' ? `${h.latency_ms}%` : `${h.latency_ms} ${t('health.ms')}`}
+            <div>
+              <p className="text-3xs text-ink-500 uppercase">5m Load</p>
+              <p className="text-xs font-mono font-semibold text-ink-200">{metrics?.cpu.load_5m}</p>
+            </div>
+            <div>
+              <p className="text-3xs text-ink-500 uppercase">15m Load</p>
+              <p className="text-xs font-mono font-semibold text-ink-200">{metrics?.cpu.load_15m}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* RAM Memory Card */}
+        <div className="card p-5 border border-ink-800 hover:border-ink-700 transition-colors">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-ink-400 flex items-center gap-1.5">
+              <Zap className="w-4 h-4 text-purple-400" />
+              {isRTL ? 'الذاكرة (RAM)' : 'System Memory'}
+            </span>
+            <span className="badge bg-ink-800/80 text-ink-300 text-2xs px-2 py-0.5 rounded">
+              {metrics?.memory.total_formatted} Total
+            </span>
+          </div>
+
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className={`text-2xl font-black font-mono tracking-tight ${memColor.text}`}>
+              {metrics?.memory.usage_percent}%
+            </span>
+            <span className="text-2xs text-ink-400 font-medium">
+              {metrics?.memory.used_formatted} {isRTL ? 'مستخدم' : 'Used'}
+            </span>
+          </div>
+
+          <div className="w-full h-2 bg-ink-950 rounded-full overflow-hidden mb-3 border border-ink-800">
+            <div 
+              className={`h-full transition-all duration-500 rounded-full ${memColor.bar}`}
+              style={{ width: `${Math.min(100, metrics?.memory.usage_percent || 0)}%` }}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-ink-800/60 text-xs">
+            <div>
+              <p className="text-3xs text-ink-500">{isRTL ? 'الذاكرة المتاحة' : 'Free Memory'}</p>
+              <p className="font-mono font-medium text-ink-200">{metrics?.memory.free_formatted}</p>
+            </div>
+            <div>
+              <p className="text-3xs text-ink-500">PHP Used / Peak</p>
+              <p className="font-mono font-medium text-ink-200">
+                {metrics?.memory.php_used_formatted} / {metrics?.memory.php_peak_formatted}
               </p>
             </div>
           </div>
         </div>
-      ))}
+
+        {/* Storage / SSD Card */}
+        <div className="card p-5 border border-ink-800 hover:border-ink-700 transition-colors">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-ink-400 flex items-center gap-1.5">
+              <HardDrive className="w-4 h-4 text-amber-400" />
+              {isRTL ? 'مساحة القرص (SSD)' : 'Storage / Disk'}
+            </span>
+            <span className="badge bg-ink-800/80 text-ink-300 text-2xs px-2 py-0.5 rounded">
+              {metrics?.storage.total_formatted} Total
+            </span>
+          </div>
+
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className={`text-2xl font-black font-mono tracking-tight ${diskColor.text}`}>
+              {metrics?.storage.usage_percent}%
+            </span>
+            <span className="text-2xs text-ink-400 font-medium">
+              {metrics?.storage.used_formatted} {isRTL ? 'مشغول' : 'Used'}
+            </span>
+          </div>
+
+          <div className="w-full h-2 bg-ink-950 rounded-full overflow-hidden mb-3 border border-ink-800">
+            <div 
+              className={`h-full transition-all duration-500 rounded-full ${diskColor.bar}`}
+              style={{ width: `${Math.min(100, metrics?.storage.usage_percent || 0)}%` }}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-ink-800/60 text-xs">
+            <div>
+              <p className="text-3xs text-ink-500">{isRTL ? 'المساحة الفارغة' : 'Free Storage'}</p>
+              <p className="font-mono font-medium text-ink-200">{metrics?.storage.free_formatted}</p>
+            </div>
+            <div>
+              <p className="text-3xs text-ink-500">{isRTL ? 'مجلد المرفقات' : 'Uploads Size'}</p>
+              <p className="font-mono font-medium text-ink-200">{metrics?.storage.uploads_formatted}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Database Engine Card */}
+        <div className="card p-5 border border-ink-800 hover:border-ink-700 transition-colors">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-ink-400 flex items-center gap-1.5">
+              <Database className="w-4 h-4 text-cyan-400" />
+              {isRTL ? 'قاعدة البيانات' : 'Database Engine'}
+            </span>
+            <span className="badge bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-2xs px-2 py-0.5 rounded uppercase font-mono font-bold">
+              {metrics?.database.driver}
+            </span>
+          </div>
+
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="text-2xl font-black font-mono tracking-tight text-emerald-400 flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              {metrics?.database.ping_ms} ms
+            </span>
+            <span className="text-2xs text-ink-400 font-medium">
+              {isRTL ? 'زمن الاستجابة (Ping)' : 'Query Latency'}
+            </span>
+          </div>
+
+          <div className="w-full h-2 bg-ink-950 rounded-full overflow-hidden mb-3 border border-ink-800">
+            <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-ink-800/60 text-xs">
+            <div>
+              <p className="text-3xs text-ink-500">{isRTL ? 'الحالة الحالية' : 'Engine State'}</p>
+              <p className="font-medium text-emerald-400">
+                {metrics?.database.connected ? (isRTL ? 'متصل بنجاح ✓' : 'Online & Active') : 'Disconnected'}
+              </p>
+            </div>
+            <div>
+              <p className="text-3xs text-ink-500">{isRTL ? 'حجم البيانات' : 'Database Size'}</p>
+              <p className="font-mono font-medium text-ink-200">{metrics?.database.size_formatted}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Connected Services & App Endpoints */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-brand-400" />
+            {isRTL ? 'حالة التطبيقات والخدمات السحابية المتصلة' : 'Connected Applications & Microservices Status'}
+          </h3>
+          <span className="text-2xs text-ink-400">
+            {isRTL ? 'فحص دوري لحالة استجابة الـ API وبوابة الرسائل' : 'Live health probes for APIs & SMS Gateway'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {metrics?.services.map(s => (
+            <div key={s.id} className="card p-4.5 border border-ink-800 bg-ink-950/40 hover:bg-ink-950/70 transition-colors">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${s.reachable ? 'bg-success-500/10 text-success-400' : 'bg-danger-500/10 text-danger-400'}`}>
+                    {s.id === 'sms_gateway' ? <Smartphone className="w-4.5 h-4.5" /> : <Activity className="w-4.5 h-4.5" />}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-ink-100">
+                      {isRTL && s.name_ar ? s.name_ar : s.name}
+                    </p>
+                    <p className="text-3xs text-ink-400 font-mono">
+                      {s.id}
+                    </p>
+                  </div>
+                </div>
+                <span className={`badge text-2xs px-2 py-0.5 rounded-full ${s.reachable ? 'bg-success-500/15 text-success-400 border border-success-500/30' : 'bg-danger-500/15 text-danger-400 border border-danger-500/30'}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${s.reachable ? 'bg-success-400 animate-pulse' : 'bg-danger-400'} mr-1`} />
+                  {s.reachable ? (isRTL ? 'متصل' : 'Operational') : (isRTL ? 'متوقف' : 'Offline')}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 bg-ink-900/50 rounded-lg p-2.5 border border-ink-800/80 text-xs">
+                <div>
+                  <p className="text-3xs text-ink-500 uppercase">{isRTL ? 'زمن الاستجابة' : 'Latency'}</p>
+                  <p className="font-mono font-semibold text-ink-200">
+                    {s.latency_ms} ms
+                  </p>
+                </div>
+                <div>
+                  <p className="text-3xs text-ink-500 uppercase">{isRTL ? 'آخر فحص' : 'Last Sync'}</p>
+                  <p className="text-xs text-ink-300">
+                    {timeAgo(s.last_sync, locale)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Server Environment & Infrastructure Specifications */}
+      <div className="card p-5 border border-ink-800 bg-ink-900/40">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-ink-400 mb-3 flex items-center gap-1.5">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          {isRTL ? 'المواصفات التقنية وبيئة التشغيل السحابية' : 'Cloud Infrastructure & Runtime Specs'}
+        </h4>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
+            <p className="text-3xs text-ink-500 uppercase mb-1">Operating System</p>
+            <p className="font-medium text-ink-200 truncate" title={metrics?.system.os_name}>
+              {metrics?.system.os_family}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
+            <p className="text-3xs text-ink-500 uppercase mb-1">PHP Engine</p>
+            <p className="font-medium text-ink-200">
+              v{metrics?.system.php_version}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
+            <p className="text-3xs text-ink-500 uppercase mb-1">Framework Core</p>
+            <p className="font-medium text-ink-200">
+              Laravel {metrics?.system.laravel_version}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
+            <p className="text-3xs text-ink-500 uppercase mb-1">Public IP / Host</p>
+            <p className="font-mono font-medium text-ink-200">
+              {metrics?.system.server_ip}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
+            <p className="text-3xs text-ink-500 uppercase mb-1">OPcache Accelerator</p>
+            <p className="font-medium text-emerald-400 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              {metrics?.system.opcache_enabled ? 'Enabled (Fast)' : 'Disabled'}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
+            <p className="text-3xs text-ink-500 uppercase mb-1">Memory Limit</p>
+            <p className="font-mono font-medium text-ink-200">
+              {metrics?.memory.php_memory_limit}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

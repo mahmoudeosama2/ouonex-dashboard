@@ -13,6 +13,8 @@ export const ROLES: { id: Role; label: string; description: string }[] = [
 export type PageKey =
   | 'overview'
   | 'analytics'
+  | 'server_health'
+  | 'crashlytics'
   | 'dawaty'
   | 'digital_menu'
   | 'cv_maker'
@@ -27,6 +29,8 @@ export type PageKey =
 export const ALL_PAGES: { key: PageKey; labelEn: string; labelAr: string; app?: string }[] = [
   { key: 'overview', labelEn: 'Overview', labelAr: 'نظرة عامة' },
   { key: 'analytics', labelEn: 'Analytics', labelAr: 'التحليلات والإحصائيات' },
+  { key: 'server_health', labelEn: 'Server Health', labelAr: 'حالة الخادم والموارد' },
+  { key: 'crashlytics', labelEn: 'Crashlytics & Errors', labelAr: 'مراقبة أخطاء التطبيقات' },
   { key: 'digital_menu', labelEn: 'Digital Menu', labelAr: 'المنيو الرقمي والمطاعم', app: 'digital_menu' },
   { key: 'dawaty', labelEn: 'Dawaty', labelAr: 'دعواتي الإلكترونية', app: 'dawaty' },
   { key: 'cv_maker', labelEn: 'CV Maker Studio', labelAr: 'صانع السيرة الذاتية', app: 'cv_maker' },
@@ -47,12 +51,12 @@ export const ALL_APPS = [
 ];
 
 export const PAGE_ACCESS: Record<Role, PageKey[]> = {
-  owner: ['overview', 'analytics', 'dawaty', 'digital_menu', 'cv_maker', 'qr_me', 'finance', 'ai_usage', 'users', 'support', 'settings', 'website'],
-  admin: ['overview', 'analytics', 'dawaty', 'digital_menu', 'cv_maker', 'qr_me', 'finance', 'ai_usage', 'users', 'support', 'settings', 'website'],
-  employee: ['overview', 'digital_menu', 'users', 'support'],
+  owner: ['overview', 'analytics', 'server_health', 'crashlytics', 'dawaty', 'digital_menu', 'cv_maker', 'qr_me', 'finance', 'ai_usage', 'users', 'support', 'settings', 'website'],
+  admin: ['overview', 'analytics', 'server_health', 'crashlytics', 'dawaty', 'digital_menu', 'cv_maker', 'qr_me', 'finance', 'ai_usage', 'users', 'support', 'settings', 'website'],
+  employee: ['overview', 'digital_menu', 'users', 'support', 'server_health'],
   sales: ['overview', 'digital_menu', 'users', 'support'],
   finance: ['overview', 'analytics', 'finance'],
-  support: ['overview', 'dawaty', 'digital_menu', 'cv_maker', 'qr_me', 'users', 'support'],
+  support: ['overview', 'dawaty', 'digital_menu', 'cv_maker', 'qr_me', 'users', 'support', 'crashlytics'],
   viewer: ['overview', 'analytics', 'dawaty', 'digital_menu', 'cv_maker', 'qr_me'],
 };
 

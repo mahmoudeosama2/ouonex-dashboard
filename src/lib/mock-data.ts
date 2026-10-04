@@ -2,7 +2,7 @@ import type {
   OverviewKPIs, RevenuePoint, UserGrowthPoint, ProductComparison,
   ActivityItem, Payment, Invitation, Restaurant, Order, AIScan,
   AIUsageSummary, AuditLogEntry, TeamMember, HealthIndicator,
-  UserSearchResult, Paginated, Product, WebsiteContent,
+  UserSearchResult, Paginated, Product, WebsiteContent, ServerMetrics,
 } from './types';
 
 // ── helpers ──────────────────────────────────────────────
@@ -479,3 +479,88 @@ export function togglePublishInvitation(id: string): { message: string; data: In
   }
   return { message: 'Updated', data: inv! };
 }
+
+export const mockServerMetrics: ServerMetrics = {
+  timestamp: new Date().toISOString(),
+  stress_level: 'optimal',
+  stress_score: 38.5,
+  stress_status_ar: 'ممتاز ومستقر (أداء فائق)',
+  stress_status_en: 'Optimal & Healthy',
+  alerts: [],
+  system: {
+    os_family: 'Linux',
+    os_name: 'Linux Ubuntu 24.04 LTS (x86_64)',
+    php_version: '8.2.18',
+    laravel_version: '12.67.0',
+    server_ip: '159.65.120.45',
+    uptime_seconds: 432000,
+    uptime_human: '5d 8h',
+    opcache_enabled: true,
+  },
+  cpu: {
+    cores: 8,
+    usage_percent: 24.6,
+    load_1m: 1.95,
+    load_5m: 1.42,
+    load_15m: 1.10,
+  },
+  memory: {
+    total_bytes: 17179869184,
+    total_formatted: '16 GB',
+    used_bytes: 6228000000,
+    used_formatted: '5.8 GB',
+    free_bytes: 10951869184,
+    free_formatted: '10.2 GB',
+    usage_percent: 36.3,
+    php_used_bytes: 41943040,
+    php_used_formatted: '40 MB',
+    php_peak_bytes: 52428800,
+    php_peak_formatted: '50 MB',
+    php_memory_limit: '512M',
+  },
+  storage: {
+    total_bytes: 161061273600,
+    total_formatted: '150 GB',
+    used_bytes: 53687091200,
+    used_formatted: '50 GB',
+    free_bytes: 107374182400,
+    free_formatted: '100 GB',
+    usage_percent: 33.3,
+    uploads_bytes: 4294967296,
+    uploads_formatted: '4 GB',
+  },
+  database: {
+    connected: true,
+    driver: 'mysql',
+    ping_ms: 12,
+    size_bytes: 314572800,
+    size_formatted: '300 MB',
+  },
+  services: [
+    {
+      id: 'digital_menu',
+      name: 'Digital Menu API (Laravel)',
+      name_ar: 'واجهة المنيو الرقمي (لارافيل)',
+      reachable: true,
+      latency_ms: 18,
+      last_sync: new Date().toISOString(),
+    },
+    {
+      id: 'dawaty',
+      name: 'Dawaty API (Laravel)',
+      name_ar: 'واجهة تطبيق دعوتي (لارافيل)',
+      reachable: true,
+      latency_ms: 24,
+      last_sync: new Date().toISOString(),
+    },
+    {
+      id: 'sms_gateway',
+      name: 'SMS Gateway (Samsung SM-A525F)',
+      name_ar: 'هاتف بوابة الرسائل (SMS Gateway)',
+      reachable: true,
+      latency_ms: 92,
+      last_sync: new Date().toISOString(),
+    },
+  ],
+};
+

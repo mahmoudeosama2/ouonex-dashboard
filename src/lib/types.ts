@@ -281,3 +281,99 @@ export interface WebsiteContent {
   };
   products: ProductInfo[];
 }
+
+export interface ServerAlert {
+  type: 'cpu' | 'memory' | 'storage' | string;
+  level: 'warning' | 'critical' | string;
+  message_en: string;
+  message_ar: string;
+}
+
+export interface ServerMetrics {
+  timestamp: string;
+  stress_level: 'optimal' | 'moderate' | 'critical';
+  stress_score: number;
+  stress_status_ar: string;
+  stress_status_en: string;
+  alerts: ServerAlert[];
+  system: {
+    os_family: string;
+    os_name: string;
+    php_version: string;
+    laravel_version: string;
+    server_ip: string;
+    uptime_seconds: number;
+    uptime_human: string;
+    opcache_enabled: boolean;
+  };
+  cpu: {
+    cores: number;
+    usage_percent: number;
+    load_1m: number;
+    load_5m: number;
+    load_15m: number;
+  };
+  memory: {
+    total_bytes: number;
+    total_formatted: string;
+    used_bytes: number;
+    used_formatted: string;
+    free_bytes: number;
+    free_formatted: string;
+    usage_percent: number;
+    php_used_bytes: number;
+    php_used_formatted: string;
+    php_peak_bytes: number;
+    php_peak_formatted: string;
+    php_memory_limit: string;
+  };
+  storage: {
+    total_bytes: number;
+    total_formatted: string;
+    used_bytes: number;
+    used_formatted: string;
+    free_bytes: number;
+    free_formatted: string;
+    usage_percent: number;
+    uploads_bytes: number;
+    uploads_formatted: string;
+  };
+  database: {
+    connected: boolean;
+    driver: string;
+    ping_ms: number;
+    size_bytes: number;
+    size_formatted: string;
+  };
+  services: {
+    id: string;
+    name: string;
+    name_ar?: string;
+    reachable: boolean;
+    latency_ms: number;
+    last_sync: string;
+  }[];
+}
+
+export interface CrashlyticsError {
+  id: string;
+  app: 'digital_menu' | 'dawaty' | 'cv_maker' | 'qr_me';
+  title: string;
+  exception_type: string;
+  message: string;
+  file?: string;
+  line?: number;
+  occurrences: number;
+  affected_users: number;
+  platform: 'android' | 'ios' | 'web';
+  os_version: string;
+  app_version: string;
+  severity: 'fatal' | 'high' | 'warning' | 'info';
+  status: 'open' | 'investigating' | 'resolved';
+  first_seen: string;
+  last_seen: string;
+  stack_trace?: string;
+  device_model?: string;
+  breadcrumbs?: { time: string; action: string; category?: string }[];
+}
+

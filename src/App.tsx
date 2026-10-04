@@ -21,6 +21,8 @@ import { UsersPage } from '@/pages/Users';
 import { SupportPage } from '@/pages/Support';
 import { Settings } from '@/pages/Settings';
 import { WebsiteCMS } from '@/pages/WebsiteCMS';
+import { ServerHealth } from '@/pages/ServerHealth';
+import { CrashlyticsErrors } from '@/pages/CrashlyticsErrors';
 import { ShieldAlert } from 'lucide-react';
 import type { Role } from '@/lib/types';
 
@@ -63,6 +65,8 @@ function Dashboard() {
     switch (page) {
       case 'overview': content = <Overview onNavigate={handleNavigate} />; break;
       case 'analytics': content = <Analytics />; break;
+      case 'server_health': content = <ServerHealth />; break;
+      case 'crashlytics': content = <CrashlyticsErrors />; break;
       case 'finance': content = <Finance />; break;
       case 'dawaty': content = <Dawaty />; break;
       case 'digital_menu': content = <DigitalMenu />; break;

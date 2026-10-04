@@ -6,6 +6,7 @@ import type {
   ActivityItem, Payment, Invitation, Restaurant, Order, AIScan,
   AIUsageSummary, AuditLogEntry, TeamMember, HealthIndicator,
   UserSearchResult, Paginated, Product, WebsiteContent, Role, AiApiKey,
+  ServerMetrics, CrashlyticsError,
 } from './types';
 
 import * as mock from './mock-data';
@@ -240,6 +241,8 @@ export const api = {
       httpDelete(`/admin/team/${id}`),
     health: (): Promise<HealthIndicator[]> =>
       MOCK ? delay(mock.healthIndicators) : http('/admin/health'),
+    serverMetrics: (): Promise<ServerMetrics> =>
+      MOCK ? delay(mock.mockServerMetrics) : http('/admin/server/metrics'),
   },
 
   settings: {
@@ -309,6 +312,18 @@ export const api = {
       http('/admin/cv-maker/stats'),
     list: (params?: { page?: number; per_page?: number; search?: string; template?: string }): Promise<any> =>
       http(`/admin/cv-maker/list${qs(params as Record<string, unknown>)}`),
+  },
+
+  system: {
+    serverMetrics: (): Promise<ServerMetrics> => http('/admin/server-health'),
+    clearCache: (): Promise<{ status: string; message: string }> => httpPost('/admin/system/clear-cache'),
+  },
+
+  crashlytics: {
+    errors: (params?: { app?: string; severity?: string; status?: string }): Promise<{ status: string; data: CrashlyticsError[] }> =>
+      http(`/admin/crashlytics/errors${qs(params as Record<string, unknown>)}`),
+    resolve: (id: string): Promise<{ ok: boolean }> =>
+      httpPost(`/admin/crashlytics/errors/${id}/resolve`),
   },
 };
 

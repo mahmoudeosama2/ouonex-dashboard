@@ -8,6 +8,8 @@ const DICT: Record<string, { en: string; ar: string }> = {
   // ── Navigation ──
   'nav.overview': { en: 'Overview', ar: 'نظرة عامة' },
   'nav.analytics': { en: 'Live Analytics', ar: 'التحليلات الحية' },
+  'nav.server_health': { en: 'Server Health', ar: 'صحة الخادم والموارد' },
+  'nav.crashlytics': { en: 'Crashlytics', ar: 'مراقبة الأعطال والأخطاء' },
   'nav.dawaty': { en: 'Dawaty', ar: 'دعوتي' },
   'nav.digital_menu': { en: 'Digital Menu', ar: 'المنيو الرقمي' },
   'nav.cv_maker': { en: 'CV Maker Studio', ar: 'صانع السيرة الذاتية' },
@@ -351,7 +353,13 @@ const DICT: Record<string, { en: string; ar: string }> = {
   'settings.tab_general': { en: 'General', ar: 'عام' },
   'settings.tab_team': { en: 'Team', ar: 'فريق العمل' },
   'settings.tab_audit': { en: 'Audit Log', ar: 'سجل العمليات' },
-  'settings.tab_health': { en: 'Health', ar: 'حالة النظام' },
+  'settings.tab_health': { en: 'Health & Hardware', ar: 'حالة النظام والعتاد' },
+  'health.server_stress': { en: 'System Stress Level', ar: 'مستوى ضغط الخادم والعتاد' },
+  'health.cpu_load': { en: 'CPU Processing', ar: 'المعالج المركزي (CPU)' },
+  'health.memory_usage': { en: 'RAM Memory', ar: 'الذاكرة العشوائية (RAM)' },
+  'health.storage_usage': { en: 'Disk Storage', ar: 'سعة التخزين (SSD/Disk)' },
+  'health.database': { en: 'Database Engine', ar: 'محرك قاعدة البيانات' },
+  'health.refresh': { en: 'Refresh Telemetry', ar: 'تحديث القياسات الحية' },
 
   // ── Settings Page Details ──
   'settings.organization': { en: 'Organization', ar: 'بيانات المنظمة' },

@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import {
   LayoutDashboard, Heart, UtensilsCrossed, Wallet, Sparkles, Users, Settings,
   Menu, X, Bell, Search, ChevronDown, ShieldCheck, Activity, LogOut, Globe2, BarChart3,
-  LifeBuoy, QrCode, FileText,
+  LifeBuoy, QrCode, FileText, Server, Bug,
 } from 'lucide-react';
 import { useRole } from '@/context/RoleContext';
 import { useAuth } from '@/context/AuthContext';
@@ -14,6 +14,8 @@ import { timeAgo } from '@/lib/format';
 const NAV: { key: PageKey; label: string; icon: ReactNode }[] = [
   { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-[18px] h-[18px]" /> },
   { key: 'analytics', label: 'Live Analytics', icon: <BarChart3 className="w-[18px] h-[18px]" /> },
+  { key: 'server_health', label: 'Server Health', icon: <Server className="w-[18px] h-[18px]" /> },
+  { key: 'crashlytics', label: 'Crashlytics', icon: <Bug className="w-[18px] h-[18px]" /> },
   { key: 'dawaty', label: 'Dawaty', icon: <Heart className="w-[18px] h-[18px]" /> },
   { key: 'digital_menu', label: 'Digital Menu', icon: <UtensilsCrossed className="w-[18px] h-[18px]" /> },
   { key: 'cv_maker', label: 'CV Maker Studio', icon: <FileText className="w-[18px] h-[18px]" /> },
