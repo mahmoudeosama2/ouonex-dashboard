@@ -4,7 +4,8 @@ import {
   CheckCircle2, XCircle, Crown, Lock, Save, Loader2, Bell, Globe, Building,
   FileText, QrCode, Zap, AlertTriangle, Smartphone, Tag, Rocket, UtensilsCrossed,
   UserPlus, Edit2, Trash2, Mail, Phone, Key, Check, CheckSquare, Square, Store, X, Search, Shield,
-  Cpu, HardDrive, Database, Server, RefreshCw, Gauge,
+  Cpu, HardDrive, Database, Server, RefreshCw, Gauge, Heart, ArrowUpRight,
+  Wallet, CreditCard, Link2,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { TeamMember, AuditLogEntry, HealthIndicator, Role, ServerMetrics } from '@/lib/types';
@@ -21,7 +22,7 @@ import { useLocale } from '@/context/LocaleContext';
 
 type SubTab = 'team' | 'audit' | 'health' | 'general';
 
-export function Settings() {
+export function Settings({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
   const { t } = useLocale();
   const { canManageTeam } = useRole();
   const toast = useToast();
@@ -55,7 +56,7 @@ export function Settings() {
         ))}
       </div>
 
-      {tab === 'general' && <GeneralTab />}
+      {tab === 'general' && <GeneralTab onNavigate={onNavigate} />}
       {tab === 'team' && <TeamTab canManage={canManageTeam} />}
       {tab === 'audit' && <AuditTab />}
       {tab === 'health' && <HealthTab />}
@@ -250,7 +251,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
 
   const handleDelete = async (m: TeamMember) => {
     if (m.role === 'owner') {
-      alert(locale === 'ar' ? 'لا يمكن حذف حساب المالك الرئيسي.' : 'Cannot delete the primary owner account.');
+      toast.warning(locale === 'ar' ? 'لا يمكن حذف حساب المالك الرئيسي.' : 'Cannot delete the primary owner account.');
       return;
     }
     const confirmed = window.confirm(
@@ -1304,7 +1305,7 @@ function HealthTab() {
   );
 }
 
-function GeneralTab() {
+function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
   const toast = useToast();
   const { t, locale } = useLocale();
   const [form, setForm] = useState({
@@ -1325,8 +1326,9 @@ function GeneralTab() {
     qr_me_vip_price: 15,
     qr_me_free_mode: true,
     vodafone_cash_number: '01019603225',
-    instapay_address: 'instapay@address',
-    instapay_link: '',
+    vodafone_cash_link: 'http://vf.eg/vfcash?id=mt&qrId=LANXrg',
+    instapay_address: 'ouonex@instapay',
+    instapay_link: 'https://ipn.eg/S/mahmoudeosama/instapay/7gXQWO',
     qr_me_app_store_url: '',
     qr_me_play_store_url: '',
     menu_app_store_url: '',
@@ -1509,6 +1511,129 @@ function GeneralTab() {
         </div>
       </div>
 
+      {/* ── GLOBAL PAYMENT GATEWAYS (الحسابات والروابط الافتراضية العامة لجميع التطبيقات) ── */}
+      <div className="card p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-ink-800 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-brand-500/10 text-brand-400 border border-brand-500/20">
+              <Wallet className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
+                <span>{locale === 'ar' ? 'حسابات وروابط الدفع الافتراضية للنظام' : 'Global Payment Gateways'}</span>
+                <span className="text-3xs font-semibold px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-300 border border-brand-500/20">
+                  {locale === 'ar' ? 'افتراضي للنظام' : 'System Wide'}
+                </span>
+              </h3>
+              <p className="text-2xs text-ink-400 mt-0.5">
+                {locale === 'ar'
+                  ? 'هذه الحسابات والروابط تُعتمد كقيم افتراضية لجميع التطبيقات، ما لم يُخصص تطبيق معين حسابات مستقلة.'
+                  : 'Default payment numbers and direct deep-links used across all apps unless overridden.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Vodafone Cash Global Box */}
+          <div className="p-3.5 rounded-xl bg-ink-950/60 border border-rose-500/30 space-y-3">
+            <div className="flex items-center gap-2 pb-2 border-b border-ink-800/60">
+              <div className="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs">
+                <Phone className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-xs font-bold text-ink-100">
+                {locale === 'ar' ? 'فودافون كاش (Vodafone Cash)' : 'Vodafone Cash'}
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-2xs font-medium text-ink-300 mb-1">
+                {locale === 'ar' ? 'رقم المحفظة الافتراضي' : 'Default Wallet Number'}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  dir="ltr"
+                  value={form.vodafone_cash_number}
+                  onChange={e => updateField('vodafone_cash_number', e.target.value)}
+                  placeholder="01019603225"
+                  className="input w-full pl-8 pr-3 text-xs font-mono font-bold"
+                />
+                <Phone className="w-3.5 h-3.5 text-ink-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-2xs font-medium text-ink-300 mb-1">
+                {locale === 'ar' ? 'رابط الدفع المباشر لفودافون كاش (Direct Link)' : 'Direct Vodafone Cash Link'}
+              </label>
+              <div className="relative">
+                <input
+                  type="url"
+                  dir="ltr"
+                  value={form.vodafone_cash_link}
+                  onChange={e => updateField('vodafone_cash_link', e.target.value)}
+                  placeholder="http://vf.eg/vfcash?id=..."
+                  className="input w-full pl-8 pr-3 text-xs font-mono"
+                />
+                <Link2 className="w-3.5 h-3.5 text-ink-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              </div>
+              <p className="text-3xs text-ink-500 mt-0.5">
+                {locale === 'ar' ? 'رابط فودافون كاش المباشر الذي يتم فتحه لجميع التطبيقات.' : 'Global direct payment link for Vodafone Cash.'}
+              </p>
+            </div>
+          </div>
+
+          {/* InstaPay Global Box */}
+          <div className="p-3.5 rounded-xl bg-ink-950/60 border border-violet-500/30 space-y-3">
+            <div className="flex items-center gap-2 pb-2 border-b border-ink-800/60">
+              <div className="w-7 h-7 rounded-lg bg-violet-500/20 text-violet-400 border border-violet-500/30 flex items-center justify-center font-bold text-xs">
+                <CreditCard className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-xs font-bold text-ink-100">
+                {locale === 'ar' ? 'انستاباي (InstaPay IPN)' : 'InstaPay'}
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-2xs font-medium text-ink-300 mb-1">
+                {locale === 'ar' ? 'عنوان أو رقم انستاباي الافتراضي (IPA)' : 'Default InstaPay Address (IPA)'}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  dir="ltr"
+                  value={form.instapay_address}
+                  onChange={e => updateField('instapay_address', e.target.value)}
+                  placeholder="username@instapay"
+                  className="input w-full px-3 text-xs font-mono font-bold"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-2xs font-medium text-ink-300 mb-1">
+                {locale === 'ar' ? 'رابط الدفع المباشر لانستاباي (Direct Link)' : 'Direct InstaPay Link'}
+              </label>
+              <div className="relative">
+                <input
+                  type="url"
+                  dir="ltr"
+                  value={form.instapay_link}
+                  onChange={e => updateField('instapay_link', e.target.value)}
+                  placeholder="https://ipn.eg/..."
+                  className="input w-full pl-8 pr-3 text-xs font-mono"
+                />
+                <Link2 className="w-3.5 h-3.5 text-ink-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              </div>
+              <p className="text-3xs text-ink-500 mt-0.5">
+                {locale === 'ar' ? 'رابط انستاباي المباشر الذي يتم فتحه لجميع التطبيقات.' : 'Global direct payment link for InstaPay.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── GLOBAL EMERGENCY KILL SWITCH ── */}
       <div className={`card p-5 space-y-3 border-2 transition-all ${
         form.global_emergency_free_mode
@@ -1550,373 +1675,6 @@ function GeneralTab() {
         </div>
       </div>
 
-      {/* ── Digital Menu Pricing ── */}
-      <div className="card p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Crown className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">{t('settings.menu_pricing')}</h3>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.menu_monthly')}</label>
-            <input
-              type="number"
-              value={form.menu_price_monthly}
-              onChange={e => updateField('menu_price_monthly', Number(e.target.value))}
-              className="input w-full"
-              disabled={form.menu_free_mode || form.global_emergency_free_mode}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.menu_yearly')}</label>
-            <input
-              type="number"
-              value={form.menu_price_yearly}
-              onChange={e => updateField('menu_price_yearly', Number(e.target.value))}
-              className="input w-full"
-              disabled={form.menu_free_mode || form.global_emergency_free_mode}
-            />
-          </div>
-        </div>
-        <label className="flex items-center justify-between cursor-pointer pt-2">
-          <div>
-            <p className="text-sm text-ink-200">{t('settings.menu_free_mode')}</p>
-            <p className="text-xs text-ink-500">{t('settings.menu_free_mode_desc')}</p>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-all ${
-              form.menu_free_mode
-                ? 'bg-brand-500/20 text-brand-300 border-brand-500/40'
-                : 'bg-ink-800 text-ink-400 border-ink-700'
-            }`}>
-              {form.menu_free_mode ? (locale === 'ar' ? 'مفعّل (مجاني)' : 'Enabled (Free)') : (locale === 'ar' ? 'معطّل (مدفوع)' : 'Disabled (Paid)')}
-            </span>
-            <button
-              type="button"
-              onClick={() => handleToggle('menu_free_mode')}
-              className={`relative w-11 h-6 rounded-full transition-colors ${form.menu_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
-            >
-              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.menu_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
-            </button>
-          </div>
-        </label>
-      </div>
-
-      {/* ── Dawaty Pricing ── */}
-      <div className="card p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Globe className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">{t('settings.dawaty_pricing')}</h3>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.dawaty_single_price')}</label>
-          <input
-            type="number"
-            value={form.dawaty_invitation_price}
-            onChange={e => updateField('dawaty_invitation_price', Number(e.target.value))}
-            className="input w-full"
-            disabled={form.dawaty_free_mode || form.global_emergency_free_mode}
-          />
-        </div>
-        <label className="flex items-center justify-between cursor-pointer pt-2">
-          <div>
-            <p className="text-sm text-ink-200">{t('settings.dawaty_free_mode') || 'الوضع المجاني لدعوتي'}</p>
-            <p className="text-xs text-ink-500">{t('settings.dawaty_free_mode_desc')}</p>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-all ${
-              form.dawaty_free_mode
-                ? 'bg-brand-500/20 text-brand-300 border-brand-500/40'
-                : 'bg-ink-800 text-ink-400 border-ink-700'
-            }`}>
-              {form.dawaty_free_mode ? (locale === 'ar' ? 'مفعّل (مجاني)' : 'Enabled (Free)') : (locale === 'ar' ? 'معطّل (مدفوع)' : 'Disabled (Paid)')}
-            </span>
-            <button
-              type="button"
-              onClick={() => handleToggle('dawaty_free_mode')}
-              className={`relative w-11 h-6 rounded-full transition-colors ${form.dawaty_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
-            >
-              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.dawaty_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
-            </button>
-          </div>
-        </label>
-      </div>
-
-      {/* ── CV Maker Pricing ── */}
-      <div className="card p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-1">
-          <FileText className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">{t('settings.cv_pricing')}</h3>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.cv_single_export')}</label>
-            <input
-              type="number"
-              value={form.cv_price_single}
-              onChange={e => updateField('cv_price_single', Number(e.target.value))}
-              className="input w-full"
-              disabled={form.cv_free_mode || form.global_emergency_free_mode}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.cv_unlimited_sub')}</label>
-            <input
-              type="number"
-              value={form.cv_price_subscription}
-              onChange={e => updateField('cv_price_subscription', Number(e.target.value))}
-              className="input w-full"
-              disabled={form.cv_free_mode || form.global_emergency_free_mode}
-            />
-          </div>
-        </div>
-        <label className="flex items-center justify-between cursor-pointer pt-2">
-          <div>
-            <p className="text-sm text-ink-200">{t('settings.cv_free_mode')}</p>
-            <p className="text-xs text-ink-500">{t('settings.cv_free_mode_desc')}</p>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-all ${
-              form.cv_free_mode
-                ? 'bg-brand-500/20 text-brand-300 border-brand-500/40'
-                : 'bg-ink-800 text-ink-400 border-ink-700'
-            }`}>
-              {form.cv_free_mode ? (locale === 'ar' ? 'مفعّل (مجاني)' : 'Enabled (Free)') : (locale === 'ar' ? 'معطّل (مدفوع)' : 'Disabled (Paid)')}
-            </span>
-            <button
-              type="button"
-              onClick={() => handleToggle('cv_free_mode')}
-              className={`relative w-11 h-6 rounded-full transition-colors ${form.cv_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
-            >
-              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.cv_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
-            </button>
-          </div>
-        </label>
-      </div>
-
-      {/* ── QR Me Pricing ── */}
-      <div className="card p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-1">
-          <QrCode className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">{t('settings.qrme_pricing')}</h3>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.qrme_vip_price')}</label>
-          <input
-            type="number"
-            value={form.qr_me_vip_price}
-            onChange={e => updateField('qr_me_vip_price', Number(e.target.value))}
-            className="input w-full"
-            disabled={form.qr_me_free_mode || form.global_emergency_free_mode}
-          />
-        </div>
-        <label className="flex items-center justify-between cursor-pointer pt-2">
-          <div>
-            <p className="text-sm text-ink-200">{t('settings.qrme_free_mode')}</p>
-            <p className="text-xs text-ink-500">{t('settings.qrme_free_mode_desc')}</p>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-all ${
-              form.qr_me_free_mode
-                ? 'bg-brand-500/20 text-brand-300 border-brand-500/40'
-                : 'bg-ink-800 text-ink-400 border-ink-700'
-            }`}>
-              {form.qr_me_free_mode ? (locale === 'ar' ? 'مفعّل (مجاني)' : 'Enabled (Free)') : (locale === 'ar' ? 'معطّل (مدفوع)' : 'Disabled (Paid)')}
-            </span>
-            <button
-              type="button"
-              onClick={() => handleToggle('qr_me_free_mode')}
-              className={`relative w-11 h-6 rounded-full transition-colors ${form.qr_me_free_mode ? 'bg-brand-600' : 'bg-ink-700'}`}
-            >
-              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.qr_me_free_mode ? 'translate-x-5' : 'translate-x-0.5'}`} />
-            </button>
-          </div>
-        </label>
-      </div>
-
-
-      {/* ── Payment Gateways ── */}
-      <div className="card p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Save className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">{t('settings.gateways')}</h3>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.vodafone_cash')}</label>
-            <input
-              type="text"
-              value={form.vodafone_cash_number}
-              onChange={e => updateField('vodafone_cash_number', e.target.value)}
-              className="input w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">
-              {t('settings.instapay')}
-            </label>
-            <input
-              type="text"
-              placeholder="مثال: 01019603225 أو username@instapay"
-              value={form.instapay_address}
-              onChange={e => updateField('instapay_address', e.target.value)}
-              className="input w-full font-mono text-xs"
-            />
-            <p className="text-2xs text-ink-500 mt-1">
-              رقم الهاتف المسجل أو عنوان IPA. سيظهر في التطبيقات للنسخ أو الدفع الفوري.
-            </p>
-          </div>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-ink-300 mb-1.5">
-            رابط الدفع المباشر لتطبيق انستا باي (InstaPay Direct Link)
-          </label>
-          <input
-            type="text"
-            placeholder="مثال: https://ipn.eg/S/username أو رابط الدفع المباشر"
-            value={form.instapay_link || ''}
-            onChange={e => updateField('instapay_link', e.target.value)}
-            className="input w-full font-mono text-xs"
-          />
-          <p className="text-2xs text-ink-500 mt-1">
-            عند إدخال هذا الرابط، سيظهر زر في كافة التطبيقات لفتح تطبيق انستاباي مباشرة على هاتف العميل لتحويل المبلغ فوراً.
-          </p>
-        </div>
-      </div>
-
-      {/* ── SMART APP STORE & VIRAL PROMOTION LINKS ── */}
-      <div className="card p-5 space-y-5">
-        <div className="flex items-center gap-2 mb-1">
-          <Globe className="w-4 h-4 text-ink-400" />
-          <div>
-            <h3 className="text-sm font-semibold text-ink-100">{t('settings.store_links')}</h3>
-            <p className="text-xs text-ink-400 mt-0.5">
-              {t('settings.store_links_desc')}
-            </p>
-          </div>
-        </div>
-
-        {/* CV Maker Links */}
-        <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
-            <FileText className="w-3.5 h-3.5 text-brand-400" />
-            <span>{t('settings.cv_links')}</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.app_store_url')}</label>
-              <input
-                type="url"
-                placeholder="https://apps.apple.com/app/cv-maker/..."
-                value={form.cv_maker_app_store_url}
-                onChange={e => updateField('cv_maker_app_store_url', e.target.value)}
-                className="input w-full text-xs"
-              />
-            </div>
-            <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.play_store_url')}</label>
-              <input
-                type="url"
-                placeholder="https://play.google.com/store/apps/details?id=..."
-                value={form.cv_maker_play_store_url}
-                onChange={e => updateField('cv_maker_play_store_url', e.target.value)}
-                className="input w-full text-xs"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* QR Me Links */}
-        <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
-            <QrCode className="w-3.5 h-3.5 text-brand-400" />
-            <span>{t('settings.qrme_links')}</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.app_store_url')}</label>
-              <input
-                type="url"
-                placeholder="https://apps.apple.com/app/qr-me/..."
-                value={form.qr_me_app_store_url}
-                onChange={e => updateField('qr_me_app_store_url', e.target.value)}
-                className="input w-full text-xs"
-              />
-            </div>
-            <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.play_store_url')}</label>
-              <input
-                type="url"
-                placeholder="https://play.google.com/store/apps/details?id=..."
-                value={form.qr_me_play_store_url}
-                onChange={e => updateField('qr_me_play_store_url', e.target.value)}
-                className="input w-full text-xs"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Digital Menu Links */}
-        <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
-            <Crown className="w-3.5 h-3.5 text-amber-400" />
-            <span>{t('settings.menu_links')}</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.app_store_url')}</label>
-              <input
-                type="url"
-                placeholder="https://apps.apple.com/app/ouonex-menu/..."
-                value={form.menu_app_store_url}
-                onChange={e => updateField('menu_app_store_url', e.target.value)}
-                className="input w-full text-xs"
-              />
-            </div>
-            <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.play_store_url')}</label>
-              <input
-                type="url"
-                placeholder="https://play.google.com/store/apps/details?id=..."
-                value={form.menu_play_store_url}
-                onChange={e => updateField('menu_play_store_url', e.target.value)}
-                className="input w-full text-xs"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Dawaty Links */}
-        <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-ink-200">
-            <Building className="w-3.5 h-3.5 text-rose-400" />
-            <span>{t('settings.dawaty_links')}</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.app_store_url')}</label>
-              <input
-                type="url"
-                placeholder="https://apps.apple.com/app/dawaty/..."
-                value={form.dawaty_app_store_url}
-                onChange={e => updateField('dawaty_app_store_url', e.target.value)}
-                className="input w-full text-xs"
-              />
-            </div>
-            <div>
-              <label className="block text-2xs font-medium text-ink-400 mb-1">{t('settings.play_store_url')}</label>
-              <input
-                type="url"
-                placeholder="https://play.google.com/store/apps/details?id=..."
-                value={form.dawaty_play_store_url}
-                onChange={e => updateField('dawaty_play_store_url', e.target.value)}
-                className="input w-full text-xs"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="card p-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Bell className="w-4 h-4 text-ink-400" />
@@ -1955,192 +1713,6 @@ function GeneralTab() {
             className="input w-32"
           />
         </div>
-      </div>
-
-      {/* ── APP VERSION CONTROL ── */}
-      <div className="card p-5 space-y-5">
-        <div className="flex items-center gap-2 mb-1">
-          <Rocket className="w-4 h-4 text-brand-400" />
-          <div>
-            <h3 className="text-sm font-semibold text-ink-100">التحكم في إصدارات التطبيقات</h3>
-            <p className="text-xs text-ink-400 mt-0.5">
-              حدد أقل إصدار مقبول لكل تطبيق. المستخدمون الذين يمتلكون إصداراً أقل سيرون إشعار التحديث.
-            </p>
-          </div>
-        </div>
-
-        {([ 
-          {
-            appId: 'cv_maker',
-            label: 'CV Maker',
-            icon: <FileText className="w-3.5 h-3.5 text-brand-400" />,
-            prefix: 'cv_maker',
-            color: 'brand',
-          },
-          {
-            appId: 'dawety',
-            label: 'Dawaty',
-            icon: <Globe className="w-3.5 h-3.5 text-rose-400" />,
-            prefix: 'dawety',
-            color: 'rose',
-          },
-          {
-            appId: 'digital_menu',
-            label: 'Digital Menu',
-            icon: <UtensilsCrossed className="w-3.5 h-3.5 text-amber-400" />,
-            prefix: 'menu',
-            color: 'amber',
-          },
-          {
-            appId: 'qr_me',
-            label: 'QR Me',
-            icon: <QrCode className="w-3.5 h-3.5 text-accent-400" />,
-            prefix: 'qr_me',
-            color: 'accent',
-          },
-        ] as const).map(({ label, icon, prefix }) => {
-          const latestKey = `${prefix}_latest_version` as keyof typeof form;
-          const minKey    = `${prefix}_min_version`    as keyof typeof form;
-          const forceKey  = `${prefix}_force_update`   as keyof typeof form;
-          const titleKey  = `${prefix}_update_title_ar`   as keyof typeof form;
-          const msgKey    = `${prefix}_update_message_ar` as keyof typeof form;
-          const iosKey    = `${prefix}_app_store_url`  as keyof typeof form;
-          const playKey   = `${prefix}_play_store_url` as keyof typeof form;
-
-          const isForce   = !!form[forceKey];
-          const hasUpdate = (form[latestKey] as string) !== (form[minKey] as string);
-
-          return (
-            <div key={prefix} className="p-4 rounded-xl bg-ink-950/40 border border-ink-800 space-y-4">
-              {/* Header row */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-bold text-ink-100">
-                  {icon}
-                  <span>{label}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {isForce ? (
-                    <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-danger-500/20 text-danger-300 border border-danger-500/30 flex items-center gap-1">
-                      <AlertTriangle className="w-2.5 h-2.5" /> إجباري
-                    </span>
-                  ) : hasUpdate ? (
-                    <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-warning-500/20 text-warning-300 border border-warning-500/30 flex items-center gap-1">
-                      <Tag className="w-2.5 h-2.5" /> اختياري
-                    </span>
-                  ) : (
-                    <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-success-500/15 text-success-400 border border-success-500/30 flex items-center gap-1">
-                      <CheckCircle2 className="w-2.5 h-2.5" /> محدث
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Versions */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-2xs font-medium text-ink-400 mb-1">
-                    أحدث إصدار (Latest Version)
-                  </label>
-                  <div className="relative">
-                    <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-ink-500" />
-                    <input
-                      type="text"
-                      placeholder="1.2.0"
-                      value={form[latestKey] as string}
-                      onChange={e => updateField(latestKey, e.target.value)}
-                      className="input w-full pl-7 text-xs font-mono"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-2xs font-medium text-ink-400 mb-1">
-                    أقل إصدار مقبول (Min Version)
-                  </label>
-                  <div className="relative">
-                    <AlertTriangle className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-ink-500" />
-                    <input
-                      type="text"
-                      placeholder="1.0.0"
-                      value={form[minKey] as string}
-                      onChange={e => updateField(minKey, e.target.value)}
-                      className="input w-full pl-7 text-xs font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Force Update Toggle */}
-              <label className={`flex items-center justify-between cursor-pointer p-3 rounded-lg transition-all ${
-                isForce ? 'bg-danger-950/50 border border-danger-500/30' : 'bg-ink-900/40 border border-ink-800'
-              }`}>
-                <div>
-                  <p className="text-xs font-medium text-ink-200">تحديث إجباري (Force Update)</p>
-                  <p className="text-2xs text-ink-500 mt-0.5">
-                    {isForce ? '🔴 المستخدمون لا يستطيعون تجاهل التحديث' : 'المستخدم يستطيع تجاهل الإشعار'}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleToggle(forceKey)}
-                  className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${isForce ? 'bg-danger-600' : 'bg-ink-700'}`}
-                >
-                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${isForce ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                </button>
-              </label>
-
-              {/* Update Message AR */}
-              <div>
-                <label className="block text-2xs font-medium text-ink-400 mb-1">
-                  رسالة التحديث (عربي)
-                </label>
-                <input
-                  type="text"
-                  value={form[titleKey] as string}
-                  onChange={e => updateField(titleKey, e.target.value)}
-                  placeholder="تحديث جديد متوفر!"
-                  className="input w-full text-xs mb-2"
-                  dir="rtl"
-                />
-                <textarea
-                  value={form[msgKey] as string}
-                  onChange={e => updateField(msgKey, e.target.value)}
-                  placeholder="يرجى التحديث للحصول على أفضل تجربة."
-                  className="input w-full text-xs resize-none"
-                  rows={2}
-                  dir="rtl"
-                />
-              </div>
-
-              {/* Store URLs */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-2xs font-medium text-ink-400 mb-1 flex items-center gap-1">
-                    <Smartphone className="w-2.5 h-2.5" /> Google Play URL
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://play.google.com/store/apps/details?id=..."
-                    value={form[playKey] as string}
-                    onChange={e => updateField(playKey, e.target.value)}
-                    className="input w-full text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-2xs font-medium text-ink-400 mb-1 flex items-center gap-1">
-                    <Smartphone className="w-2.5 h-2.5" /> App Store URL
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://apps.apple.com/app/..."
-                    value={form[iosKey] as string}
-                    onChange={e => updateField(iosKey, e.target.value)}
-                    className="input w-full text-xs"
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        })}
       </div>
 
       <div className="flex items-center justify-between gap-4 pt-2">

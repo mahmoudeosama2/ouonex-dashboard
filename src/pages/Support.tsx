@@ -9,6 +9,15 @@ import { KPICard } from '@/components/KPICard';
 import { ErrorState, EmptyState } from '@/components/EmptyState';
 import { date, timeAgo } from '@/lib/format';
 import { useLocale } from '@/context/LocaleContext';
+import { useToast } from '@/context/ToastContext';
+
+interface SupportTicketMessage {
+  id: string;
+  sender: 'user' | 'admin';
+  name: string;
+  message: string;
+  created_at: string;
+}
 
 interface SupportTicket {
   id: number;
@@ -21,10 +30,38 @@ interface SupportTicket {
   message: string;
   admin_reply?: string | null;
   replied_at?: string | null;
+  messages?: SupportTicketMessage[];
+  thread?: SupportTicketMessage[];
   screenshot_path?: string;
   status: 'open' | 'in_progress' | 'resolved';
   created_at: string;
 }
+
+const getTicketThread = (t: SupportTicket): SupportTicketMessage[] => {
+  if (t.messages && Array.isArray(t.messages) && t.messages.length > 0) return t.messages;
+  if (t.thread && Array.isArray(t.thread) && t.thread.length > 0) return t.thread;
+  const list: SupportTicketMessage[] = [];
+  if (t.message) {
+    list.push({
+      id: `msg_user_${t.id}`,
+      sender: 'user',
+      name: t.name || 'العميل',
+      message: t.message,
+      created_at: t.created_at,
+    });
+  }
+  if (t.admin_reply) {
+    list.push({
+      id: `msg_admin_${t.id}`,
+      sender: 'admin',
+      name: 'الدعم الفني',
+      message: t.admin_reply,
+      created_at: t.replied_at || t.created_at,
+    });
+  }
+  return list;
+};
+
 
 interface DeletionRequest {
   id: number;
@@ -39,6 +76,7 @@ interface DeletionRequest {
 
 export function SupportPage() {
   const { t, locale } = useLocale();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<'tickets' | 'deletions'>('tickets');
   const [overview, setOverview] = useState({ pending_deletions: 0, open_tickets: 0, total_tickets: 0 });
   const [loading, setLoading] = useState(true);
@@ -100,8 +138,9 @@ export function SupportPage() {
       if (status === 'resolved') {
         setOverview(prev => ({ ...prev, open_tickets: Math.max(0, prev.open_tickets - 1) }));
       }
+      toast.success(locale === 'ar' ? 'تم تحديث حالة التذكرة بنجاح' : 'Ticket status updated');
     } catch {
-      alert(locale === 'ar' ? 'فشل تحديث حالة التذكرة.' : 'Failed to update ticket status.');
+      toast.error(locale === 'ar' ? 'فشل تحديث حالة التذكرة.' : 'Failed to update ticket status.');
     }
   };
 
@@ -109,27 +148,42 @@ export function SupportPage() {
     if (!replyText.trim()) return;
     setIsSubmittingReply(true);
     try {
-      await api.support.updateTicket(id, {
+      const res = await api.support.updateTicket(id, {
         status: 'resolved',
         admin_reply: replyText.trim(),
       });
+      const updatedData = res?.data;
       setTickets(prev =>
-        prev.map(tItem =>
-          tItem.id === id
-            ? {
-                ...tItem,
-                status: 'resolved',
-                admin_reply: replyText.trim(),
-                replied_at: new Date().toISOString(),
-              }
-            : tItem
-        )
+        prev.map(tItem => {
+          if (tItem.id !== id) return tItem;
+          const currentThread = getTicketThread(tItem);
+          const newThread = updatedData?.messages || updatedData?.thread || [
+            ...currentThread,
+            {
+              id: 'msg_admin_' + Date.now(),
+              sender: 'admin' as const,
+              name: 'الدعم الفني',
+              message: replyText.trim(),
+              created_at: new Date().toISOString(),
+            }
+          ];
+          return {
+            ...tItem,
+            ...(updatedData || {}),
+            status: 'resolved',
+            admin_reply: replyText.trim(),
+            replied_at: new Date().toISOString(),
+            messages: newThread,
+            thread: newThread,
+          };
+        })
       );
       setOverview(prev => ({ ...prev, open_tickets: Math.max(0, prev.open_tickets - 1) }));
       setReplyingTicketId(null);
       setReplyText('');
+      toast.success(locale === 'ar' ? 'تم إرسال الرد وحل التذكرة بنجاح' : 'Reply sent successfully');
     } catch {
-      alert(locale === 'ar' ? 'فشل إرسال الرد.' : 'Failed to send reply.');
+      toast.error(locale === 'ar' ? 'فشل إرسال الرد.' : 'Failed to send reply.');
     } finally {
       setIsSubmittingReply(false);
     }
@@ -143,9 +197,9 @@ export function SupportPage() {
       await api.support.executeDeletion(id);
       setDeletions(prev => prev.map(d => d.id === id ? { ...d, status: 'completed' } : d));
       setOverview(prev => ({ ...prev, pending_deletions: Math.max(0, prev.pending_deletions - 1) }));
-      alert(locale === 'ar' ? `تم حذف حساب ${email} بنجاح.` : `Account for ${email} has been deleted successfully.`);
+      toast.success(locale === 'ar' ? `تم حذف حساب ${email} بنجاح.` : `Account for ${email} has been deleted successfully.`);
     } catch {
-      alert(locale === 'ar' ? 'فشل تنفيذ حذف الحساب.' : 'Failed to execute account deletion.');
+      toast.error(locale === 'ar' ? 'فشل تنفيذ حذف الحساب.' : 'Failed to execute account deletion.');
     }
   };
 
@@ -154,8 +208,9 @@ export function SupportPage() {
       await api.support.dismissDeletion(id);
       setDeletions(prev => prev.map(d => d.id === id ? { ...d, status: 'dismissed' } : d));
       setOverview(prev => ({ ...prev, pending_deletions: Math.max(0, prev.pending_deletions - 1) }));
+      toast.info(locale === 'ar' ? 'تم رفض طلب حذف الحساب' : 'Deletion request dismissed');
     } catch {
-      alert(locale === 'ar' ? 'فشل رفض الطلب.' : 'Failed to dismiss request.');
+      toast.error(locale === 'ar' ? 'فشل رفض الطلب.' : 'Failed to dismiss request.');
     }
   };
 
@@ -331,11 +386,6 @@ export function SupportPage() {
                     )}
                   </div>
 
-                  {/* Message */}
-                  <div className="p-3.5 rounded-xl bg-ink-950/60 border border-ink-800 text-xs text-ink-200 leading-relaxed whitespace-pre-wrap">
-                    {t.message}
-                  </div>
-
                   {/* Screenshot Preview */}
                   {t.screenshot_path && (
                     <div className="pt-1 flex items-center gap-3">
@@ -358,21 +408,43 @@ export function SupportPage() {
                     </div>
                   )}
 
-                  {/* Admin Reply Box if present */}
-                  {t.admin_reply && (
-                    <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-1.5">
-                      <div className="flex items-center justify-between text-2xs text-emerald-400 font-bold">
-                        <span className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                          {locale === 'ar' ? 'رد الإدارة المرسل إلى تطبيق العميل:' : 'Admin Reply Sent to User App:'}
-                        </span>
-                        {t.replied_at && <span className="text-ink-400 font-normal">{timeAgo(t.replied_at)}</span>}
+                  {/* Conversation Thread */}
+                  <div className="space-y-2.5">
+                    {getTicketThread(t).map(msg => (
+                      <div
+                        key={msg.id}
+                        className={`p-3.5 rounded-xl border text-xs leading-relaxed ${
+                          msg.sender === 'admin'
+                            ? 'bg-emerald-500/10 border-emerald-500/30'
+                            : 'bg-ink-950/60 border-ink-800'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5 text-2xs">
+                          <span className={`flex items-center gap-1.5 font-bold ${
+                            msg.sender === 'admin' ? 'text-emerald-400' : 'text-brand-400'
+                          }`}>
+                            {msg.sender === 'admin' ? (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                {locale === 'ar' ? 'رد الدعم الفني:' : 'Support Team Reply:'}
+                              </>
+                            ) : (
+                              <>
+                                <MessageSquare className="w-3.5 h-3.5 text-brand-400" />
+                                {msg.name || (locale === 'ar' ? 'رسالة العميل:' : 'Customer Message:')}
+                              </>
+                            )}
+                          </span>
+                          <span className="text-ink-500 font-normal">{timeAgo(msg.created_at)}</span>
+                        </div>
+                        <p className={`whitespace-pre-wrap ${
+                          msg.sender === 'admin' ? 'text-emerald-100 font-medium' : 'text-ink-200'
+                        }`}>
+                          {msg.message}
+                        </p>
                       </div>
-                      <p className="text-emerald-100 leading-relaxed whitespace-pre-line font-medium text-xs">
-                        {t.admin_reply}
-                      </p>
-                    </div>
-                  )}
+                    ))}
+                  </div>
 
                   {/* Inline Reply Composer */}
                   {replyingTicketId === t.id && (
@@ -430,13 +502,13 @@ export function SupportPage() {
                             setReplyText('');
                           } else {
                             setReplyingTicketId(t.id);
-                            setReplyText(t.admin_reply || '');
+                            setReplyText('');
                           }
                         }}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-2xs font-semibold bg-brand-500/15 hover:bg-brand-500/25 text-brand-400 border border-brand-500/30 transition"
                       >
                         <MessageSquare className="w-3 h-3" />
-                        {t.admin_reply ? (locale === 'ar' ? 'تعديل الرد' : 'Edit Reply') : (locale === 'ar' ? 'الرد على التذكرة' : 'Reply to Ticket')}
+                        {locale === 'ar' ? (t.admin_reply ? 'إرسال رد إضافي' : 'الرد على التذكرة') : (t.admin_reply ? 'Add Follow-up Reply' : 'Reply to Ticket')}
                       </button>
 
                       {t.status !== 'resolved' ? (

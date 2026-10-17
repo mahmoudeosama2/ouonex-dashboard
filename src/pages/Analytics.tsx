@@ -280,7 +280,7 @@ export function Analytics() {
             </div>
 
             {/* Custom Interactive SVG Bar/Area Chart */}
-            <div className="h-48 mt-6 flex items-end gap-1 sm:gap-1.5 px-1 overflow-x-auto no-scrollbar w-full">
+            <div className="h-56 mt-2 pt-14 flex items-end gap-1 sm:gap-1.5 px-1 overflow-x-auto no-scrollbar w-full">
               {traffic.map((item, idx) => {
                 const dawatyHeight = maxTraffic > 0 ? (item.dawaty_views / maxTraffic) * 100 : 0;
                 const menuHeight = maxTraffic > 0 ? (item.menu_views / maxTraffic) * 100 : 0;
@@ -291,11 +291,17 @@ export function Analytics() {
                 return (
                   <div key={idx} className="flex-1 min-w-[10px] sm:min-w-[14px] flex flex-col items-center gap-1.5 group relative">
                     {/* Tooltip */}
-                    <div className="absolute -top-14 opacity-0 group-hover:opacity-100 transition pointer-events-none bg-ink-950 border border-ink-700 text-white text-2xs rounded-lg px-2.5 py-1.5 shadow-xl whitespace-nowrap z-30">
+                    <div className="absolute -top-14 opacity-0 group-hover:opacity-100 transition pointer-events-none bg-ink-950/95 border border-ink-700/80 backdrop-blur-md text-white text-2xs rounded-xl px-2.5 py-1.5 shadow-2xl whitespace-nowrap z-30">
                       <div className="font-semibold text-ink-200">{item.date}</div>
-                      <div>Total: <span className="font-bold text-white">{item.total_views}</span></div>
+                      <div>Total: <span className="font-bold text-white font-mono">{item.total_views}</span></div>
                       <div className="text-rose-400">Dawaty: {item.dawaty_views}</div>
                       <div className="text-amber-400">Menu: {item.menu_views}</div>
+                      {item.cv_views !== undefined && item.cv_views > 0 && (
+                        <div className="text-violet-400">CV Maker: {item.cv_views}</div>
+                      )}
+                      {item.qr_views !== undefined && item.qr_views > 0 && (
+                        <div className="text-sky-400">QR Me: {item.qr_views}</div>
+                      )}
                     </div>
 
                     <div className="w-full h-36 flex flex-col justify-end rounded-lg overflow-hidden bg-ink-950/60 border border-ink-800/40">

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  FileText, Download, Zap, ToggleLeft, ToggleRight,
-  Save, RefreshCw, BarChart2, Layers, CheckCircle2,
+  FileText, Download, Zap,
+  RefreshCw, BarChart2, Layers,
   Briefcase, Palette, Users, ShoppingCart, TrendingUp,
-  Search, Flame, Award, Filter, ArrowUpRight
+  Search, Flame, Award, Filter, ArrowUpRight, Settings, Inbox
 } from 'lucide-react';
 import { PageHeader } from '@/components/Layout';
 import { KPICard } from '@/components/KPICard';
@@ -13,6 +13,7 @@ import { useLocale } from '@/context/LocaleContext';
 import { api } from '@/lib/api';
 import { timeAgo, num, egp } from '@/lib/format';
 import { AppUsersManager } from '@/components/AppUsersManager';
+import { AppSettingsManager } from '@/components/AppSettingsManager';
 
 interface TemplateSalesItem {
   name: string;
@@ -37,7 +38,6 @@ export function CvMaker() {
   const toast = useToast();
   const { t, locale } = useLocale();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   
   // Real data state
   const [stats, setStats] = useState<CvStats>({
@@ -52,15 +52,16 @@ export function CvMaker() {
   const [resumes, setResumes] = useState<any[]>([]);
   const [loadingResumes, setLoadingResumes] = useState(false);
 
-  // Paywall states
-  const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
-  const [pdfPrice, setPdfPrice] = useState(25);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'template_sales' | 'users' | 'gallery' | 'paywall' | 'recent'>('template_sales');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'template_sales' | 'users' | 'gallery' | 'settings' | 'recent'>('template_sales');
 
   // Search and sort in template sales
   const [templateSearch, setTemplateSearch] = useState('');
   const [templateSort, setTemplateSort] = useState<'purchases' | 'creations' | 'downloads' | 'name'>('purchases');
   const [selectedTemplateFilter, setSelectedTemplateFilter] = useState<string>('all');
+
+  // Search and filter in Recent CVs
+  const [resumeSearch, setResumeSearch] = useState('');
+  const [resumeTierFilter, setResumeTierFilter] = useState<'all' | 'paid' | 'free'>('all');
 
   const fetchStats = useCallback(async () => {
     try {
@@ -90,59 +91,12 @@ export function CvMaker() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      api.settings.get().then(s => {
-        if (s) {
-          const isFree = s.cv_free_mode === true || s.cv_maker_free_mode === true || s.cv_maker_payment_enabled === false;
-          setIsPaymentEnabled(!isFree);
-          if (s.cv_maker_pdf_price) setPdfPrice(Number(s.cv_maker_pdf_price));
-          else if (s.cv_price_single) setPdfPrice(Number(s.cv_price_single));
-        }
-      }).catch(() => {}),
       fetchStats(),
       fetchResumes(),
     ]).finally(() => {
       setLoading(false);
     });
   }, [fetchStats, fetchResumes]);
-
-  const handleTogglePaywall = async (newVal: boolean) => {
-    setIsPaymentEnabled(newVal);
-    try {
-      await api.settings.save({
-        cv_maker_payment_enabled: newVal,
-        cv_maker_free_mode: !newVal,
-        cv_free_mode: !newVal,
-        cv_maker_pdf_price: pdfPrice,
-        cv_price_single: pdfPrice,
-      });
-      toast.success(
-        newVal ? 'CV Paywall Activated' : 'Free Mode Enabled',
-        newVal 
-          ? 'Users will now be asked to pay before downloading premium PDF resumes.'
-          : 'All CV templates and PDF exports are now 100% FREE for all users (Store Review Safe).'
-      );
-    } catch {
-      toast.error('Failed to update', 'Could not sync paywall status with server.');
-    }
-  };
-
-  const handleSavePricing = async () => {
-    setSaving(true);
-    try {
-      await api.settings.save({
-        cv_maker_payment_enabled: isPaymentEnabled,
-        cv_maker_free_mode: !isPaymentEnabled,
-        cv_free_mode: !isPaymentEnabled,
-        cv_maker_pdf_price: pdfPrice,
-        cv_price_single: pdfPrice,
-      });
-      toast.success('Settings Saved', 'CV Maker pricing and paywall flags updated successfully.');
-    } catch {
-      toast.error('Error', 'Failed to save CV Maker settings.');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   // Filter and sort template sales
   const filteredTemplates = useMemo(() => {
@@ -170,6 +124,23 @@ export function CvMaker() {
     return list;
   }, [stats.template_sales, templateSearch, templateSort]);
 
+  // Filtered resumes for Recent CVs tab
+  const filteredResumes = useMemo(() => {
+    return resumes.filter(c => {
+      const q = resumeSearch.toLowerCase().trim();
+      const matchSearch = !q ||
+        (c.candidate_name && c.candidate_name.toLowerCase().includes(q)) ||
+        (c.job_title && c.job_title.toLowerCase().includes(q)) ||
+        (c.template_name && c.template_name.toLowerCase().includes(q));
+
+      const matchTier = resumeTierFilter === 'all' ||
+        (resumeTierFilter === 'paid' && (c.is_paid || c.is_vip)) ||
+        (resumeTierFilter === 'free' && (!c.is_paid && !c.is_vip));
+
+      return matchSearch && matchTier;
+    });
+  }, [resumes, resumeSearch, resumeTierFilter]);
+
   // Top best seller template
   const topSeller = useMemo(() => {
     const sorted = [...(stats.template_sales || [])].sort((a, b) => b.purchases_count - a.purchases_count);
@@ -190,51 +161,6 @@ export function CvMaker() {
         icon={<FileText className="w-5 h-5" />}
       />
 
-      {/* ── Dynamic Paywall Alert Banner ── */}
-      <div className={`p-4 rounded-xl border transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
-        !isPaymentEnabled 
-          ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-300'
-          : 'bg-amber-950/30 border-amber-500/30 text-amber-300'
-      }`}>
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-            !isPaymentEnabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
-          }`}>
-            {!isPaymentEnabled ? <CheckCircle2 className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-sm">
-                {!isPaymentEnabled ? t('cv.free_mode_title') : t('cv.paid_mode_title')}
-              </h3>
-              <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full ${
-                !isPaymentEnabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
-              }`}>
-                {!isPaymentEnabled ? t('cv.free_badge') : t('cv.price_per_pdf', { price: pdfPrice })}
-              </span>
-            </div>
-            <p className="text-xs text-ink-300 mt-0.5">
-              {!isPaymentEnabled 
-                ? t('cv.free_desc')
-                : t('cv.paid_desc')}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 self-end md:self-auto">
-          <button
-            onClick={() => handleTogglePaywall(!isPaymentEnabled)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-              !isPaymentEnabled 
-                ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/40'
-                : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40'
-            }`}
-          >
-            {!isPaymentEnabled ? <ToggleLeft className="w-4 h-4" /> : <ToggleRight className="w-4 h-4" />}
-            <span>{!isPaymentEnabled ? t('cv.switch_to_paid') : t('cv.switch_to_free')}</span>
-          </button>
-        </div>
-      </div>
 
       {/* ── KPI Grid (100% Real Database Metrics) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -267,21 +193,21 @@ export function CvMaker() {
       </div>
 
       {/* ── Navigation SubTabs ── */}
-      <div className="flex items-center gap-2 border-b border-ink-800 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-ink-800 overflow-x-auto no-scrollbar pb-1">
         {[
           { key: 'template_sales', label: t('cv.tab_template_sales'), icon: <ShoppingCart className="w-4 h-4" /> },
-          { key: 'users', label: locale === 'ar' ? 'إدارة المستخدمين' : 'Users Management', icon: <Users className="w-4 h-4" /> },
+          { key: 'recent', label: t('cv.tab_recent'), icon: <Layers className="w-4 h-4" /> },
           { key: 'analytics', label: t('cv.tab_analytics'), icon: <BarChart2 className="w-4 h-4" /> },
           { key: 'gallery', label: t('cv.tab_gallery'), icon: <Palette className="w-4 h-4" /> },
-          { key: 'paywall', label: t('cv.tab_paywall'), icon: <Zap className="w-4 h-4" /> },
-          { key: 'recent', label: t('cv.tab_recent'), icon: <Layers className="w-4 h-4" /> },
+          { key: 'users', label: locale === 'ar' ? 'إدارة المستخدمين' : 'Users Management', icon: <Users className="w-4 h-4" /> },
+          { key: 'settings', label: locale === 'ar' ? 'إعدادات التطبيق' : 'App Settings', icon: <Settings className="w-4 h-4" /> },
         ].map(tTab => (
           <button
             key={tTab.key}
             onClick={() => setActiveTab(tTab.key as any)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap shrink-0 ${
               activeTab === tTab.key
-                ? 'border-brand-500 text-brand-300'
+                ? 'border-brand-500 text-brand-300 font-bold'
                 : 'border-transparent text-ink-400 hover:text-ink-200'
             }`}
           >
@@ -622,149 +548,272 @@ export function CvMaker() {
         </div>
       )}
 
-      {/* ── Tab 4: Paywall Controls ── */}
-      {activeTab === 'paywall' && (
-        <div className="card p-6 space-y-6 max-w-2xl">
-          <div>
-            <h3 className="text-base font-bold text-ink-100 mb-1 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-brand-400" />
-              <span>CV Maker Dynamic Paywall Configuration</span>
-            </h3>
-            <p className="text-xs text-ink-400">
-              Settings synchronized in real-time with backend and user mobile apps without requiring app store updates.
-            </p>
-          </div>
 
-          <div className="space-y-4 divide-y divide-ink-800/60">
-            <div className="flex items-center justify-between pt-4">
-              <div>
-                <p className="text-sm font-semibold text-ink-100">Global In-App Paywall</p>
-                <p className="text-xs text-ink-400">When enabled, users must pay via InstaPay / Vodafone Cash to download PDFs.</p>
-              </div>
-              <button
-                onClick={() => handleTogglePaywall(!isPaymentEnabled)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${isPaymentEnabled ? 'bg-brand-500' : 'bg-ink-700'}`}
-              >
-                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${isPaymentEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between pt-4">
-              <div>
-                <p className="text-sm font-semibold text-ink-100">Store Review Bypass (Free Mode)</p>
-                <p className="text-xs text-ink-400">When reviewing with Apple / Google, toggle this to hide all payment prompts.</p>
-              </div>
-              <button
-                onClick={() => setIsPaymentEnabled(!isPaymentEnabled)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${!isPaymentEnabled ? 'bg-emerald-500' : 'bg-ink-700'}`}
-              >
-                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${!isPaymentEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-              </button>
-            </div>
-
-            <div className="pt-4 space-y-2">
-              <label className="block text-xs font-semibold text-ink-200">
-                PDF Export Unlock Price (EGP)
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="number"
-                  min="0"
-                  step="5"
-                  value={pdfPrice}
-                  onChange={e => setPdfPrice(Number(e.target.value))}
-                  className="input max-w-[160px]"
-                />
-                <span className="text-xs text-ink-400 font-medium">EGP per resume export</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-ink-800 flex justify-end">
-            <button
-              onClick={handleSavePricing}
-              disabled={saving}
-              className="btn btn-primary flex items-center gap-2 px-5 py-2 text-xs font-bold"
-            >
-              {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              <span>{saving ? t('common.saving') : t('common.save')}</span>
-            </button>
-          </div>
-        </div>
+      {/* ── Tab: App Settings ── */}
+      {activeTab === 'settings' && (
+        <AppSettingsManager
+          appId="cv_maker"
+          appNameAr="صانع السيرة الذاتية Studio"
+          appNameEn="CV Maker Studio"
+          icon={<FileText className="w-5 h-5 text-blue-400" />}
+          descriptionAr="إعدادات التسعير، التحديث الإجباري، إيقاف التحديث، وروابط المتاجر الخاصة بتطبيق صانع السيرة الذاتية."
+        />
       )}
 
-      {/* ── Tab 5: Recent CVs (Real database list) ── */}
+      {/* ── Tab: Recent CVs (Real database stream) ── */}
       {activeTab === 'recent' && (
         <div className="card overflow-hidden">
-          <div className="p-4 border-b border-ink-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-bold text-ink-100">{t('cv.recent_title')}</h3>
-              <p className="text-xs text-ink-400">{t('common.status')}</p>
+          {/* Card Header & Controls Toolbar */}
+          <div className="p-4 sm:p-5 border-b border-ink-800/80 bg-ink-950/40 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/25 flex items-center justify-center shrink-0 shadow-sm">
+                <Layers className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-sm font-bold text-ink-50">
+                    {t('cv.recent_title')}
+                  </h3>
+                  <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-300 border border-brand-500/25 tabular-nums">
+                    {locale === 'ar' ? `${filteredResumes.length} سيرة ذاتية` : `${filteredResumes.length} Resumes`}
+                  </span>
+                </div>
+                <p className="text-2xs text-ink-400 mt-0.5">
+                  {locale === 'ar' 
+                    ? 'متابعة حية ومباشرة لجميع السير الذاتية التي أنشأها المستخدمون مع تفاصيل القوالب والتنزيلات.'
+                    : 'Real-time database stream of resumes generated by users with template selection and downloads.'}
+                </p>
+              </div>
             </div>
 
-            {/* Template Filter Pill */}
-            {selectedTemplateFilter !== 'all' && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-ink-300">
-                  <strong className="text-brand-300">{selectedTemplateFilter}</strong>
-                </span>
+            {/* Filter Pills & Search */}
+            <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+              {/* Tier Filter Pills */}
+              <div className="flex items-center gap-1 bg-ink-900 border border-ink-800 rounded-lg p-0.5 text-2xs">
                 <button
+                  type="button"
+                  onClick={() => setResumeTierFilter('all')}
+                  className={`px-2.5 py-1 rounded transition-colors ${
+                    resumeTierFilter === 'all'
+                      ? 'bg-ink-700 text-ink-100 font-bold shadow-sm'
+                      : 'text-ink-400 hover:text-ink-200'
+                  }`}
+                >
+                  {t('common.all')} ({resumes.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResumeTierFilter('paid')}
+                  className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1 ${
+                    resumeTierFilter === 'paid'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold'
+                      : 'text-ink-400 hover:text-ink-200'
+                  }`}
+                >
+                  <Zap className="w-3 h-3 text-amber-400" />
+                  <span>{t('cv.vip_paid')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResumeTierFilter('free')}
+                  className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1 ${
+                    resumeTierFilter === 'free'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold'
+                      : 'text-ink-400 hover:text-ink-200'
+                  }`}
+                >
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  <span>{t('cv.free_tier')}</span>
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative flex-1 sm:w-56">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
+                <input
+                  type="text"
+                  placeholder={locale === 'ar' ? 'بحث بالاسم، المسمى، أو القالب...' : 'Search candidate, job, template...'}
+                  value={resumeSearch}
+                  onChange={e => setResumeSearch(e.target.value)}
+                  className="input w-full pl-8 py-1.5 text-xs font-medium"
+                />
+              </div>
+
+              {/* Refresh Button */}
+              <button
+                type="button"
+                onClick={() => fetchResumes()}
+                disabled={loadingResumes}
+                className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1.5 shrink-0"
+                title={locale === 'ar' ? 'تحديث البيانات' : 'Refresh'}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loadingResumes ? 'animate-spin text-brand-400' : ''}`} />
+                <span className="hidden sm:inline">{locale === 'ar' ? 'تحديث' : 'Refresh'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Active Template Filter Notice */}
+          {selectedTemplateFilter !== 'all' && (
+            <div className="px-4 py-2 bg-brand-500/10 border-b border-brand-500/20 flex items-center justify-between text-xs">
+              <span className="text-ink-300">
+                {locale === 'ar' ? 'تصفية حسب القالب:' : 'Filtered by template:'}{' '}
+                <strong className="text-brand-300 font-semibold">{selectedTemplateFilter}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedTemplateFilter('all');
+                  fetchResumes();
+                }}
+                className="text-xs text-rose-400 hover:underline font-medium"
+              >
+                {t('common.clear_filter')}
+              </button>
+            </div>
+          )}
+
+          {/* Table Content */}
+          {loadingResumes ? (
+            <div className="p-12 text-center text-xs text-ink-400 flex flex-col items-center justify-center gap-3">
+              <RefreshCw className="w-6 h-6 animate-spin text-brand-400" />
+              <span className="font-medium">{t('common.loading')}</span>
+            </div>
+          ) : filteredResumes.length === 0 ? (
+            <div className="p-12 text-center flex flex-col items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-ink-800/80 flex items-center justify-center text-ink-400 mb-3 border border-ink-700/60">
+                <Inbox className="w-6 h-6" />
+              </div>
+              <p className="text-sm font-bold text-ink-100 mb-1">
+                {resumeSearch.trim() || resumeTierFilter !== 'all' 
+                  ? (locale === 'ar' ? 'لا توجد سير ذاتية مطابقة للتصفية' : 'No matching resumes found')
+                  : t('cv.no_resumes_yet')}
+              </p>
+              <p className="text-xs text-ink-400 max-w-sm mb-3">
+                {resumeSearch.trim() || resumeTierFilter !== 'all'
+                  ? (locale === 'ar' ? 'جرّب تعديل كلمات البحث أو اختيار باقة أخرى.' : 'Try adjusting your search terms or filters.')
+                  : t('cv.no_resumes_desc')}
+              </p>
+              {(resumeSearch.trim() || resumeTierFilter !== 'all') && (
+                <button
+                  type="button"
                   onClick={() => {
-                    setSelectedTemplateFilter('all');
-                    fetchResumes();
+                    setResumeSearch('');
+                    setResumeTierFilter('all');
                   }}
-                  className="text-xs text-rose-400 hover:underline"
+                  className="btn-secondary text-xs px-3 py-1.5"
                 >
                   {t('common.clear_filter')}
                 </button>
-              </div>
-            )}
-          </div>
-
-          {loadingResumes ? (
-            <div className="p-8 text-center text-xs text-ink-400 flex items-center justify-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-brand-400" />
-              <span>{t('common.loading')}</span>
-            </div>
-          ) : resumes.length === 0 ? (
-            <div className="p-8 text-center">
-              <p className="text-sm font-semibold text-ink-200 mb-1">{t('cv.no_resumes_yet')}</p>
-              <p className="text-xs text-ink-500">{t('cv.no_resumes_desc')}</p>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="table w-full">
+              <table className="table w-full text-xs">
                 <thead>
                   <tr>
-                    <th>{t('cv.candidate')}</th>
-                    <th>{t('cv.target_job')}</th>
-                    <th>{t('cv.chosen_template')}</th>
-                    <th>{t('cv.downloads')}</th>
-                    <th>{t('cv.tier')}</th>
-                    <th>{t('cv.generated')}</th>
+                    <th className="px-4 py-3.5">{t('cv.candidate')}</th>
+                    <th className="px-4 py-3.5">{t('cv.target_job')}</th>
+                    <th className="px-4 py-3.5">{t('cv.chosen_template')}</th>
+                    <th className="px-4 py-3.5 text-center">{t('cv.downloads')}</th>
+                    <th className="px-4 py-3.5 text-center">{t('cv.tier')}</th>
+                    <th className="px-4 py-3.5">{t('cv.generated')}</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {resumes.map(c => (
-                    <tr key={c.id}>
-                      <td className="font-semibold text-ink-100">{c.candidate_name || 'Candidate'}</td>
-                      <td className="text-ink-300">{c.job_title || '—'}</td>
-                      <td>
-                        <span className="text-xs px-2 py-0.5 rounded bg-ink-800/80 text-ink-300 border border-ink-700/50">
-                          {c.template_name || 'Standard'}
-                        </span>
-                      </td>
-                      <td className="font-mono text-ink-200">{c.downloads_count || 0}</td>
-                      <td>
-                        <span className={`text-2xs font-bold px-2 py-0.5 rounded-full ${
-                          c.is_paid || c.is_vip ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-ink-700/40 text-ink-400'
-                        }`}>
-                          {c.is_paid || c.is_vip ? t('cv.vip_paid') : t('cv.free_tier')}
-                        </span>
-                      </td>
-                      <td className="text-2xs text-ink-500">{c.created_at ? timeAgo(c.created_at) : '—'}</td>
-                    </tr>
-                  ))}
+                <tbody className="divide-y divide-ink-800/50">
+                  {filteredResumes.map(c => {
+                    const initials = (c.candidate_name || 'C')
+                      .trim()
+                      .split(' ')
+                      .filter(Boolean)
+                      .map((w: string) => w[0])
+                      .join('')
+                      .slice(0, 2)
+                      .toUpperCase();
+
+                    const isPaid = !!c.is_paid || !!c.is_vip;
+
+                    return (
+                      <tr key={c.id} className="hover:bg-ink-800/35 transition-colors">
+                        {/* Candidate Name & Avatar */}
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-600/30 to-brand-500/10 text-brand-300 border border-brand-500/30 flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
+                              {initials}
+                            </div>
+                            <div>
+                              <span className="font-bold text-ink-100 block text-xs">
+                                {c.candidate_name || 'Candidate'}
+                              </span>
+                              {c.user_email ? (
+                                <span className="text-3xs text-ink-400 block font-mono mt-0.5">{c.user_email}</span>
+                              ) : c.phone ? (
+                                <span className="text-3xs text-ink-400 block font-mono mt-0.5">{c.phone}</span>
+                              ) : (
+                                <span className="text-3xs text-ink-500 block">ID: {c.id != null ? String(c.id).slice(0, 8) : '—'}</span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Target Job Title */}
+                        <td className="px-4 py-3.5">
+                          {c.job_title ? (
+                            <div className="flex items-center gap-1.5 text-ink-200">
+                              <Briefcase className="w-3.5 h-3.5 text-ink-400 shrink-0" />
+                              <span className="font-medium">{c.job_title}</span>
+                            </div>
+                          ) : (
+                            <span className="text-ink-500 font-mono">—</span>
+                          )}
+                        </td>
+
+                        {/* Chosen Template */}
+                        <td className="px-4 py-3.5">
+                          <span className="inline-flex items-center gap-1.5 text-2xs font-semibold px-2.5 py-1 rounded-lg bg-ink-800/80 text-brand-300 border border-brand-500/20 shadow-sm">
+                            <Palette className="w-3 h-3 text-brand-400 shrink-0" />
+                            <span>{c.template_name || 'Standard'}</span>
+                          </span>
+                        </td>
+
+                        {/* Downloads Counter */}
+                        <td className="px-4 py-3.5 text-center">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-ink-200 bg-ink-950/70 px-2.5 py-1 rounded-md border border-ink-800 shadow-inner">
+                            <Download className="w-3 h-3 text-ink-400" />
+                            <span className="tabular-nums">{c.downloads_count || 0}</span>
+                          </span>
+                        </td>
+
+                        {/* Tier Badge */}
+                        <td className="px-4 py-3.5 text-center">
+                          <span className={`inline-flex items-center gap-1 text-2xs font-bold px-2.5 py-1 rounded-full shadow-sm ${
+                            isPaid
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/35'
+                              : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/25'
+                          }`}>
+                            {isPaid ? (
+                              <>
+                                <Zap className="w-2.5 h-2.5 text-amber-400" />
+                                <span>{t('cv.vip_paid')}</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+                                <span>{t('cv.free_tier')}</span>
+                              </>
+                            )}
+                          </span>
+                        </td>
+
+                        {/* Created At Relative Time */}
+                        <td className="px-4 py-3.5">
+                          <span className="text-2xs text-ink-400 font-medium whitespace-nowrap">
+                            {c.created_at ? timeAgo(c.created_at, locale) : '—'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

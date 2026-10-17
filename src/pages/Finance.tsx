@@ -38,6 +38,8 @@ export function Finance() {
   const [receiptModal, setReceiptModal] = useState<{ payment: Payment; action: 'approve' | 'reject' } | null>(null);
   const [acting, setActing] = useState(false);
   const [kpis, setKpis] = useState({ total: 0, pending: 0, pendingAmount: 0, rejected: 0, approved: 0 });
+  const [revenueHistory, setRevenueHistory] = useState<{ date: string; value: number }[]>([]);
+  const [productRevenue, setProductRevenue] = useState<{ label: string; value: number; color?: string }[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,6 +63,47 @@ export function Finance() {
         rejected: all.data.filter(p => p.status === 'rejected').length,
         approved: all.data.filter(p => p.status === 'paid').length,
       });
+
+      // Aggregate real daily revenue over the last 30 days
+      const revMap = new Map<string, number>();
+      all.data.forEach(p => {
+        if (p.status === 'paid') {
+          const dateStr = (p.reviewed_at || p.created_at || '').slice(0, 10);
+          if (dateStr) {
+            revMap.set(dateStr, (revMap.get(dateStr) || 0) + (p.submitted_amount || 0));
+          }
+        }
+      });
+
+      const timeline: { date: string; value: number }[] = [];
+      for (let d = 29; d >= 0; d--) {
+        const dateKey = new Date(Date.now() - d * 86_400_000).toISOString().slice(0, 10);
+        timeline.push({
+          date: dateKey,
+          value: revMap.get(dateKey) || 0,
+        });
+      }
+      setRevenueHistory(timeline);
+
+      // Aggregate real approved revenue grouped by product
+      const prodMap: Record<string, number> = {
+        dawaty: 0,
+        digital_menu: 0,
+        cv_maker: 0,
+        qr_me: 0,
+      };
+      all.data.forEach(p => {
+        if (p.status === 'paid' && p.product in prodMap) {
+          prodMap[p.product] += (p.submitted_amount || 0);
+        }
+      });
+
+      setProductRevenue([
+        { label: 'Dawaty', value: prodMap.dawaty, color: CHART_COLORS.pink },
+        { label: 'Digital Menu', value: prodMap.digital_menu, color: CHART_COLORS.brand },
+        { label: 'CV Maker', value: prodMap.cv_maker, color: CHART_COLORS.accent },
+        { label: 'QR Me', value: prodMap.qr_me, color: CHART_COLORS.warning },
+      ]);
     } catch {
       setError(true);
     } finally {
@@ -95,8 +138,10 @@ export function Finance() {
       type: 'select', label: t('finance.filter_product'), value: productFilter,
       options: [
         { label: t('finance.filter_all'), value: 'all' },
+        { label: 'CV Maker', value: 'cv_maker' },
         { label: 'Dawaty', value: 'dawaty' },
         { label: 'Digital Menu', value: 'digital_menu' },
+        { label: 'QR Me', value: 'qr_me' },
       ],
       onChange: (v: string) => { setProductFilter(v); setPage(1); },
     },
@@ -170,16 +215,13 @@ export function Finance() {
         <div className="card p-5 lg:col-span-2">
           <h3 className="text-sm font-semibold text-ink-100 mb-1">{t('finance.chart_rev_over_time')}</h3>
           <p className="text-xs text-ink-400 mb-4">{t('finance.chart_rev_over_time_sub')}</p>
-          <LineChart data={(() => { const r: { date: string; value: number }[] = []; for (let d = 29; d >= 0; d--) { r.push({ date: new Date(Date.now() - d * 86_400_000).toISOString().slice(0, 10), value: Math.round(30_000 + Math.sin(d / 4) * 8_000 + (30 - d) * 120 + (d * 37) % 5_000) }); } return r; })()} height={200} color={CHART_COLORS.success} format={n => egp(n)} />
+          <LineChart data={revenueHistory} height={200} color={CHART_COLORS.success} format={n => egp(n)} />
         </div>
         <div className="card p-5">
           <h3 className="text-sm font-semibold text-ink-100 mb-1">{t('finance.chart_rev_by_product')}</h3>
           <p className="text-xs text-ink-400 mb-4">{t('finance.chart_rev_by_product_sub')}</p>
           <BarChart
-            data={[
-              { label: 'Dawaty', value: 486_200, color: CHART_COLORS.pink },
-              { label: 'Digital Menu', value: 798_300, color: CHART_COLORS.brand },
-            ]}
+            data={productRevenue}
             height={200}
             format={n => compactEGP(n)}
           />

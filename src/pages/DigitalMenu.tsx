@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2, FileSpreadsheet, LogIn, Copy, Check, Users, Mail, Phone, Zap, Loader2, ShieldCheck, UserCheck } from 'lucide-react';
+import { UtensilsCrossed, Sparkles, ShoppingBag, AlertCircle, Store, CheckCircle2, ExternalLink, Globe2, Edit3, Save, X, QrCode, Trash2, FileSpreadsheet, LogIn, Copy, Check, Users, Mail, Phone, Zap, Loader2, ShieldCheck, UserCheck, Settings } from 'lucide-react';
 import { exportToCsv } from '@/lib/exportCsv';
 import { api } from '@/lib/api';
 import type { Restaurant, Order, AIUsageSummary, RestaurantStatus, TeamMember } from '@/lib/types';
@@ -17,9 +17,10 @@ import { useLocale } from '@/context/LocaleContext';
 import { useRole } from '@/context/RoleContext';
 import { useToast } from '@/context/ToastContext';
 import { AppUsersManager } from '@/components/AppUsersManager';
+import { AppSettingsManager } from '@/components/AppSettingsManager';
 
 
-type SubTab = 'restaurants' | 'users' | 'ai' | 'orders';
+type SubTab = 'restaurants' | 'users' | 'ai' | 'orders' | 'settings';
 
 export function DigitalMenu() {
   const { t, locale } = useLocale();
@@ -33,6 +34,7 @@ export function DigitalMenu() {
           { key: 'users', label: locale === 'ar' ? 'إدارة المستخدمين' : 'Users Management', icon: <Users className="w-3.5 h-3.5" /> },
           { key: 'ai', label: t('menu.tab_ai'), icon: <Sparkles className="w-3.5 h-3.5" /> },
           { key: 'orders', label: t('menu.tab_orders'), icon: <ShoppingBag className="w-3.5 h-3.5" /> },
+          { key: 'settings', label: locale === 'ar' ? 'إعدادات التطبيق' : 'App Settings', icon: <Settings className="w-3.5 h-3.5" /> },
         ] as const).map(tItem => (
           <button
             key={tItem.key}
@@ -50,6 +52,15 @@ export function DigitalMenu() {
       {tab === 'users' && <AppUsersManager product="digital_menu" productNameAr="المنيو الرقمي" productNameEn="Digital Menu" icon={<UtensilsCrossed className="w-4 h-4 text-amber-400" />} />}
       {tab === 'ai' && <AITab />}
       {tab === 'orders' && <OrdersTab />}
+      {tab === 'settings' && (
+        <AppSettingsManager
+          appId="digital_menu"
+          appNameAr="المنيو الرقمي والمطاعم"
+          appNameEn="Digital Menu"
+          icon={<UtensilsCrossed className="w-5 h-5 text-amber-400" />}
+          descriptionAr="إعدادات اشتراكات المطاعم، التحديث الإجباري، إيقاف التحديث، وروابط المتاجر الخاصة بتطبيق المنيو الرقمي."
+        />
+      )}
     </div>
   );
 }
@@ -161,11 +172,13 @@ function RestaurantsTab() {
     setDeleting(true);
     try {
       await api.digitalMenu.bulkDelete(selectedIds);
+      const count = selectedIds.length;
       setRows(prev => prev.filter(r => !selectedIds.includes(r.id)));
       setSelectedIds([]);
-      setTotal(prev => Math.max(0, prev - selectedIds.length));
+      setTotal(prev => Math.max(0, prev - count));
+      toast.success(locale === 'ar' ? `تم حذف ${count} مطعم بنجاح` : `Successfully deleted ${count} restaurants`);
     } catch (err) {
-      alert(locale === 'ar' ? 'فشل حذف المطاعم المحددة.' : 'Failed to delete selected restaurants.');
+      toast.error(locale === 'ar' ? 'فشل حذف المطاعم المحددة.' : 'Failed to delete selected restaurants.');
     } finally {
       setDeleting(false);
     }
@@ -182,8 +195,9 @@ function RestaurantsTab() {
       setDrawerOpen(false);
       setSelected(null);
       setTotal(prev => Math.max(0, prev - 1));
+      toast.success(locale === 'ar' ? 'تم حذف المطعم بنجاح' : 'Restaurant deleted successfully');
     } catch (err) {
-      alert(locale === 'ar' ? 'فشل حذف المطعم.' : 'Failed to delete restaurant.');
+      toast.error(locale === 'ar' ? 'فشل حذف المطعم.' : 'Failed to delete restaurant.');
     } finally {
       setDeleting(false);
     }
@@ -231,8 +245,9 @@ function RestaurantsTab() {
       if (selected?.id === r.id) {
         setSelected(prev => (prev ? { ...prev, menu_published: newVal } : prev));
       }
+      toast.success(newVal ? (locale === 'ar' ? 'تم نشر المنيو للجمهور' : 'Menu published') : (locale === 'ar' ? 'تم إيقاف نشر المنيو مؤقتاً' : 'Menu unpublished'));
     } catch {
-      alert(locale === 'ar' ? 'فشل تغيير حالة نشر المنيو.' : 'Failed to toggle menu publication.');
+      toast.error(locale === 'ar' ? 'فشل تغيير حالة نشر المنيو.' : 'Failed to toggle menu publication.');
     }
   };
 
@@ -423,6 +438,7 @@ function RestaurantDetail({
   onOwnerDeleted: () => void;
 }) {
   const { locale, t } = useLocale();
+  const toast = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isEditingOwner, setIsEditingOwner] = useState(false);
@@ -493,9 +509,10 @@ function RestaurantDetail({
         menu_published: formData.menu_published,
       });
       setSuccessMsg(locale === 'ar' ? 'تم تحديث بيانات المطعم بنجاح!' : 'Restaurant updated successfully!');
+      toast.success(locale === 'ar' ? 'تم تحديث بيانات المطعم بنجاح' : 'Restaurant updated successfully');
       setIsEditing(false);
     } catch (err) {
-      alert(locale === 'ar' ? 'فشل تحديث بيانات المطعم.' : 'Failed to update restaurant.');
+      toast.error(locale === 'ar' ? 'فشل تحديث بيانات المطعم.' : 'Failed to update restaurant.');
     } finally {
       setSaving(false);
     }
@@ -522,8 +539,9 @@ function RestaurantDetail({
       });
       setIsEditingOwner(false);
       setSuccessMsg(locale === 'ar' ? 'تم تحديث بيانات حساب المالك بنجاح!' : 'Owner details updated successfully!');
+      toast.success(locale === 'ar' ? 'تم تحديث بيانات حساب المالك بنجاح' : 'Owner details updated successfully');
     } catch (err) {
-      alert(locale === 'ar' ? 'فشل تحديث بيانات المالك.' : 'Failed to update owner profile.');
+      toast.error(locale === 'ar' ? 'فشل تحديث بيانات المالك.' : 'Failed to update owner profile.');
     } finally {
       setSavingOwner(false);
     }
@@ -539,9 +557,10 @@ function RestaurantDetail({
     setDeletingOwner(true);
     try {
       await api.users.delete(r.owner_id);
+      toast.success(locale === 'ar' ? 'تم حذف حساب المالك بنجاح' : 'Owner account deleted successfully');
       onOwnerDeleted();
     } catch (err) {
-      alert(locale === 'ar' ? 'فشل حذف حساب المالك.' : 'Failed to delete owner account.');
+      toast.error(locale === 'ar' ? 'فشل حذف حساب المالك.' : 'Failed to delete owner account.');
       setDeletingOwner(false);
     }
   };
@@ -553,7 +572,7 @@ function RestaurantDetail({
       const res = await api.digitalMenu.impersonate(r.id);
       setImpersonationModal(res.data);
     } catch (err) {
-      alert('Failed to generate restaurant impersonation token.');
+      toast.error(locale === 'ar' ? 'فشل إنشاء جلسة تسجيل الدخول للمطعم.' : 'Failed to generate restaurant impersonation token.');
     } finally {
       setImpersonating(false);
     }
@@ -577,8 +596,9 @@ function RestaurantDetail({
         plan: 'monthly',
       });
       setSuccessMsg(locale === 'ar' ? 'تم تفعيل الاشتراك والدفع بنجاح وتحديث حالة المطعم إلى نشط!' : 'Subscription activated successfully!');
+      toast.success(locale === 'ar' ? 'تم تفعيل الاشتراك والدفع بنجاح' : 'Subscription activated successfully');
     } catch (err) {
-      alert(locale === 'ar' ? 'فشل تفعيل الاشتراك.' : 'Failed to activate subscription.');
+      toast.error(locale === 'ar' ? 'فشل تفعيل الاشتراك.' : 'Failed to activate subscription.');
     } finally {
       setActivatingSub(false);
     }

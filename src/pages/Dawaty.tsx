@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { 
   Heart, Eye, QrCode, Users, FileText, ChevronRight, ExternalLink, 
   Sparkles, CheckCircle2, PauseCircle, Loader2, MapPin, Calendar, Clock, UserCheck,
-  Edit3, Save, X, Trash2, AlertTriangle, FileSpreadsheet
+  Edit3, Save, X, Trash2, AlertTriangle, FileSpreadsheet, Settings
 } from 'lucide-react';
 import { exportToCsv } from '@/lib/exportCsv';
 import { api } from '@/lib/api';
@@ -18,10 +18,13 @@ import { ErrorState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/Layout';
 import { num, date, relativeDays } from '@/lib/format';
 import { useLocale } from '@/context/LocaleContext';
+import { useToast } from '@/context/ToastContext';
 import { AppUsersManager } from '@/components/AppUsersManager';
+import { AppSettingsManager } from '@/components/AppSettingsManager';
 
 export function Dawaty() {
   const { t, locale } = useLocale();
+  const toast = useToast();
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -32,7 +35,7 @@ export function Dawaty() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [kpis, setKpis] = useState({ total: 0, published: 0, visits: 0, rsvp: 0 });
   const [usersCount, setUsersCount] = useState(0);
-  const [activeTab, setActiveTab] = useState<'invitations' | 'users'>('invitations');
+  const [activeTab, setActiveTab] = useState<'invitations' | 'users' | 'settings'>('invitations');
   const [toggling, setToggling] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
@@ -80,11 +83,13 @@ export function Dawaty() {
     setDeleting(true);
     try {
       await api.dawaty.bulkDelete(selectedIds);
+      const count = selectedIds.length;
       setInvitations(prev => prev.filter(i => !selectedIds.includes(i.id)));
       setSelectedIds([]);
-      setTotal(prev => Math.max(0, prev - selectedIds.length));
+      setTotal(prev => Math.max(0, prev - count));
+      toast.success(locale === 'ar' ? `تم حذف ${count} دعوة بنجاح` : `Successfully deleted ${count} invitations`);
     } catch (err) {
-      alert('Failed to delete selected invitations.');
+      toast.error(locale === 'ar' ? 'فشل حذف الدعوات المحددة.' : 'Failed to delete selected invitations.');
     } finally {
       setDeleting(false);
     }
@@ -101,8 +106,9 @@ export function Dawaty() {
       setDrawerOpen(false);
       setSelected(null);
       setTotal(prev => Math.max(0, prev - 1));
+      toast.success(locale === 'ar' ? 'تم حذف الدعوة بنجاح' : 'Invitation deleted successfully');
     } catch (err) {
-      alert('Failed to delete invitation.');
+      toast.error(locale === 'ar' ? 'فشل حذف الدعوة.' : 'Failed to delete invitation.');
     } finally {
       setDeleting(false);
     }
@@ -258,10 +264,30 @@ export function Dawaty() {
             </span>
           )}
         </button>
+
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
+            activeTab === 'settings'
+              ? 'bg-brand-600 text-white shadow-soft'
+              : 'bg-ink-900 text-ink-400 hover:text-ink-200 border border-ink-800'
+          }`}
+        >
+          <Settings className="w-4 h-4" />
+          <span>{locale === 'ar' ? 'إعدادات التطبيق' : 'App Settings'}</span>
+        </button>
       </div>
 
       {activeTab === 'users' ? (
         <AppUsersManager product="dawaty" productNameAr="دعوتي" productNameEn="Dawaty" icon={<Heart className="w-4 h-4 text-rose-400" />} />
+      ) : activeTab === 'settings' ? (
+        <AppSettingsManager
+          appId="dawaty"
+          appNameAr="منصة دعوتي الإلكترونية"
+          appNameEn="Dawaty Platform"
+          icon={<Heart className="w-5 h-5 text-rose-400" />}
+          descriptionAr="إعدادات التسعير والدفع، التحديث الإجباري، إيقاف التحديث، وروابط المتاجر الخاصة بتطبيق دعوتي."
+        />
       ) : (
         <>
       {/* Funnel widget */}
@@ -385,6 +411,7 @@ function InvitationDetail({
   onDelete: () => void;
 }) {
   const { locale, t } = useLocale();
+  const toast = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
@@ -448,10 +475,11 @@ function InvitationDetail({
         event_date: formData.wedding_date,
         date: formData.wedding_date,
       });
-      setSuccessMsg('Invitation updated successfully!');
+      setSuccessMsg(locale === 'ar' ? 'تم تحديث الدعوة بنجاح!' : 'Invitation updated successfully!');
+      toast.success(locale === 'ar' ? 'تم تحديث الدعوة بنجاح' : 'Invitation updated successfully');
       setIsEditing(false);
     } catch (err) {
-      alert('Failed to update invitation.');
+      toast.error(locale === 'ar' ? 'فشل تحديث بيانات الدعوة.' : 'Failed to update invitation.');
     } finally {
       setSaving(false);
     }

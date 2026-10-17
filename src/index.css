@@ -96,6 +96,22 @@
     transform: translateX(-100%);
     animation: shimmer 1.6s infinite;
   }
+
+  .table {
+    @apply w-full text-xs text-ink-200 border-collapse;
+  }
+  .table thead {
+    @apply bg-ink-950/70 border-b border-ink-800 text-ink-400;
+  }
+  .table th {
+    @apply px-4 py-3 text-start text-2xs font-semibold uppercase tracking-wider whitespace-nowrap;
+  }
+  .table tbody tr {
+    @apply border-b border-ink-800/60 hover:bg-ink-800/30 transition-colors;
+  }
+  .table td {
+    @apply px-4 py-3.5 align-middle;
+  }
 }
 
 @layer utilities {

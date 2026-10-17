@@ -10,19 +10,20 @@ import { useLocale } from '@/context/LocaleContext';
 import { canAccess, type PageKey } from '@/lib/rbac';
 import { ROLES } from '@/lib/rbac';
 import { timeAgo } from '@/lib/format';
+import { handlePageHover } from '@/lib/pagePrefetch';
 
 const NAV: { key: PageKey; label: string; icon: ReactNode }[] = [
   { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-[18px] h-[18px]" /> },
   { key: 'analytics', label: 'Live Analytics', icon: <BarChart3 className="w-[18px] h-[18px]" /> },
-  { key: 'server_health', label: 'Server Health', icon: <Server className="w-[18px] h-[18px]" /> },
-  { key: 'crashlytics', label: 'Crashlytics', icon: <Bug className="w-[18px] h-[18px]" /> },
   { key: 'dawaty', label: 'Dawaty', icon: <Heart className="w-[18px] h-[18px]" /> },
   { key: 'digital_menu', label: 'Digital Menu', icon: <UtensilsCrossed className="w-[18px] h-[18px]" /> },
   { key: 'cv_maker', label: 'CV Maker Studio', icon: <FileText className="w-[18px] h-[18px]" /> },
   { key: 'qr_me', label: 'QR Me Barcode', icon: <QrCode className="w-[18px] h-[18px]" /> },
   { key: 'finance', label: 'Finance', icon: <Wallet className="w-[18px] h-[18px]" /> },
-  { key: 'ai_usage', label: 'AI Usage', icon: <Sparkles className="w-[18px] h-[18px]" /> },
   { key: 'users', label: 'Users', icon: <Users className="w-[18px] h-[18px]" /> },
+  { key: 'ai_usage', label: 'AI Usage', icon: <Sparkles className="w-[18px] h-[18px]" /> },
+  { key: 'crashlytics', label: 'Crashlytics', icon: <Bug className="w-[18px] h-[18px]" /> },
+  { key: 'server_health', label: 'Server Health', icon: <Server className="w-[18px] h-[18px]" /> },
   { key: 'support', label: 'Support & Requests', icon: <LifeBuoy className="w-[18px] h-[18px]" /> },
   { key: 'website', label: 'Website CMS', icon: <Globe2 className="w-[18px] h-[18px]" /> },
   { key: 'settings', label: 'Settings', icon: <Settings className="w-[18px] h-[18px]" /> },
@@ -75,6 +76,8 @@ export function Layout({ current, onNavigate, children, pendingCount = 0, suppor
             <button
               key={item.key}
               onClick={() => { onNavigate(item.key); setMobileOpen(false); }}
+              onMouseEnter={() => handlePageHover(item.key)}
+              onFocus={() => handlePageHover(item.key)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group ${
                 active
                   ? 'bg-brand-600/10 text-brand-300 border border-brand-600/20'

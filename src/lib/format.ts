@@ -67,16 +67,45 @@ export function timeAgo(iso: string, locale?: string): string {
   const isAr = locale ? locale === 'ar' : (typeof window !== 'undefined' && localStorage.getItem('ouonex-dashboard-locale') === 'ar');
   const diff = Date.now() - new Date(iso).getTime();
   const s = Math.floor(diff / 1000);
-  if (s < 60) return isAr ? 'الآن (just now)' : 'just now';
+  if (s < 60) return isAr ? 'الآن' : 'just now';
   const m = Math.floor(s / 60);
-  if (m < 60) return isAr ? `منذ ${m} دقيقة (${m}m ago)` : `${m}m ago`;
+  if (m < 60) {
+    if (!isAr) return `${m}m ago`;
+    if (m === 1) return 'منذ دقيقة';
+    if (m === 2) return 'منذ دقيقتين';
+    if (m <= 10) return `منذ ${m} دقائق`;
+    return `منذ ${m} دقيقة`;
+  }
   const h = Math.floor(m / 60);
-  if (h < 24) return isAr ? `منذ ${h} ساعة (${h}h ago)` : `${h}h ago`;
+  if (h < 24) {
+    if (!isAr) return `${h}h ago`;
+    if (h === 1) return 'منذ ساعة';
+    if (h === 2) return 'منذ ساعتين';
+    if (h <= 10) return `منذ ${h} ساعات`;
+    return `منذ ${h} ساعة`;
+  }
   const d = Math.floor(h / 24);
-  if (d < 30) return isAr ? `منذ ${d} يوم (${d}d ago)` : `${d}d ago`;
+  if (d < 30) {
+    if (!isAr) return `${d}d ago`;
+    if (d === 1) return 'منذ يوم';
+    if (d === 2) return 'منذ يومين';
+    if (d <= 10) return `منذ ${d} أيام`;
+    return `منذ ${d} يوم`;
+  }
   const mo = Math.floor(d / 30);
-  if (mo < 12) return isAr ? `منذ ${mo} شهر (${mo}mo ago)` : `${mo}mo ago`;
-  return isAr ? `منذ ${Math.floor(mo / 12)} سنة (${Math.floor(mo / 12)}y ago)` : `${Math.floor(mo / 12)}y ago`;
+  if (mo < 12) {
+    if (!isAr) return `${mo}mo ago`;
+    if (mo === 1) return 'منذ شهر';
+    if (mo === 2) return 'منذ شهرين';
+    if (mo <= 10) return `منذ ${mo} أشهر`;
+    return `منذ ${mo} شهر`;
+  }
+  const y = Math.floor(mo / 12);
+  if (!isAr) return `${y}y ago`;
+  if (y === 1) return 'منذ سنة';
+  if (y === 2) return 'منذ سنتين';
+  if (y <= 10) return `منذ ${y} سنوات`;
+  return `منذ ${y} سنة`;
 }
 
 export function formatHealthName(h: { name: string; product?: string; name_ar?: string }, locale?: string): string {

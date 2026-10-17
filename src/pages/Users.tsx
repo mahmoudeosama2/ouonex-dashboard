@@ -402,6 +402,7 @@ function UserDetail({
   onDelete?: () => void;
 }) {
   const { t, locale } = useLocale();
+  const toast = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [impersonating, setImpersonating] = useState(false);
@@ -444,9 +445,10 @@ function UserDetail({
       await api.users.update(user.id, payload);
       onUpdated({ name: formData.name, email: formData.email, status: formData.status });
       setSuccessMsg(locale === 'ar' ? 'تم تحديث المستخدم بنجاح!' : 'User updated successfully!');
+      toast.success(locale === 'ar' ? 'تم تحديث المستخدم بنجاح' : 'User updated successfully');
       setIsEditing(false);
     } catch {
-      alert(locale === 'ar' ? 'فشل تحديث المستخدم. يرجى المحاولة ثانية.' : 'Failed to update user. Please try again.');
+      toast.error(locale === 'ar' ? 'فشل تحديث المستخدم. يرجى المحاولة ثانية.' : 'Failed to update user. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -458,7 +460,7 @@ function UserDetail({
       const res = await api.users.impersonate(user.id);
       setImpersonationModal(res.data);
     } catch {
-      alert(locale === 'ar' ? 'فشل إنشاء جلسة تسجيل الدخول لهذا المستخدم.' : 'Failed to generate impersonation token for this user.');
+      toast.error(locale === 'ar' ? 'فشل إنشاء جلسة تسجيل الدخول لهذا المستخدم.' : 'Failed to generate impersonation token for this user.');
     } finally {
       setImpersonating(false);
     }

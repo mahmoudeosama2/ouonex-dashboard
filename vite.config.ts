@@ -11,10 +11,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-  optimizeDeps: {
-    exclude: ['lucide-react'],
-  },
   build: {
+    target: 'es2020',
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -23,6 +22,5 @@ export default defineConfig({
         },
       },
     },
-    chunkSizeWarningLimit: 600,
   },
 });

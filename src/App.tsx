@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { RoleProvider, useRole } from '@/context/RoleContext';
 import { ToastProvider } from '@/context/ToastContext';
@@ -9,29 +9,68 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { canAccess, type PageKey } from '@/lib/rbac';
 import { api } from '@/lib/api';
 import { Login } from '@/pages/Login';
-import { Overview } from '@/pages/Overview';
-import { Analytics } from '@/pages/Analytics';
-import { Finance } from '@/pages/Finance';
-import { Dawaty } from '@/pages/Dawaty';
-import { DigitalMenu } from '@/pages/DigitalMenu';
-import { CvMaker } from '@/pages/CvMaker';
-import { QrMe } from '@/pages/QrMe';
-import { AIUsage } from '@/pages/AIUsage';
-import { UsersPage } from '@/pages/Users';
-import { SupportPage } from '@/pages/Support';
-import { Settings } from '@/pages/Settings';
-import { WebsiteCMS } from '@/pages/WebsiteCMS';
-import { ServerHealth } from '@/pages/ServerHealth';
-import { CrashlyticsErrors } from '@/pages/CrashlyticsErrors';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, Loader2 } from 'lucide-react';
 import type { Role } from '@/lib/types';
+import { PendingPaymentAlertModal } from '@/components/PendingPaymentAlertModal';
+import { playPendingAlertSound } from '@/lib/audio';
+
+// Ultra-fast Code-Splitting: Lazy load each page chunk on demand or on hover
+const Overview = lazy(() => import('@/pages/Overview').then(m => ({ default: m.Overview })));
+const Analytics = lazy(() => import('@/pages/Analytics').then(m => ({ default: m.Analytics })));
+const Finance = lazy(() => import('@/pages/Finance').then(m => ({ default: m.Finance })));
+const Dawaty = lazy(() => import('@/pages/Dawaty').then(m => ({ default: m.Dawaty })));
+const DigitalMenu = lazy(() => import('@/pages/DigitalMenu').then(m => ({ default: m.DigitalMenu })));
+const CvMaker = lazy(() => import('@/pages/CvMaker').then(m => ({ default: m.CvMaker })));
+const QrMe = lazy(() => import('@/pages/QrMe').then(m => ({ default: m.QrMe })));
+const AIUsage = lazy(() => import('@/pages/AIUsage').then(m => ({ default: m.AIUsage })));
+const UsersPage = lazy(() => import('@/pages/Users').then(m => ({ default: m.UsersPage })));
+const SupportPage = lazy(() => import('@/pages/Support').then(m => ({ default: m.SupportPage })));
+const Settings = lazy(() => import('@/pages/Settings').then(m => ({ default: m.Settings })));
+const WebsiteCMS = lazy(() => import('@/pages/WebsiteCMS').then(m => ({ default: m.WebsiteCMS })));
+const ServerHealth = lazy(() => import('@/pages/ServerHealth').then(m => ({ default: m.ServerHealth })));
+const CrashlyticsErrors = lazy(() => import('@/pages/CrashlyticsErrors').then(m => ({ default: m.CrashlyticsErrors })));
+
+function PageLoadingFallback() {
+  return (
+    <div className="w-full min-h-[400px] flex flex-col items-center justify-center py-20 space-y-3 animate-fade-in">
+      <div className="relative">
+        <div className="w-10 h-10 rounded-full border-2 border-brand-500/20 border-t-brand-500 animate-spin" />
+        <Loader2 className="w-5 h-5 text-brand-400 absolute inset-0 m-auto animate-pulse" />
+      </div>
+      <span className="text-xs text-ink-400 font-medium tracking-wide">جاري التحميل اللحظي...</span>
+    </div>
+  );
+}
+
+function renderPageComponent(p: PageKey, onNavigate: (p: PageKey) => void) {
+  switch (p) {
+    case 'overview': return <Overview onNavigate={onNavigate} />;
+    case 'analytics': return <Analytics />;
+    case 'server_health': return <ServerHealth />;
+    case 'crashlytics': return <CrashlyticsErrors />;
+    case 'finance': return <Finance />;
+    case 'dawaty': return <Dawaty />;
+    case 'digital_menu': return <DigitalMenu />;
+    case 'cv_maker': return <CvMaker />;
+    case 'qr_me': return <QrMe />;
+    case 'ai_usage': return <AIUsage />;
+    case 'users': return <UsersPage />;
+    case 'support': return <SupportPage />;
+    case 'settings': return <Settings onNavigate={onNavigate} />;
+    case 'website': return <WebsiteCMS />;
+    default: return <Overview onNavigate={onNavigate} />;
+  }
+}
 
 function Dashboard() {
   const { role, can } = useRole();
   const [page, setPage] = useState<PageKey>('overview');
+  const [visitedPages, setVisitedPages] = useState<Set<PageKey>>(() => new Set(['overview']));
   const [pendingCount, setPendingCount] = useState(0);
   const [supportCount, setSupportCount] = useState(0);
   const [retryKey, setRetryKey] = useState(0);
+  const [showPendingModal, setShowPendingModal] = useState(false);
+  const hasAlertedPendingRef = useRef(false);
 
   const refreshCounters = useCallback(async () => {
     try {
@@ -39,7 +78,15 @@ function Dashboard() {
         api.payments.pending(),
         api.support.overview(),
       ]);
-      if (pending.status === 'fulfilled') setPendingCount(pending.value.length);
+      if (pending.status === 'fulfilled') {
+        const count = pending.value.length;
+        setPendingCount(count);
+        if (count > 0 && !hasAlertedPendingRef.current) {
+          hasAlertedPendingRef.current = true;
+          setShowPendingModal(true);
+          playPendingAlertSound();
+        }
+      }
       if (ov.status === 'fulfilled') setSupportCount(ov.value.data.unread_badge || 0);
     } catch {
       // ignore
@@ -48,46 +95,69 @@ function Dashboard() {
 
   useEffect(() => { refreshCounters(); }, [refreshCounters]);
 
-  const handleNavigate = (p: PageKey) => {
-    if (canAccess(role, p)) setPage(p);
-  };
-
-  let content: React.ReactNode;
-  if (!can(page)) {
-    content = (
-      <EmptyState
-        icon={<ShieldAlert className="w-5 h-5" />}
-        title="Access restricted"
-        message={`Your role (${role}) does not have permission to view this page. Switch roles from the top-right menu to explore.`}
-      />
-    );
-  } else {
-    switch (page) {
-      case 'overview': content = <Overview onNavigate={handleNavigate} />; break;
-      case 'analytics': content = <Analytics />; break;
-      case 'server_health': content = <ServerHealth />; break;
-      case 'crashlytics': content = <CrashlyticsErrors />; break;
-      case 'finance': content = <Finance />; break;
-      case 'dawaty': content = <Dawaty />; break;
-      case 'digital_menu': content = <DigitalMenu />; break;
-      case 'cv_maker': content = <CvMaker />; break;
-      case 'qr_me': content = <QrMe />; break;
-      case 'ai_usage': content = <AIUsage />; break;
-      case 'users': content = <UsersPage />; break;
-      case 'support': content = <SupportPage />; break;
-      case 'settings': content = <Settings />; break;
-      case 'website': content = <WebsiteCMS />; break;
-      default: content = <Overview onNavigate={handleNavigate} />;
+  const handleNavigate = useCallback((p: PageKey) => {
+    if (canAccess(role, p)) {
+      setVisitedPages(prev => {
+        if (prev.has(p)) return prev;
+        const next = new Set(prev);
+        next.add(p);
+        return next;
+      });
+      setPage(p);
     }
-  }
+  }, [role]);
+
+  // Keep visitedPages in sync with current role permissions
+  useEffect(() => {
+    setVisitedPages(prev => {
+      const next = new Set<PageKey>();
+      for (const p of prev) {
+        if (canAccess(role, p)) next.add(p);
+      }
+      if (!next.has(page) && canAccess(role, page)) {
+        next.add(page);
+      }
+      return next;
+    });
+  }, [role, page]);
 
   return (
     <Layout current={page} onNavigate={handleNavigate} pendingCount={pendingCount} supportCount={supportCount}>
-      <ErrorBoundary key={`${page}-${retryKey}`} onRetry={() => setRetryKey(k => k + 1)}>
-        <div key={page} className="animate-fade-in">
-          {content}
-        </div>
-      </ErrorBoundary>
+      {!can(page) ? (
+        <EmptyState
+          icon={<ShieldAlert className="w-5 h-5" />}
+          title="Access restricted"
+          message={`Your role (${role}) does not have permission to view this page. Switch roles from the top-right menu to explore.`}
+        />
+      ) : (
+        Array.from(visitedPages).map(p => {
+          const isCurrent = p === page;
+          return (
+            <div
+              key={p}
+              style={{ display: isCurrent ? 'block' : 'none' }}
+              className={isCurrent ? 'animate-fade-in' : undefined}
+            >
+              <ErrorBoundary key={`${p}-${retryKey}`} onRetry={() => setRetryKey(k => k + 1)}>
+                <Suspense fallback={<PageLoadingFallback />}>
+                  {renderPageComponent(p, handleNavigate)}
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+          );
+        })
+      )}
+
+      {/* Central modal for manual payment approval alert */}
+      <PendingPaymentAlertModal
+        open={showPendingModal}
+        pendingCount={pendingCount}
+        onReview={() => {
+          setShowPendingModal(false);
+          handleNavigate('finance');
+        }}
+        onClose={() => setShowPendingModal(false)}
+      />
     </Layout>
   );
 }

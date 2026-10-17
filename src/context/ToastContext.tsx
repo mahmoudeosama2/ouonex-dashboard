@@ -6,6 +6,7 @@ interface Toast { id: string; type: ToastType; title: string; message?: string; 
 
 interface ToastCtx {
   toast: (t: { type: ToastType; title: string; message?: string }) => void;
+  addToast: (t: { type?: ToastType; title?: string; message: string }) => void;
   success: (title: string, message?: string) => void;
   error: (title: string, message?: string) => void;
   info: (title: string, message?: string) => void;
@@ -43,6 +44,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const v: ToastCtx = {
     toast,
+    addToast: (t) => toast({ type: t.type || 'info', title: t.title || t.message, message: t.title ? t.message : undefined }),
     success: (title, message) => toast({ type: 'success', title, message }),
     error: (title, message) => toast({ type: 'error', title, message }),
     info: (title, message) => toast({ type: 'info', title, message }),

@@ -170,7 +170,7 @@ export function AIUsage() {
   ];
 
   const columns: Column<AIScan>[] = [
-    { key: 'id', header: t('ai.th_scan_id'), sortValue: r => r.id, render: r => <span className="font-mono text-xs text-ink-100">{r.id.slice(0, 12)}...</span> },
+    { key: 'id', header: t('ai.th_scan_id'), sortValue: r => r.id, render: r => <span className="font-mono text-xs text-ink-100">{String(r.id ?? '').slice(0, 12)}...</span> },
     { key: 'product', header: t('finance.th_product'), render: r => <ProductBadge product={r.product} /> },
     { key: 'restaurant', header: t('ai.th_restaurant'), sortValue: r => r.restaurant_name ?? '', render: r => <span className="text-ink-200 font-medium">{r.restaurant_name ?? '—'}</span> },
     { 
@@ -683,7 +683,7 @@ export function AIUsage() {
                     <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-ink-900/50 border border-ink-800 text-xs">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-ink-200">{occ.restaurant_name}</span>
-                        <span className="font-mono text-[10px] text-ink-500">{occ.scan_id.slice(0, 10)}...</span>
+                        <span className="font-mono text-[10px] text-ink-500">{String(occ.scan_id ?? '').slice(0, 10)}...</span>
                       </div>
                       <div className="flex items-center gap-2 text-[11px] text-ink-400">
                         <span>{durationSec(occ.duration_ms)}</span>

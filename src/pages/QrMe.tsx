@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  QrCode, Sparkles, Download, Eye, Zap, ShieldCheck, ToggleLeft, ToggleRight,
-  Save, RefreshCw, BarChart2, Layers, CheckCircle2, AlertCircle, Palette, UserCheck, Users
+  QrCode, Sparkles, Download, Eye, Zap, ShieldCheck,
+  RefreshCw, BarChart2, Layers, AlertCircle, Palette, UserCheck, Users, Settings
 } from 'lucide-react';
 import { PageHeader } from '@/components/Layout';
 import { KPICard } from '@/components/KPICard';
 import { AppUsersManager } from '@/components/AppUsersManager';
+import { AppSettingsManager } from '@/components/AppSettingsManager';
 import { useToast } from '@/context/ToastContext';
 import { useLocale } from '@/context/LocaleContext';
 import { api } from '@/lib/api';
@@ -25,7 +26,7 @@ interface QrStats {
 
 export function QrMe() {
   const toast = useToast();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -43,11 +44,7 @@ export function QrMe() {
   });
   const [qrs, setQrs] = useState<any[]>([]);
   const [loadingQrs, setLoadingQrs] = useState(false);
-
-  // Paywall states
-  const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
-  const [vipPrice, setVipPrice] = useState(15);
-  const [activeTab, setActiveTab] = useState<'stats' | 'paywall' | 'recent' | 'users'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'settings' | 'recent'>('stats');
 
   const fetchStats = useCallback(async () => {
     try {
@@ -77,53 +74,12 @@ export function QrMe() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      api.settings.get().then(s => {
-        if (s) {
-          setIsPaymentEnabled(s.qr_me_payment_enabled ?? !(s.qr_me_free_mode ?? true));
-          if (s.qr_me_vip_price) setVipPrice(s.qr_me_vip_price);
-        }
-      }).catch(() => {}),
       fetchStats(),
       fetchQrs(),
     ]).finally(() => {
       setLoading(false);
     });
   }, [fetchStats, fetchQrs]);
-
-  const handleTogglePaywall = async (newVal: boolean) => {
-    setIsPaymentEnabled(newVal);
-    try {
-      await api.settings.save({
-        qr_me_payment_enabled: newVal,
-        qr_me_free_mode: !newVal,
-        qr_me_vip_price: vipPrice,
-      });
-      toast.success(
-        newVal ? 'Paywall Activated' : 'Free Mode Enabled',
-        newVal 
-          ? 'Users will now be asked to pay for VIP QR templates & high-res exports.'
-          : 'All VIP QR templates and exports are now 100% FREE for all users (Store Review Safe).'
-      );
-    } catch {
-      toast.error('Failed to update', 'Could not sync paywall status with server.');
-    }
-  };
-
-  const handleSavePricing = async () => {
-    setSaving(true);
-    try {
-      await api.settings.save({
-        qr_me_payment_enabled: isPaymentEnabled,
-        qr_me_free_mode: !isPaymentEnabled,
-        qr_me_vip_price: vipPrice,
-      });
-      toast.success('Settings Saved', 'QR Me pricing and paywall flags updated successfully.');
-    } catch {
-      toast.error('Error', 'Failed to save QR Me settings.');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -132,50 +88,6 @@ export function QrMe() {
         description={t('qr.description')}
         icon={<QrCode className="w-5 h-5" />}
       />
-
-      {/* ── Dynamic Paywall Alert Banner ── */}
-      <div className={`p-4 rounded-xl border transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
-        !isPaymentEnabled 
-          ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-300'
-          : 'bg-amber-950/30 border-amber-500/30 text-amber-300'
-      }`}>
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-            !isPaymentEnabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
-          }`}>
-            {!isPaymentEnabled ? <CheckCircle2 className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-sm">
-                {!isPaymentEnabled ? t('qr.free_mode_banner') : t('qr.paid_mode_banner')}
-              </h3>
-              <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full ${
-                !isPaymentEnabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
-              }`}>
-                {!isPaymentEnabled ? '100% FREE' : `${vipPrice} EGP / Template`}
-              </span>
-            </div>
-            <p className="text-xs text-ink-300 mt-0.5">
-              {!isPaymentEnabled ? t('qr.free_banner_desc') : t('qr.paid_banner_desc')}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 self-end md:self-auto">
-          <button
-            onClick={() => handleTogglePaywall(!isPaymentEnabled)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-              !isPaymentEnabled 
-                ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/40'
-                : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40'
-            }`}
-          >
-            {!isPaymentEnabled ? <ToggleLeft className="w-4 h-4" /> : <ToggleRight className="w-4 h-4" />}
-            <span>{!isPaymentEnabled ? t('qr.switch_to_paid') : t('qr.switch_to_free')}</span>
-          </button>
-        </div>
-      </div>
 
       {/* ── KPI Grid (100% Real Database Metrics) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -211,9 +123,9 @@ export function QrMe() {
       <div className="flex items-center gap-2 border-b border-ink-800">
         {[
           { key: 'stats', label: t('qr.tab_stats'), icon: <BarChart2 className="w-4 h-4" /> },
-          { key: 'paywall', label: t('qr.tab_paywall'), icon: <Zap className="w-4 h-4" /> },
-          { key: 'recent', label: t('qr.tab_recent'), icon: <Layers className="w-4 h-4" /> },
           { key: 'users', label: t('qr.tab_users'), icon: <Users className="w-4 h-4" /> },
+          { key: 'settings', label: locale === 'ar' ? 'إعدادات التطبيق' : 'App Settings', icon: <Settings className="w-4 h-4" /> },
+          { key: 'recent', label: t('qr.tab_recent'), icon: <Layers className="w-4 h-4" /> },
         ].map(tTab => (
           <button
             key={tTab.key}
@@ -294,65 +206,16 @@ export function QrMe() {
         </div>
       )}
 
-      {/* ── Tab 2: Paywall Configuration ── */}
-      {activeTab === 'paywall' && (
-        <div className="max-w-2xl card p-6 space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400">
-              <Zap className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-ink-50">{t('qr.paywall_config_title')}</h3>
-              <p className="text-xs text-ink-400">{t('qr.paywall_config_desc')}</p>
-            </div>
-          </div>
 
-          <div className="space-y-4 pt-2">
-            <div className="flex items-center justify-between p-4 bg-ink-900/70 rounded-xl border border-ink-800">
-              <div>
-                <p className="text-sm font-semibold text-ink-100">{t('qr.paywall_status')}</p>
-                <p className="text-xs text-ink-400">{t('qr.paywall_status_desc')}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsPaymentEnabled(!isPaymentEnabled)}
-                className={`relative w-12 h-7 rounded-full transition-colors ${
-                  isPaymentEnabled ? 'bg-brand-600' : 'bg-ink-700'
-                }`}
-              >
-                <span className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-transform ${
-                  isPaymentEnabled ? 'translate-x-6' : 'translate-x-1'
-                }`} />
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold text-ink-300">
-                {t('qr.vip_price_label')}
-              </label>
-              <input
-                type="number"
-                value={vipPrice}
-                onChange={e => setVipPrice(Number(e.target.value))}
-                disabled={!isPaymentEnabled}
-                className="input w-full"
-                placeholder="15"
-              />
-              <p className="text-2xs text-ink-500">{t('qr.vip_price_hint')}</p>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-ink-800 flex justify-end gap-3">
-            <button
-              onClick={handleSavePricing}
-              disabled={saving}
-              className="btn-primary flex items-center gap-2"
-            >
-              {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{saving ? t('common.saving') : t('common.save')}</span>
-            </button>
-          </div>
-        </div>
+      {/* ── Tab: App Settings ── */}
+      {activeTab === 'settings' && (
+        <AppSettingsManager
+          appId="qr_me"
+          appNameAr="تطبيق كيو آر مي QR Me"
+          appNameEn="QR Me Barcode"
+          icon={<QrCode className="w-5 h-5 text-accent-400" />}
+          descriptionAr="إعدادات التسعير، التحديث الإجباري، إيقاف التحديث، وروابط المتاجر الخاصة بتطبيق كيو آر مي."
+        />
       )}
 
       {/* ── Tab 3: Recent Generations (Real database list) ── */}

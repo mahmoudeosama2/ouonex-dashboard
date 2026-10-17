@@ -14,6 +14,47 @@ import * as mock from './mock-data';
 const MOCK = false;
 const BASE = import.meta.env.VITE_API_BASE_URL || 'https://api.ouonex.com/api/v1';
 
+// In-Memory SWR (Stale-While-Revalidate) Cache Engine
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const memoryCache = new Map<string, CacheEntry<unknown>>();
+const pendingRequests = new Map<string, Promise<unknown>>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes fresh cache TTL
+const REVALIDATE_AFTER_MS = 90 * 1000; // Background silent refresh if older than 90s
+
+export function invalidateCache(pattern?: string | RegExp): void {
+  if (!pattern) {
+    memoryCache.clear();
+    return;
+  }
+  for (const key of memoryCache.keys()) {
+    if (typeof pattern === 'string' ? key.includes(pattern) : pattern.test(key)) {
+      memoryCache.delete(key);
+    }
+  }
+}
+
+export function autoInvalidateCache(path: string): void {
+  const segments = path.replace(/^\//, '').split('/');
+  const domain = segments[0];
+  if (domain) {
+    invalidateCache(domain);
+    if (path.includes('payment') || path.includes('subscri') || path.includes('order')) {
+      invalidateCache('overview');
+      invalidateCache('finance');
+    }
+  } else {
+    invalidateCache();
+  }
+}
+
+export function prefetchApi(path: string): Promise<unknown> {
+  return http(path);
+}
+
 function authHeaders(): Record<string, string> {
   const token = typeof localStorage !== 'undefined' ? localStorage.getItem('ouonex_admin_token') : null;
   return token ? { 
@@ -22,7 +63,7 @@ function authHeaders(): Record<string, string> {
   } : {};
 }
 
-async function http<T>(path: string): Promise<T> {
+async function fetchRequest<T>(path: string): Promise<T> {
   console.log(`🚀 [API Request] GET ${BASE}${path}`);
   try {
     const res = await fetch(`${BASE}${path}`, {
@@ -41,8 +82,54 @@ async function http<T>(path: string): Promise<T> {
   }
 }
 
+async function http<T>(path: string, options?: { skipCache?: boolean }): Promise<T> {
+  const cacheKey = `GET:${path}`;
+
+  // 1. Check in-memory cache for instant 0ms return
+  if (!options?.skipCache && memoryCache.has(cacheKey)) {
+    const entry = memoryCache.get(cacheKey) as CacheEntry<T>;
+    const age = Date.now() - entry.timestamp;
+
+    if (age < CACHE_TTL_MS) {
+      // Background silent revalidation if older than threshold
+      if (age > REVALIDATE_AFTER_MS && !pendingRequests.has(cacheKey)) {
+        const bgPromise = fetchRequest<T>(path)
+          .then(fresh => {
+            memoryCache.set(cacheKey, { data: fresh, timestamp: Date.now() });
+            return fresh;
+          })
+          .catch(() => {})
+          .finally(() => {
+            pendingRequests.delete(cacheKey);
+          });
+        pendingRequests.set(cacheKey, bgPromise);
+      }
+      return entry.data;
+    }
+  }
+
+  // 2. Request deduplication for simultaneous calls
+  if (pendingRequests.has(cacheKey)) {
+    return pendingRequests.get(cacheKey) as Promise<T>;
+  }
+
+  const reqPromise = fetchRequest<T>(path)
+    .then(data => {
+      memoryCache.set(cacheKey, { data, timestamp: Date.now() });
+      return data;
+    })
+    .finally(() => {
+      pendingRequests.delete(cacheKey);
+    });
+
+  pendingRequests.set(cacheKey, reqPromise);
+  return reqPromise;
+}
+
 async function httpPost<T>(path: string, body?: unknown): Promise<T> {
   console.log(`🚀 [API Request] POST ${BASE}${path}`, body);
+  // Auto-invalidate only affected cache on mutation
+  autoInvalidateCache(path);
   try {
     const res = await fetch(`${BASE}${path}`, {
       method: 'POST',
@@ -64,6 +151,7 @@ async function httpPost<T>(path: string, body?: unknown): Promise<T> {
 
 async function httpPut<T>(path: string, body?: unknown): Promise<T> {
   console.log(`🚀 [API Request] PUT ${BASE}${path}`, body);
+  autoInvalidateCache(path);
   try {
     const res = await fetch(`${BASE}${path}`, {
       method: 'PUT',
@@ -85,6 +173,7 @@ async function httpPut<T>(path: string, body?: unknown): Promise<T> {
 
 async function httpDelete<T>(path: string): Promise<T> {
   console.log(`🚀 [API Request] DELETE ${BASE}${path}`);
+  autoInvalidateCache(path);
   try {
     const res = await fetch(`${BASE}${path}`, {
       method: 'DELETE',
@@ -259,10 +348,39 @@ export const api = {
         dawaty_invitation_price: 150,
         dawaty_free_mode: false,
         vodafone_cash_number: '01019603225',
-        instapay_address: 'instapay@address'
+        vodafone_cash_link: 'http://vf.eg/vfcash?id=mt&qrId=LANXrg',
+        instapay_address: 'ouonex@instapay',
+        instapay_link: 'https://ipn.eg/S/mahmoudeosama/instapay/7gXQWO'
       }) : http('/admin/settings'),
     save: (values: Record<string, unknown>): Promise<{ ok: boolean }> =>
       MOCK ? delay({ ok: true }) : httpPost('/admin/settings', values),
+  },
+
+  notifications: {
+    send: (payload: {
+      appId: string;
+      title?: string;
+      body?: string;
+      title_ar?: string;
+      body_ar?: string;
+      title_en?: string;
+      body_en?: string;
+      target?: string;
+      deep_link?: string;
+    }): Promise<any> =>
+      MOCK ? delay({ status: 'success', data: { id: 'mock_1', ...payload, sent_at: new Date().toISOString() } }) : httpPost('/admin/notifications/send', {
+        app_id: payload.appId,
+        title: payload.title,
+        body: payload.body,
+        title_ar: payload.title_ar,
+        body_ar: payload.body_ar,
+        title_en: payload.title_en,
+        body_en: payload.body_en,
+        target: payload.target || 'all',
+        deep_link: payload.deep_link,
+      }),
+    history: (appId: string): Promise<{ data: any[] }> =>
+      MOCK ? delay({ data: [] }) : http(`/admin/notifications/history?app_id=${appId}`),
   },
 
   website: {
@@ -325,5 +443,8 @@ export const api = {
     resolve: (id: string): Promise<{ ok: boolean }> =>
       httpPost(`/admin/crashlytics/errors/${id}/resolve`),
   },
+
+  prefetch: (path: string): Promise<unknown> => prefetchApi(path),
+  invalidateCache: (pattern?: string | RegExp): void => invalidateCache(pattern),
 };
 
