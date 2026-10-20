@@ -66,6 +66,7 @@ export interface Payment {
   product: Product;
   reference_id: string;
   user_name: string;
+  user_email?: string;
   user_id: string;
   expected_amount: number;
   submitted_amount: number;
@@ -76,6 +77,7 @@ export interface Payment {
   reviewed_at?: string;
   reviewed_by?: string;
   reject_reason?: string;
+  plan_name?: string;
 }
 
 export interface Invitation {

@@ -463,11 +463,11 @@ export function CvMaker() {
           <div className="card p-5 space-y-4">
             <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
               <Palette className="w-4 h-4 text-brand-400" />
-              <span>Top Created Resume Templates</span>
+              <span>{locale === 'ar' ? 'أعلى قوالب السير الذاتية استخداماً' : 'Top Created Resume Templates'}</span>
             </h3>
             {stats.templates.length === 0 ? (
               <div className="py-8 text-center text-xs text-ink-500">
-                No template creations recorded yet in database.
+                {locale === 'ar' ? 'لا توجد بيانات قوالب مسجلة حتى الآن' : 'No template creations recorded yet in database.'}
               </div>
             ) : (
               <div className="space-y-3">
@@ -475,10 +475,10 @@ export function CvMaker() {
                   <div key={item.name}>
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-ink-200">{item.name}</span>
-                      <span className="font-semibold text-ink-400">{item.count} ({item.percentage}%)</span>
+                      <span className="font-semibold text-ink-400">{item.count} ({Number(item.percentage).toFixed(1)}%)</span>
                     </div>
                     <div className="w-full h-2 bg-ink-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-brand-500 rounded-full" style={{ width: `${item.percentage}%` }} />
+                      <div className="h-full bg-brand-500 rounded-full" style={{ width: `${Math.min(100, Number(item.percentage))}%` }} />
                     </div>
                   </div>
                 ))}
@@ -489,11 +489,11 @@ export function CvMaker() {
           <div className="card p-5 space-y-4">
             <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
               <Briefcase className="w-4 h-4 text-brand-400" />
-              <span>Top Career Categories</span>
+              <span>{locale === 'ar' ? 'أعلى المجالات والتخصصات المهنية' : 'Top Career Categories'}</span>
             </h3>
             {stats.categories.length === 0 ? (
               <div className="py-8 text-center text-xs text-ink-500">
-                No career category data recorded yet in database.
+                {locale === 'ar' ? 'لا توجد بيانات تخصصات مسجلة حتى الآن' : 'No career category data recorded yet in database.'}
               </div>
             ) : (
               <div className="space-y-3">
@@ -501,10 +501,10 @@ export function CvMaker() {
                   <div key={item.name}>
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-ink-200">{item.name}</span>
-                      <span className="font-semibold text-ink-400">{item.count} ({item.percentage}%)</span>
+                      <span className="font-semibold text-ink-400">{item.count} ({Number(item.percentage).toFixed(1)}%)</span>
                     </div>
                     <div className="w-full h-2 bg-ink-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-accent-500 rounded-full" style={{ width: `${item.percentage}%` }} />
+                      <div className="h-full bg-accent-500 rounded-full" style={{ width: `${Math.min(100, Number(item.percentage))}%` }} />
                     </div>
                   </div>
                 ))}

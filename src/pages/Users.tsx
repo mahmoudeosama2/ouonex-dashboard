@@ -252,6 +252,7 @@ export function UsersPage() {
       </div>
 
       <DataTable
+        searchable={false}
         columns={columns}
         rows={results}
         loading={loading}

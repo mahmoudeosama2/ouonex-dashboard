@@ -226,7 +226,7 @@ export const api = {
   },
 
   payments: {
-    list: (f?: { product?: Product; status?: string; from?: string; to?: string; page?: number; per_page?: number }): Promise<Paginated<Payment>> =>
+    list: (f?: { product?: Product; status?: string; search?: string; from?: string; to?: string; page?: number; per_page?: number }): Promise<Paginated<Payment>> =>
       MOCK ? delay(mock.payments(f)) : http<any>(`/admin/payments${qs(f as Record<string, unknown>)}`).then(r => Array.isArray(r) ? { data: r, meta: { page: 1, per_page: r.length, total: r.length } } : (r && 'data' in r ? r : { data: [], meta: { page: 1, per_page: 10, total: 0 } })),
     pending: (): Promise<Payment[]> =>
       MOCK ? delay(mock.pendingPayments()) : http<any>('/admin/payments?status=pending_review').then(r => Array.isArray(r) ? r : (r?.data || [])),

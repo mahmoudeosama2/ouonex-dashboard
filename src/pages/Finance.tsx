@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Wallet, Clock, CheckCircle2, XCircle, TrendingUp, Filter, Receipt,
-  Check, X, AlertCircle, Lock,
+  Check, X, AlertCircle, Lock, Search, Inbox,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Payment, Product, PaymentStatus } from '@/lib/types';
@@ -34,6 +34,7 @@ export function Finance() {
   const [total, setTotal] = useState(0);
   const [productFilter, setProductFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [confirm, setConfirm] = useState<{ payment: Payment; action: 'approve' | 'reject' } | null>(null);
   const [receiptModal, setReceiptModal] = useState<{ payment: Payment; action: 'approve' | 'reject' } | null>(null);
   const [acting, setActing] = useState(false);
@@ -51,7 +52,13 @@ export function Finance() {
         setTotal(res.length);
       } else {
         const status = tab === 'rejected' ? 'rejected' : statusFilter;
-        const res = await api.payments.list({ product: productFilter === 'all' ? undefined : productFilter as Product, status: status === 'all' ? undefined : status, page, per_page: 10 });
+        const res = await api.payments.list({
+          product: productFilter === 'all' ? undefined : productFilter as Product,
+          status: status === 'all' ? undefined : status,
+          search: searchQuery.trim() || undefined,
+          page,
+          per_page: 10
+        });
         setPayments(res.data);
         setTotal(res.meta.total);
       }
@@ -109,7 +116,7 @@ export function Finance() {
     } finally {
       setLoading(false);
     }
-  }, [tab, page, productFilter, statusFilter]);
+  }, [tab, page, productFilter, statusFilter, searchQuery]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -133,9 +140,15 @@ export function Finance() {
     }
   };
 
-  const filters: FilterItem[] = tab === 'pending' ? [] : [
+  const filters: FilterItem[] = [
     {
-      type: 'select', label: t('finance.filter_product'), value: productFilter,
+      type: 'search',
+      value: searchQuery,
+      placeholder: locale === 'ar' ? 'بحث بالرقم المرجعي، اسم العميل، الإيميل، أو الوسيلة...' : 'Search by reference ID, customer name, email, or method...',
+      onChange: (v: string) => { setSearchQuery(v); setPage(1); },
+    },
+    ...(tab !== 'pending' ? [{
+      type: 'select' as const, label: t('finance.filter_product'), value: productFilter,
       options: [
         { label: t('finance.filter_all'), value: 'all' },
         { label: 'CV Maker', value: 'cv_maker' },
@@ -144,7 +157,7 @@ export function Finance() {
         { label: 'QR Me', value: 'qr_me' },
       ],
       onChange: (v: string) => { setProductFilter(v); setPage(1); },
-    },
+    }] : []),
     ...(tab === 'all' ? [{
       type: 'select' as const, label: t('finance.filter_status'), value: statusFilter,
       options: [
@@ -157,17 +170,57 @@ export function Finance() {
     }] : []),
   ];
 
+  const displayedPending = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return payments;
+    return payments.filter(p =>
+      p.reference_id?.toLowerCase().includes(q) ||
+      p.user_name?.toLowerCase().includes(q) ||
+      p.user_email?.toLowerCase().includes(q) ||
+      p.method?.toLowerCase().includes(q) ||
+      String(p.submitted_amount).includes(q)
+    );
+  }, [payments, searchQuery]);
+
   const columns: Column<Payment>[] = [
     {
       key: 'reference', header: t('finance.th_reference'), sortValue: r => r.reference_id,
       render: r => (
         <div>
-          <p className="font-mono text-xs text-ink-100">{r.reference_id}</p>
+          <p className="font-mono text-xs text-ink-100 font-semibold">{r.reference_id}</p>
           <p className="text-2xs text-ink-500">{r.method}</p>
         </div>
       ),
     },
-    { key: 'user', header: t('finance.th_user_restaurant'), sortValue: r => r.user_name, render: r => <span className="text-ink-100">{r.user_name}</span> },
+    {
+      key: 'user',
+      header: t('finance.th_user_restaurant'),
+      sortValue: r => r.user_name || r.user_email || '',
+      render: r => {
+        const isMonthlySub = r.plan_name === 'Monthly Subscription' || r.user_name === 'Monthly Subscription';
+        const displayName = r.user_name && r.user_name !== 'Monthly Subscription'
+          ? r.user_name
+          : (r.user_email || (locale === 'ar' ? 'مشترك (اشتراك شهري)' : 'Monthly Subscriber'));
+
+        return (
+          <div className="flex flex-col min-w-[150px]">
+            <span className="text-ink-100 font-medium text-sm flex items-center gap-1.5">
+              {displayName}
+            </span>
+            {r.user_email ? (
+              <span className="text-2xs text-brand-400 font-mono tracking-tight mt-0.5 select-all hover:underline">
+                {r.user_email}
+              </span>
+            ) : null}
+            {isMonthlySub && (
+              <span className="inline-flex items-center gap-1 mt-1 text-[10px] px-1.5 py-0.5 rounded-md bg-brand-500/10 text-brand-300 border border-brand-500/20 font-medium w-fit">
+                {locale === 'ar' ? 'اشتراك شهري' : 'Monthly Subscription'}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
     { key: 'product', header: t('finance.th_product'), render: r => <ProductBadge product={r.product} /> },
     {
       key: 'amount', header: t('finance.th_amount'), sortValue: r => r.submitted_amount,
@@ -258,12 +311,28 @@ export function Finance() {
         <div className="space-y-3">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => <div key={i} className="card p-4"><div className="flex gap-4"><div className="skeleton h-12 w-12 rounded-lg" /><div className="flex-1 space-y-2"><div className="skeleton h-4 w-1/3" /><div className="skeleton h-3 w-1/2" /></div></div></div>)
-          ) : payments.length === 0 ? (
+          ) : displayedPending.length === 0 ? (
             <div className="card">
-              <EmptyState icon={<CheckCircle2 className="w-5 h-5 text-success-400" />} title={t('finance.all_caught_up')} message={t('finance.no_pending_msg')} />
+              {searchQuery.trim() ? (
+                <EmptyState
+                  icon={<Inbox className="w-5 h-5" />}
+                  title={locale === 'ar' ? 'لم يتم العثور على دفعات معلقة' : 'No matching pending payments'}
+                  message={locale === 'ar' ? `لا توجد دفعات بانتظار المراجعة تطابق: "${searchQuery}"` : `No pending payments match "${searchQuery}"`}
+                  action={
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="btn-ghost text-xs text-brand-400 hover:text-brand-300 mt-2"
+                    >
+                      {locale === 'ar' ? 'إعادة تعيين البحث' : 'Reset search'}
+                    </button>
+                  }
+                />
+              ) : (
+                <EmptyState icon={<CheckCircle2 className="w-5 h-5 text-success-400" />} title={t('finance.all_caught_up')} message={t('finance.no_pending_msg')} />
+              )}
             </div>
           ) : (
-            payments.map(p => (
+            displayedPending.map(p => (
               <PendingPaymentRow key={p.id} payment={p} canApprove={canApprove} onApprove={() => {
                 if (p.receipt_url) {
                   setReceiptModal({ payment: p, action: 'approve' });
@@ -276,6 +345,8 @@ export function Finance() {
         </div>
       ) : (
         <DataTable
+          searchQuery={searchQuery}
+          onSearch={(q) => { setSearchQuery(q); setPage(1); }}
           columns={columns}
           rows={payments}
           loading={loading}
@@ -284,7 +355,7 @@ export function Finance() {
           total={total}
           onPageChange={setPage}
           emptyTitle={tab === 'rejected' ? (locale === 'ar' ? 'لا توجد دفعات مرفوضة' : 'No rejected payments') : (locale === 'ar' ? 'لم يتم العثور على معاملات' : 'No transactions found')}
-          emptyMessage={locale === 'ar' ? 'جرب تغيير خيارات التصفية.' : 'Try adjusting your filters.'}
+          emptyMessage={locale === 'ar' ? 'جرب تغيير خيارات التصفية أو البحث.' : 'Try adjusting your filters or search.'}
           rowActions={(r) => (
             tab === 'rejected' ? (
               <span className="text-xs text-ink-400 max-w-[200px] truncate block" title={r.reject_reason}>{r.reject_reason}</span>
@@ -329,6 +400,11 @@ function PendingPaymentRow({ payment, canApprove, onApprove, onReject, onViewRec
 }) {
   const { t, locale } = useLocale();
   const mismatch = payment.expected_amount !== payment.submitted_amount;
+  const isMonthlySub = payment.plan_name === 'Monthly Subscription' || payment.user_name === 'Monthly Subscription';
+  const displayName = payment.user_name && payment.user_name !== 'Monthly Subscription'
+    ? payment.user_name
+    : (payment.user_email || (locale === 'ar' ? 'مشترك (اشتراك شهري)' : 'Monthly Subscriber'));
+
   return (
     <div className="card card-hover p-4 group">
       <div className="flex items-start gap-4">
@@ -337,8 +413,16 @@ function PendingPaymentRow({ payment, canApprove, onApprove, onReject, onViewRec
         </div>
         <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
-            <p className="text-sm font-semibold text-ink-100 truncate">{payment.user_name}</p>
-            <p className="text-2xs text-ink-500 font-mono">{payment.reference_id}</p>
+            <p className="text-sm font-semibold text-ink-100 truncate">{displayName}</p>
+            {payment.user_email && (
+              <p className="text-2xs text-brand-400 font-mono tracking-tight mt-0.5 select-all">{payment.user_email}</p>
+            )}
+            {isMonthlySub && (
+              <span className="inline-flex items-center gap-1 mt-1 text-[10px] px-1.5 py-0.5 rounded-md bg-brand-500/10 text-brand-300 border border-brand-500/20 font-medium">
+                {locale === 'ar' ? 'اشتراك شهري' : 'Monthly Subscription'}
+              </span>
+            )}
+            <p className="text-2xs text-ink-500 font-mono mt-0.5">{payment.reference_id}</p>
           </div>
           <div className="flex items-center gap-2">
             <ProductBadge product={payment.product} />

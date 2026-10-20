@@ -1426,5 +1426,6 @@ export function AppSettingsManager({
         </button>
       </div>
     </div>
+  </div>
   );
 }

@@ -1,7 +1,8 @@
-import { useState, type ReactNode } from 'react';
-import { ChevronLeft, ChevronRight, ChevronsUpDown, ChevronUp, ChevronDown, Inbox } from 'lucide-react';
+import { useState, useMemo, type ReactNode } from 'react';
+import { ChevronLeft, ChevronRight, ChevronsUpDown, ChevronUp, ChevronDown, Inbox, Search, X } from 'lucide-react';
 import { TableSkeleton } from './Skeleton';
 import { EmptyState } from './EmptyState';
+import { useLocale } from '@/context/LocaleContext';
 
 export interface Column<T> {
   key: string;
@@ -31,6 +32,11 @@ interface Props<T> {
   selectedIds?: string[];
   onSelectRow?: (id: string) => void;
   onSelectAll?: () => void;
+  searchable?: boolean;
+  searchQuery?: string;
+  onSearch?: (query: string) => void;
+  searchPlaceholder?: string;
+  headerAction?: ReactNode;
 }
 
 export function DataTable<T extends { id: string }>({
@@ -38,18 +44,58 @@ export function DataTable<T extends { id: string }>({
   onRowClick, rowActions, page = 1, perPage = 10, total = 0, onPageChange,
   sortKey, sortDir, onSort,
   selectedIds, onSelectRow, onSelectAll,
+  searchable = true, searchQuery, onSearch, searchPlaceholder, headerAction,
 }: Props<T>) {
+  const { locale } = useLocale();
+  const [internalSearch, setInternalSearch] = useState('');
+  const activeSearch = searchQuery !== undefined ? searchQuery : internalSearch;
   const [localSort, setLocalSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
 
+  // Client-side instant filter across all columns and object properties
+  const filteredRows = useMemo(() => {
+    const q = activeSearch.trim().toLowerCase();
+    if (!q) return rows;
+
+    return rows.filter(row => {
+      // 1. Check direct properties of row
+      for (const val of Object.values(row)) {
+        if (val === null || val === undefined) continue;
+        if (typeof val === 'string' || typeof val === 'number') {
+          if (String(val).toLowerCase().includes(q)) return true;
+        } else if (typeof val === 'object') {
+          for (const subVal of Object.values(val as Record<string, unknown>)) {
+            if (subVal !== null && subVal !== undefined && String(subVal).toLowerCase().includes(q)) {
+              return true;
+            }
+          }
+        }
+      }
+
+      // 2. Check column sortValue if defined
+      for (const col of columns) {
+        if (col.sortValue) {
+          try {
+            const sv = col.sortValue(row);
+            if (sv !== undefined && sv !== null && String(sv).toLowerCase().includes(q)) {
+              return true;
+            }
+          } catch (_) {}
+        }
+      }
+
+      return false;
+    });
+  }, [rows, activeSearch, columns]);
+
   const effectiveSort = sortKey ? { key: sortKey, dir: sortDir ?? 'asc' } : localSort;
-  const sorted = effectiveSort ? [...rows].sort((a, b) => {
+  const sorted = effectiveSort ? [...filteredRows].sort((a, b) => {
     const col = columns.find(c => c.key === effectiveSort!.key);
     if (!col?.sortValue) return 0;
     const av = col.sortValue(a);
     const bv = col.sortValue(b);
     const cmp = typeof av === 'number' && typeof bv === 'number' ? av - bv : String(av).localeCompare(String(bv));
     return effectiveSort!.dir === 'asc' ? cmp : -cmp;
-  }) : rows;
+  }) : filteredRows;
 
   const handleSort = (key: string) => {
     if (onSort) { onSort(key); return; }
@@ -59,10 +105,51 @@ export function DataTable<T extends { id: string }>({
     });
   };
 
-  const totalPages = Math.ceil(total / perPage) || 1;
+  const effectiveTotal = activeSearch.trim() ? filteredRows.length : total;
+  const totalPages = Math.ceil(effectiveTotal / perPage) || 1;
 
   return (
     <div className="card overflow-hidden">
+      {searchable && (
+        <div className="p-3.5 border-b border-ink-800/80 bg-ink-900/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className={`absolute ${locale === 'ar' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500`} />
+            <input
+              type="text"
+              value={activeSearch}
+              onChange={e => {
+                const val = e.target.value;
+                setInternalSearch(val);
+                onSearch?.(val);
+              }}
+              placeholder={searchPlaceholder || (locale === 'ar' ? 'بحث سريع في بيانات الجدول...' : 'Search in table...')}
+              className={`input w-full ${locale === 'ar' ? 'pr-9 pl-8' : 'pl-9 pr-8'} py-1.5 text-xs bg-ink-950/60 border-ink-800 focus:border-brand-500`}
+            />
+            {activeSearch && (
+              <button
+                type="button"
+                onClick={() => {
+                  setInternalSearch('');
+                  onSearch?.('');
+                }}
+                className={`absolute ${locale === 'ar' ? 'left-2.5' : 'right-2.5'} top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-ink-800 text-ink-400 hover:text-ink-200 transition-colors`}
+                title={locale === 'ar' ? 'مسح البحث' : 'Clear search'}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            {activeSearch.trim() && (
+              <span className="text-2xs font-medium px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-300 border border-brand-500/20">
+                {locale === 'ar' ? `${filteredRows.length} من أصل ${rows.length} نتيجة` : `${filteredRows.length} of ${rows.length} matches`}
+              </span>
+            )}
+            {headerAction}
+          </div>
+        </div>
+      )}
       <div className="overflow-x-auto no-scrollbar">
         <table className="w-full text-sm">
           <thead>
@@ -120,7 +207,19 @@ export function DataTable<T extends { id: string }>({
             ) : sorted.length === 0 ? (
               <tr>
                 <td colSpan={columns.length + (rowActions ? 1 : 0) + (selectedIds ? 1 : 0)} className="p-0">
-                  <EmptyState icon={<Inbox className="w-5 h-5" />} title={emptyTitle} message={emptyMessage} />
+                  <EmptyState
+                    icon={<Inbox className="w-5 h-5" />}
+                    title={activeSearch ? (locale === 'ar' ? 'لم يتم العثور على نتائج' : 'No matching results') : emptyTitle}
+                    message={activeSearch ? (locale === 'ar' ? `لا توجد بيانات تطابق: "${activeSearch}"` : `No records match "${activeSearch}"`) : emptyMessage}
+                    action={activeSearch ? (
+                      <button
+                        onClick={() => { setInternalSearch(''); onSearch?.(''); }}
+                        className="btn-ghost text-xs text-brand-400 hover:text-brand-300 mt-2"
+                      >
+                        {locale === 'ar' ? 'إعادة تعيين البحث' : 'Reset search'}
+                      </button>
+                    ) : undefined}
+                  />
                 </td>
               </tr>
             ) : (
