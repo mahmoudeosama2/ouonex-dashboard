@@ -1112,6 +1112,7 @@ export function AppSettingsManager({
                   : 'Broadcast instant push alerts that reach mobile users directly on their lockscreens and inside the app.'}
               </p>
             </div>
+          </div>
         </div>
 
         {/* Quick Pre-fill Template Pills */}
@@ -1123,31 +1124,41 @@ export function AppSettingsManager({
             {[
               {
                 label: '🚀 تحديث جديد',
-                title: 'تحديث جديد متوفر الآن! 🚀',
-                body: `قم بتحديث تطبيق ${appNameAr} الآن للاستمتاع بأحدث الميزات الحصرية وسرعة الأداء الفائقة.`,
+                titleAr: 'تحديث جديد متوفر الآن! 🚀',
+                bodyAr: `قم بتحديث تطبيق ${appNameAr} الآن للاستمتاع بأحدث الميزات الحصرية وسرعة الأداء الفائقة.`,
+                titleEn: 'New Update Available Now! 🚀',
+                bodyEn: `Update ${appNameEn || appNameAr} now to enjoy the latest exclusive features and lightning-fast performance.`,
               },
               {
                 label: '🎉 عرض ترويجي وخصم',
-                title: 'عرض حصري لفترة محدودة! 🎁',
-                body: `استمتع بخصم خاص وحصري على باقات الاشتراك في ${appNameAr}. افتح التطبيق الآن للاستفادة من العرض!`,
+                titleAr: 'عرض حصري لفترة محدودة! 🎁',
+                bodyAr: `استمتع بخصم خاص وحصري على باقات الاشتراك في ${appNameAr}. افتح التطبيق الآن للاستفادة من العرض!`,
+                titleEn: 'Exclusive Limited-Time Offer! 🎁',
+                bodyEn: `Enjoy a special exclusive discount on subscription plans in ${appNameEn || appNameAr}. Open the app now to claim your offer!`,
               },
               {
                 label: '💡 نصيحة احترافية',
-                title: 'نصيحة مهمة لزيادة نجاحك 💡',
-                body: `اكتشف كيف يمكنك مضاعفة نتائجك ومشاركاتك بخطوات بسيطة وفعالة عبر ${appNameAr}.`,
+                titleAr: 'نصيحة مهمة لزيادة نجاحك 💡',
+                bodyAr: `اكتشف كيف يمكنك مضاعفة نتائجك ومشاركاتك بخطوات بسيطة وفعالة عبر ${appNameAr}.`,
+                titleEn: 'Pro Tip to Boost Your Success 💡',
+                bodyEn: `Discover how to maximize your results and reach with simple, effective steps in ${appNameEn || appNameAr}.`,
               },
               {
                 label: '⚠️ تنبيه صيانة مجدولة',
-                title: 'تنبيه صيانة وتحسينات أمنية ⚠️',
-                body: 'نقوم حالياً ببعض التحسينات الدورية السريعة لضمان أفضل استقرار وسرعة فائقة لخدمتك.',
+                titleAr: 'تنبيه صيانة وتحسينات أمنية ⚠️',
+                bodyAr: 'نقوم حالياً ببعض التحسينات الدورية السريعة لضمان أفضل استقرار وسرعة فائقة لخدمتك.',
+                titleEn: 'Scheduled Maintenance & Upgrades ⚠️',
+                bodyEn: `We are performing routine system upgrades to ensure maximum performance and stability for ${appNameEn || appNameAr}.`,
               },
             ].map((tmpl, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => {
-                  setNotifTitleAr(tmpl.title);
-                  setNotifBodyAr(tmpl.body);
+                  setNotifTitleAr(tmpl.titleAr);
+                  setNotifBodyAr(tmpl.bodyAr);
+                  setNotifTitleEn(tmpl.titleEn);
+                  setNotifBodyEn(tmpl.bodyEn);
                 }}
                 className="text-2xs px-2.5 py-1 rounded-lg bg-ink-800/80 hover:bg-amber-500/20 hover:text-amber-300 hover:border-amber-500/40 border border-ink-700/60 text-ink-300 transition-all font-medium"
               >
@@ -1426,6 +1437,5 @@ export function AppSettingsManager({
         </button>
       </div>
     </div>
-  </div>
   );
 }

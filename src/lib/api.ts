@@ -233,7 +233,7 @@ export const api = {
     approve: (id: string, _actor: string): Promise<Payment | undefined> =>
       MOCK ? delay(mock.approvePayment(id, _actor)) : httpPost(`/admin/payments/${id}/review`, { action: 'approve' }),
     reject: (id: string, reason: string, _actor: string): Promise<Payment | undefined> =>
-      MOCK ? delay(mock.rejectPayment(id, reason, _actor)) : httpPost(`/admin/payments/${id}/review`, { action: 'reject', reason }),
+      MOCK ? delay(mock.rejectPayment(id, reason, _actor)) : httpPost(`/admin/payments/${id}/review`, { action: 'reject', reason, rejection_reason: reason }),
   },
 
   dawaty: {
