@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { Role, AdminUser } from '@/lib/types';
 
 const TOKEN_KEY = 'ouonex_admin_token';
@@ -48,6 +48,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAdmin(null);
   }, []);
 
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+    };
+    window.addEventListener('ouonex:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('ouonex:unauthorized', handleUnauthorized);
+  }, [logout]);
+
   const v: AuthCtx = { token, role, admin, login, logout, isAuthenticated: !!token };
   return <Ctx.Provider value={v}>{children}</Ctx.Provider>;
 }
@@ -61,4 +69,3 @@ export function useAuth(): AuthCtx {
 export function getStoredToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
-

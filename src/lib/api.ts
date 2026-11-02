@@ -55,6 +55,20 @@ export function prefetchApi(path: string): Promise<unknown> {
   return http(path);
 }
 
+
+function handleAuthFailure(status: number, path: string) {
+  if (status === 401 && !path.includes('/auth/login')) {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('ouonex_admin_token');
+      localStorage.removeItem('ouonex_admin_role');
+      localStorage.removeItem('ouonex_admin_user');
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('ouonex:unauthorized'));
+    }
+  }
+}
+
 function authHeaders(): Record<string, string> {
   const token = typeof localStorage !== 'undefined' ? localStorage.getItem('ouonex_admin_token') : null;
   return token ? { 
@@ -71,6 +85,7 @@ async function fetchRequest<T>(path: string): Promise<T> {
       credentials: 'include',
     });
     if (!res.ok) {
+      handleAuthFailure(res.status, path);
       console.error(`❌ [API Error] GET ${BASE}${path} -> Status ${res.status}`);
       throw new Error(`API ${res.status} on ${path}`);
     }
@@ -138,6 +153,7 @@ async function httpPost<T>(path: string, body?: unknown): Promise<T> {
       credentials: 'include',
     });
     if (!res.ok) {
+      handleAuthFailure(res.status, path);
       console.error(`❌ [API Error] POST ${BASE}${path} -> Status ${res.status}`);
       throw new Error(`API ${res.status} on ${path}`);
     }
@@ -160,6 +176,7 @@ async function httpPut<T>(path: string, body?: unknown): Promise<T> {
       credentials: 'include',
     });
     if (!res.ok) {
+      handleAuthFailure(res.status, path);
       console.error(`❌ [API Error] PUT ${BASE}${path} -> Status ${res.status}`);
       throw new Error(`API ${res.status} on ${path}`);
     }
@@ -181,6 +198,7 @@ async function httpDelete<T>(path: string): Promise<T> {
       credentials: 'include',
     });
     if (!res.ok) {
+      handleAuthFailure(res.status, path);
       console.error(`❌ [API Error] DELETE ${BASE}${path} -> Status ${res.status}`);
       throw new Error(`API ${res.status} on ${path}`);
     }

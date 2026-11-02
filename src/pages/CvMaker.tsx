@@ -3,7 +3,7 @@ import {
   FileText, Download, Zap,
   RefreshCw, BarChart2, Layers,
   Briefcase, Palette, Users, ShoppingCart, TrendingUp,
-  Search, Flame, Award, Filter, ArrowUpRight, Settings, Inbox
+  Search, Flame, Award, Filter, ArrowUpRight, Settings, Inbox, CheckCircle2
 } from 'lucide-react';
 import { PageHeader } from '@/components/Layout';
 import { KPICard } from '@/components/KPICard';

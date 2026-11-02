@@ -8,7 +8,7 @@ export type InvitationStatus = 'draft' | 'published' | 'expired';
 export type RestaurantStatus = 'active' | 'suspended' | 'trial' | 'inactive' | 'pending_payment' | 'pending_approval' | 'draft';
 export type Plan = 'free' | 'pro' | 'enterprise' | 'monthly' | 'yearly';
 
-export type Role = 'owner' | 'admin' | 'employee' | 'finance' | 'support' | 'sales' | 'viewer';
+export type Role = 'owner' | 'super_admin' | 'admin' | 'employee' | 'finance' | 'support' | 'sales' | 'viewer';
 
 export interface AdminUser {
   id: string;

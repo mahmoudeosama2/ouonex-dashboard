@@ -28,7 +28,7 @@ export function RoleProvider({ children, initialRole }: { children: ReactNode; i
 
   const customPermissions = admin?.permissions as PageKey[] | undefined;
   const assignedApps = (admin?.assigned_apps ?? []) as string[];
-  const isOwner = role === 'owner';
+  const isOwner = role === 'owner' || (role as string) === 'super_admin';
   const actorName = admin?.name || 'You';
 
   const v: RoleCtx = {

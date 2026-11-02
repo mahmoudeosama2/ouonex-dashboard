@@ -2,6 +2,7 @@ import type { Role } from './types';
 
 export const ROLES: { id: Role; label: string; description: string }[] = [
   { id: 'owner', label: 'Owner (المالك)', description: 'Full access including team and permission management' },
+  { id: 'super_admin', label: 'Super Admin (المالك الرئيسي)', description: 'Full access including team and permission management' },
   { id: 'admin', label: 'Admin (مدير عام)', description: 'Full access except team management' },
   { id: 'employee', label: 'Employee (موظف تشغيل)', description: 'Custom permissions for assigned apps and clients' },
   { id: 'sales', label: 'Sales (مبيعات وتسويق)', description: 'Manage assigned clients and restaurants' },
@@ -52,6 +53,7 @@ export const ALL_APPS = [
 
 export const PAGE_ACCESS: Record<Role, PageKey[]> = {
   owner: ['overview', 'analytics', 'server_health', 'crashlytics', 'dawaty', 'digital_menu', 'cv_maker', 'qr_me', 'finance', 'ai_usage', 'users', 'support', 'settings', 'website'],
+  super_admin: ['overview', 'analytics', 'server_health', 'crashlytics', 'dawaty', 'digital_menu', 'cv_maker', 'qr_me', 'finance', 'ai_usage', 'users', 'support', 'settings', 'website'],
   admin: ['overview', 'analytics', 'server_health', 'crashlytics', 'dawaty', 'digital_menu', 'cv_maker', 'qr_me', 'finance', 'ai_usage', 'users', 'support', 'settings', 'website'],
   employee: ['overview', 'digital_menu', 'users', 'support', 'server_health'],
   sales: ['overview', 'digital_menu', 'users', 'support'],
@@ -67,7 +69,7 @@ export function canAccess(
   customPermissions?: PageKey[] | null,
   assignedApps?: string[] | null
 ): boolean {
-  if (role === 'owner') return true;
+  if (role === 'owner' || (role as string) === 'super_admin') return true;
 
   // 1. If explicit custom permissions are provided for this employee, evaluate them
   if (customPermissions && Array.isArray(customPermissions) && customPermissions.length > 0) {
@@ -90,17 +92,17 @@ export function canAccess(
 }
 
 export function canApprovePayments(role: Role, customPermissions?: PageKey[] | null): boolean {
-  if (role === 'owner') return true;
+  if (role === 'owner' || (role as string) === 'super_admin') return true;
   if (customPermissions?.includes('finance')) return true;
   return role === 'admin' || role === 'finance';
 }
 
 export function canManageTeam(role: Role): boolean {
-  return role === 'owner';
+  return role === 'owner' || (role as string) === 'super_admin';
 }
 
 export function canViewSettings(role: Role, customPermissions?: PageKey[] | null): boolean {
-  if (role === 'owner') return true;
+  if (role === 'owner' || (role as string) === 'super_admin') return true;
   if (customPermissions?.includes('settings')) return true;
   return role === 'admin';
 }
