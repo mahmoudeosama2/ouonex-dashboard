@@ -42,6 +42,23 @@ function PageLoadingFallback() {
   );
 }
 
+const MODULE_METADATA: Record<PageKey, { en: string; ar: string }> = {
+  overview: { en: 'Overview', ar: 'النظرة العامة' },
+  analytics: { en: 'Analytics', ar: 'التحليلات' },
+  server_health: { en: 'Server Health', ar: 'صحة الخادم' },
+  crashlytics: { en: 'Crashlytics Errors', ar: 'سجل الأعطال' },
+  finance: { en: 'Finance & Payments', ar: 'المالية والمدفوعات' },
+  dawaty: { en: 'Dawaty Platform', ar: 'منصة دعوتي' },
+  digital_menu: { en: 'Digital Menu & Restaurants', ar: 'المنيو الرقمي والمطاعم' },
+  cv_maker: { en: 'CV Maker', ar: 'صانع السيرة الذاتية' },
+  qr_me: { en: 'QR Me Platform', ar: 'منصة QR Me' },
+  ai_usage: { en: 'AI Usage & Scans', ar: 'استهلاك الذكاء الاصطناعي' },
+  users: { en: 'Users Management', ar: 'إدارة المستخدمين' },
+  support: { en: 'Support & Tickets', ar: 'الدعم الفني والشكاوى' },
+  settings: { en: 'System Settings', ar: 'إعدادات النظام والأسعار' },
+  website: { en: 'Website CMS', ar: 'محتوى الموقع' },
+};
+
 function renderPageComponent(p: PageKey, onNavigate: (p: PageKey) => void) {
   switch (p) {
     case 'overview': return <Overview onNavigate={onNavigate} />;
@@ -68,7 +85,10 @@ function Dashboard() {
   const [visitedPages, setVisitedPages] = useState<Set<PageKey>>(() => new Set(['overview']));
   const [pendingCount, setPendingCount] = useState(0);
   const [supportCount, setSupportCount] = useState(0);
-  const [retryKey, setRetryKey] = useState(0);
+  const [moduleRetries, setModuleRetries] = useState<Record<string, number>>({});
+  const handleRetryModule = useCallback((moduleKey: string) => {
+    setModuleRetries(prev => ({ ...prev, [moduleKey]: (prev[moduleKey] || 0) + 1 }));
+  }, []);
   const [showPendingModal, setShowPendingModal] = useState(false);
   const hasAlertedPendingRef = useRef(false);
 
@@ -138,7 +158,14 @@ function Dashboard() {
               style={{ display: isCurrent ? 'block' : 'none' }}
               className={isCurrent ? 'animate-fade-in' : undefined}
             >
-              <ErrorBoundary key={`${p}-${retryKey}`} onRetry={() => setRetryKey(k => k + 1)}>
+              <ErrorBoundary
+                key={`${p}-${moduleRetries[p] || 0}`}
+                moduleKey={p}
+                moduleName={MODULE_METADATA[p]?.en || p}
+                moduleNameAr={MODULE_METADATA[p]?.ar || p}
+                onRetry={() => handleRetryModule(p)}
+                onNavigateHome={() => handleNavigate('overview')}
+              >
                 <Suspense fallback={<PageLoadingFallback />}>
                   {renderPageComponent(p, handleNavigate)}
                 </Suspense>
