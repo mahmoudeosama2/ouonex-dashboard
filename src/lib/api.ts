@@ -255,6 +255,10 @@ export const api = {
   },
 
   dawaty: {
+    occasions: (): Promise<{ data: any[] }> =>
+      http('/admin/dawaty/occasions'),
+    templates: (occasion?: string): Promise<{ data: any[] }> =>
+      http('/admin/dawaty/templates' + (occasion ? '?occasion=' + occasion : '')),
     invitations: (f?: { status?: string; page?: number; per_page?: number; search?: string }): Promise<Paginated<Invitation>> =>
       MOCK ? delay(mock.invitations(f)) : http(`/admin/dawaty/invitations${qs(f as Record<string, unknown>)}`),
     invitation: (id: string): Promise<Invitation | undefined> =>

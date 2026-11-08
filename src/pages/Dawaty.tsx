@@ -195,16 +195,16 @@ export function Dawaty() {
     { key: 'slug', header: t('dawaty.th_live_url'), render: r => (
       r.status === 'published' ? (
         <a
-          href={`https://${r.slug}.ouonex.com`}
+          href={`https://dawety.ouonex.com/${r.slug}`}
           target="_blank"
           rel="noopener noreferrer"
           className="font-mono text-xs text-brand-400 hover:text-brand-300 hover:underline flex items-center gap-1 transition-colors"
           onClick={e => e.stopPropagation()}
         >
-          {r.slug}.ouonex.com <ExternalLink className="w-3 h-3" />
+          dawety.ouonex.com/{r.slug} <ExternalLink className="w-3 h-3" />
         </a>
       ) : (
-        <span className="font-mono text-xs text-ink-600">{r.slug}.ouonex.com</span>
+        <span className="font-mono text-xs text-ink-600">dawety.ouonex.com/{r.slug}</span>
       )
     ) },
     { key: 'status', header: t('dawaty.th_status'), sortValue: r => r.status, align: 'center', render: r => <StatusBadge status={r.status} /> },
@@ -417,6 +417,9 @@ function InvitationDetail({
   const [successMsg, setSuccessMsg] = useState('');
   const extra = inv as any;
 
+  const [occasionsList, setOccasionsList] = useState<any[]>([]);
+  const [templatesList, setTemplatesList] = useState<any[]>([]);
+
   const [formData, setFormData] = useState({
     groom_name: extra.groom_name || inv.couple_names.split('&')[0]?.trim() || '',
     bride_name: extra.bride_name || inv.couple_names.split('&')[1]?.trim() || '',
@@ -424,11 +427,25 @@ function InvitationDetail({
     time: extra.time || '8:00 PM',
     venue_name: extra.venue_name || extra.venue || '',
     venue_address: extra.venue_address || '',
+    occasion_type: extra.occasion_type || 'wedding',
+    reminder_days: extra.reminder_days || 1,
     template_id: extra.template_id || 'envelope_romantic',
     slug: inv.slug,
     status: inv.status,
     notifications_enabled: true,
   });
+
+  useEffect(() => {
+    api.dawaty.occasions().then(res => {
+      if (res && res.data) setOccasionsList(res.data);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    api.dawaty.templates(formData.occasion_type).then(res => {
+      if (res && res.data) setTemplatesList(res.data);
+    }).catch(() => {});
+  }, [formData.occasion_type]);
 
   useEffect(() => {
     setFormData({
@@ -438,6 +455,8 @@ function InvitationDetail({
       time: extra.time || '8:00 PM',
       venue_name: extra.venue_name || extra.venue || '',
       venue_address: extra.venue_address || '',
+      occasion_type: extra.occasion_type || 'wedding',
+      reminder_days: extra.reminder_days || 1,
       template_id: extra.template_id || 'envelope_romantic',
       slug: inv.slug,
       status: inv.status,
@@ -460,6 +479,8 @@ function InvitationDetail({
         time: formData.time,
         venue_name: formData.venue_name,
         venue_address: formData.venue_address,
+        occasion_type: formData.occasion_type,
+        reminder_days: formData.reminder_days,
         template_id: formData.template_id,
         slug: formData.slug,
         status: formData.status,
@@ -637,7 +658,35 @@ function InvitationDetail({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'نوع المناسبة' : 'Occasion Type'}</label>
+              <select
+                value={formData.occasion_type}
+                onChange={e => setFormData({ ...formData, occasion_type: e.target.value })}
+                className="input w-full text-xs bg-ink-950"
+              >
+                {occasionsList.length > 0 ? (
+                  occasionsList.map((occ: any) => (
+                    <option key={occ.id} value={occ.id}>
+                      {locale === 'ar' ? (occ.icon ? `${occ.icon} ${occ.name_ar}` : occ.name_ar) : occ.name_en}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="wedding">{locale === 'ar' ? '💍 حفل زفاف' : 'Wedding'}</option>
+                    <option value="engagement">{locale === 'ar' ? '💐 خطوبة' : 'Engagement'}</option>
+                    <option value="marriage_contract">{locale === 'ar' ? '📜 كتب كتاب' : 'Marriage Contract'}</option>
+                    <option value="fatiha">{locale === 'ar' ? '📖 قراءة فاتحة' : 'Fatiha'}</option>
+                    <option value="baby_celebration">{locale === 'ar' ? '🍼 سبوع / مولود' : 'Baby Celebration'}</option>
+                    <option value="birthday">{locale === 'ar' ? '🎂 عيد ميلاد' : 'Birthday'}</option>
+                    <option value="graduation">{locale === 'ar' ? '🎓 تخرج' : 'Graduation'}</option>
+                    <option value="party">{locale === 'ar' ? '🎉 حفلة' : 'Party'}</option>
+                    <option value="other">{locale === 'ar' ? '✨ مناسبة أخرى' : 'Other'}</option>
+                  </>
+                )}
+              </select>
+            </div>
             <div>
               <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'قالب التصميم' : 'Design Template'}</label>
               <select
@@ -645,25 +694,52 @@ function InvitationDetail({
                 onChange={e => setFormData({ ...formData, template_id: e.target.value })}
                 className="input w-full text-xs bg-ink-950"
               >
-                <option value="envelope_romantic">{locale === 'ar' ? 'المغلف الرومانسي' : 'Romantic Envelope'}</option>
-                <option value="royal_gold">{locale === 'ar' ? 'الملكي الذهبي' : 'Royal Gold'}</option>
-                <option value="emerald_royal">{locale === 'ar' ? 'الزمرد الملكي' : 'Emerald Royal'}</option>
-                <option value="classic_pearl">{locale === 'ar' ? 'اللؤلؤي الكلاسيكي' : 'Classic Pearl'}</option>
+                {templatesList.length > 0 ? (
+                  templatesList.map((tpl: any) => (
+                    <option key={tpl.id} value={tpl.id}>
+                      {locale === 'ar' ? tpl.name : (tpl.name_en || tpl.name)}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="envelope_romantic">{locale === 'ar' ? 'المغلف الرومانسي' : 'Romantic Envelope'}</option>
+                    <option value="royal_gold">{locale === 'ar' ? 'الملكي الذهبي' : 'Royal Gold'}</option>
+                    <option value="emerald_royal">{locale === 'ar' ? 'الزمرد الملكي' : 'Emerald Royal'}</option>
+                    <option value="classic_pearl">{locale === 'ar' ? 'اللؤلؤي الكلاسيكي' : 'Classic Pearl'}</option>
+                    <option value="amalfi_terrace">{locale === 'ar' ? 'شرفة أمالفي' : 'Amalfi Terrace'}</option>
+                    <option value="onyx_marble">{locale === 'ar' ? 'الرخام الأسود الملكي' : 'Onyx Marble'}</option>
+                  </>
+                )}
               </select>
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{t('common.status')}</label>
+              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'التذكير قبل (أيام)' : 'Reminder (Days)'}</label>
               <select
-                value={formData.status}
-                onChange={e => setFormData({ ...formData, status: e.target.value as any })}
+                value={formData.reminder_days}
+                onChange={e => setFormData({ ...formData, reminder_days: Number(e.target.value) })}
                 className="input w-full text-xs bg-ink-950"
               >
-                <option value="published">{locale === 'ar' ? 'منشورة ونشطة' : 'Published'}</option>
-                <option value="draft">{locale === 'ar' ? 'مسودة' : 'Draft'}</option>
-                <option value="inactive">{locale === 'ar' ? 'متوقفة' : 'Inactive'}</option>
-                <option value="expired">{locale === 'ar' ? 'منتهية' : 'Expired'}</option>
+                <option value={1}>{locale === 'ar' ? 'يوم واحد قبل المناسبة' : '1 Day Before'}</option>
+                <option value={2}>{locale === 'ar' ? 'يومان قبل المناسبة' : '2 Days Before'}</option>
+                <option value={3}>{locale === 'ar' ? '3 أيام قبل المناسبة' : '3 Days Before'}</option>
+                <option value={5}>{locale === 'ar' ? '5 أيام قبل المناسبة' : '5 Days Before'}</option>
+                <option value={7}>{locale === 'ar' ? '7 أيام (أسبوع) قبل' : '7 Days Before'}</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-2xs text-ink-400 mb-1">{t('common.status')}</label>
+            <select
+              value={formData.status}
+              onChange={e => setFormData({ ...formData, status: e.target.value as any })}
+              className="input w-full text-xs bg-ink-950"
+            >
+              <option value="published">{locale === 'ar' ? 'منشورة ونشطة' : 'Published'}</option>
+              <option value="draft">{locale === 'ar' ? 'مسودة' : 'Draft'}</option>
+              <option value="inactive">{locale === 'ar' ? 'متوقفة' : 'Inactive'}</option>
+              <option value="expired">{locale === 'ar' ? 'منتهية' : 'Expired'}</option>
+            </select>
           </div>
 
           <div>

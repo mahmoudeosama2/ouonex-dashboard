@@ -98,6 +98,9 @@ export interface Invitation {
   qr_scan_count: number;
   guest_count: number;
   visits_over_time: { date: string; count: number }[];
+  occasion_type?: string;
+  occasion_data?: Record<string, any>;
+  reminder_days?: number;
 }
 
 export interface Restaurant {
