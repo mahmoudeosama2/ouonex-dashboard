@@ -722,7 +722,9 @@ function InvitationDetail({
                 <option value={1}>{locale === 'ar' ? 'يوم واحد قبل المناسبة' : '1 Day Before'}</option>
                 <option value={2}>{locale === 'ar' ? 'يومان قبل المناسبة' : '2 Days Before'}</option>
                 <option value={3}>{locale === 'ar' ? '3 أيام قبل المناسبة' : '3 Days Before'}</option>
+                <option value={4}>{locale === 'ar' ? '4 أيام قبل المناسبة' : '4 Days Before'}</option>
                 <option value={5}>{locale === 'ar' ? '5 أيام قبل المناسبة' : '5 Days Before'}</option>
+                <option value={6}>{locale === 'ar' ? '6 أيام قبل المناسبة' : '6 Days Before'}</option>
                 <option value={7}>{locale === 'ar' ? '7 أيام (أسبوع) قبل' : '7 Days Before'}</option>
               </select>
             </div>
