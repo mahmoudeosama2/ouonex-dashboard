@@ -730,37 +730,40 @@ function RestaurantDetail({
 
       {/* Edit Restaurant Form */}
       {isEditing ? (
-        <form onSubmit={handleSave} className="p-4 rounded-xl bg-ink-950/80 border border-ink-800/80 space-y-3 animate-fade-in">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">Edit Restaurant Details</h4>
+        <form onSubmit={handleSave} className="p-5 rounded-2xl bg-ink-950/90 border border-ink-800/80 space-y-4 shadow-soft animate-fade-in">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+            <Edit3 className="w-4 h-4" />
+            <span>Edit Restaurant Details</span>
+          </h4>
           <div>
-            <label className="block text-2xs text-ink-400 mb-1">Restaurant Name</label>
+            <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">Restaurant Name</label>
             <input
               type="text"
               required
               value={formData.store_name}
               onChange={e => setFormData({ ...formData, store_name: e.target.value })}
-              className="input w-full text-xs"
+              className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
             />
           </div>
 
           <div>
-            <label className="block text-2xs text-ink-400 mb-1">URL Slug</label>
+            <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">URL Slug</label>
             <input
               type="text"
               required
               value={formData.slug}
               onChange={e => setFormData({ ...formData, slug: e.target.value })}
-              className="input w-full text-xs font-mono"
+              className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-mono font-bold"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{t('common.status')}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{t('common.status')}</label>
               <select
                 value={formData.status}
                 onChange={e => setFormData({ ...formData, status: e.target.value as RestaurantStatus })}
-                className="input w-full text-xs bg-ink-950"
+                className="input w-full min-h-[42px] rounded-xl px-3 text-xs bg-ink-950 font-medium cursor-pointer"
               >
                 <option value="active">{locale === 'ar' ? 'مفعل (Active)' : 'Active'}</option>
                 <option value="trial">{locale === 'ar' ? 'تجريبي (Trial)' : 'Trial'}</option>
@@ -771,22 +774,22 @@ function RestaurantDetail({
               </select>
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'نشر المنيو للجمهور' : 'Menu Published'}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'نشر المنيو للجمهور' : 'Menu Published'}</label>
               <select
                 value={formData.menu_published ? 'yes' : 'no'}
                 onChange={e => setFormData({ ...formData, menu_published: e.target.value === 'yes' })}
-                className="input w-full text-xs bg-ink-950"
+                className="input w-full min-h-[42px] rounded-xl px-3 text-xs bg-ink-950 font-medium cursor-pointer"
               >
                 <option value="yes">{locale === 'ar' ? 'منشور (مفعل)' : 'Published'}</option>
                 <option value="no">{locale === 'ar' ? 'غير منشور (مخفي)' : 'Unpublished'}</option>
               </select>
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'العملة' : 'Currency'}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'العملة' : 'Currency'}</label>
               <select
                 value={formData.currency}
                 onChange={e => setFormData({ ...formData, currency: e.target.value })}
-                className="input w-full text-xs bg-ink-950"
+                className="input w-full min-h-[42px] rounded-xl px-3 text-xs bg-ink-950 font-medium cursor-pointer"
               >
                 <option value="EGP">{locale === 'ar' ? 'جنيه مصري (EGP)' : 'Egyptian Pound (EGP)'}</option>
                 <option value="SAR">{locale === 'ar' ? 'ريال سعودي (SAR)' : 'Saudi Riyal (SAR)'}</option>
@@ -796,21 +799,21 @@ function RestaurantDetail({
             </div>
           </div>
 
-          <div className="pt-2 flex justify-end gap-2">
+          <div className="pt-2 flex justify-end gap-2.5">
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white"
+              className="min-h-[40px] px-4 rounded-xl text-xs font-semibold text-ink-300 hover:text-white hover:bg-ink-800 transition-all active:scale-95 cursor-pointer"
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-ink-950 hover:bg-amber-400 transition disabled:opacity-50"
+              className="min-h-[40px] px-5 rounded-xl text-xs font-bold bg-amber-500 text-ink-950 hover:bg-amber-400 shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
             >
-              <Save className="w-3.5 h-3.5" />
-              {saving ? t('common.saving') : t('common.save')}
+              <Save className="w-4 h-4" />
+              <span>{saving ? t('common.saving') : t('common.save')}</span>
             </button>
           </div>
         </form>
@@ -886,67 +889,68 @@ function RestaurantDetail({
 
         {/* Edit Owner Inline Form */}
         {isEditingOwner && (
-          <form onSubmit={handleSaveOwner} className="pt-3 border-t border-ink-800/80 space-y-2.5 animate-fade-in">
-            <h5 className="text-2xs font-bold uppercase tracking-wider text-brand-400">
-              {locale === 'ar' ? 'تعديل بيانات حساب المالك' : 'Edit Owner Profile Details'}
+          <form onSubmit={handleSaveOwner} className="pt-4 border-t border-ink-800/80 space-y-3.5 animate-fade-in">
+            <h5 className="text-2xs font-bold uppercase tracking-wider text-brand-400 flex items-center gap-1.5">
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>{locale === 'ar' ? 'تعديل بيانات حساب المالك' : 'Edit Owner Profile Details'}</span>
             </h5>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-3xs text-ink-400 mb-0.5">{locale === 'ar' ? 'الاسم بالكامل' : 'Full Name'}</label>
+                <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1">{locale === 'ar' ? 'الاسم بالكامل' : 'Full Name'}</label>
                 <input
                   type="text"
                   required
                   value={ownerFormData.name}
                   onChange={e => setOwnerFormData({ ...ownerFormData, name: e.target.value })}
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
                 />
               </div>
               <div>
-                <label className="block text-3xs text-ink-400 mb-0.5">{locale === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
+                <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1">{locale === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
                 <input
                   type="email"
                   required
                   value={ownerFormData.email}
                   onChange={e => setOwnerFormData({ ...ownerFormData, email: e.target.value })}
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
                 />
               </div>
               <div>
-                <label className="block text-3xs text-ink-400 mb-0.5">{locale === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
+                <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1">{locale === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
                 <input
                   type="text"
                   value={ownerFormData.phone}
                   onChange={e => setOwnerFormData({ ...ownerFormData, phone: e.target.value })}
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold font-mono"
                   placeholder="+201..."
                 />
               </div>
               <div>
-                <label className="block text-3xs text-ink-400 mb-0.5">{locale === 'ar' ? 'كلمة المرور الجديدة (اختياري)' : 'New Password (Optional)'}</label>
+                <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1">{locale === 'ar' ? 'كلمة المرور الجديدة (اختياري)' : 'New Password (Optional)'}</label>
                 <input
                   type="password"
                   value={ownerFormData.password}
                   onChange={e => setOwnerFormData({ ...ownerFormData, password: e.target.value })}
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
                   placeholder="******"
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-1">
+            <div className="flex justify-end gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setIsEditingOwner(false)}
-                className="px-2.5 py-1 rounded-lg text-2xs text-ink-400 hover:text-white"
+                className="min-h-[38px] px-3.5 rounded-xl text-xs font-semibold text-ink-300 hover:text-white hover:bg-ink-800 transition-all active:scale-95 cursor-pointer"
               >
                 {t('common.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={savingOwner}
-                className="flex items-center gap-1 px-3 py-1 rounded-lg text-2xs font-semibold bg-brand-500 text-white hover:bg-brand-400 disabled:opacity-50"
+                className="min-h-[38px] px-5 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-400 text-white shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
               >
-                <Save className="w-3 h-3" />
-                {savingOwner ? (locale === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (locale === 'ar' ? 'حفظ التعديلات' : 'Save Changes')}
+                <Save className="w-3.5 h-3.5" />
+                <span>{savingOwner ? (locale === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (locale === 'ar' ? 'حفظ التعديلات' : 'Save Changes')}</span>
               </button>
             </div>
           </form>

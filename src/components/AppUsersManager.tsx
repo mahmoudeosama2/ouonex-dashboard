@@ -247,33 +247,33 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
       render: r => {
         const isActive = (r.status || 'active') === 'active';
         return (
-          <div className="flex items-center justify-end gap-1.5" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-end gap-2" onClick={e => e.stopPropagation()}>
             <button
               onClick={() => handleToggleStatus(r)}
-              className={`p-1.5 rounded-lg text-xs font-semibold border transition ${
+              className={`min-w-[38px] min-h-[38px] rounded-xl text-xs font-semibold border flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer ${
                 isActive
-                  ? 'bg-ink-900 hover:bg-rose-500/20 text-ink-400 hover:text-rose-400 border-ink-800 hover:border-rose-500/30'
-                  : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border-emerald-500/30'
+                  ? 'bg-ink-900/90 hover:bg-rose-500/20 text-ink-400 hover:text-rose-400 border-ink-800 hover:border-rose-500/30 shadow-sm'
+                  : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border-emerald-500/30 shadow-sm'
               }`}
               title={isActive ? (locale === 'ar' ? 'إيقاف الحساب' : 'Suspend') : (locale === 'ar' ? 'تفعيل الحساب' : 'Activate')}
             >
-              <Power className="w-3.5 h-3.5" />
+              <Power className="w-4 h-4" />
             </button>
 
             <button
               onClick={() => openEdit(r)}
-              className="p-1.5 rounded-lg bg-ink-900 hover:bg-ink-800 text-ink-300 hover:text-white border border-ink-800 transition"
+              className="min-w-[38px] min-h-[38px] rounded-xl bg-ink-900/90 hover:bg-ink-800 text-ink-300 hover:text-white border border-ink-800 hover:border-ink-700 transition-all duration-200 active:scale-90 flex items-center justify-center cursor-pointer shadow-sm"
               title={locale === 'ar' ? 'تعديل البيانات' : 'Edit'}
             >
-              <Edit3 className="w-3.5 h-3.5" />
+              <Edit3 className="w-4 h-4 text-brand-400" />
             </button>
 
             <button
               onClick={() => setDeleteUser(r)}
-              className="p-1.5 rounded-lg bg-ink-900 hover:bg-rose-500/20 text-ink-400 hover:text-rose-400 border border-ink-800 hover:border-rose-500/30 transition"
+              className="min-w-[38px] min-h-[38px] rounded-xl bg-ink-900/90 hover:bg-rose-500/20 text-ink-400 hover:text-rose-400 border border-ink-800 hover:border-rose-500/30 transition-all duration-200 active:scale-90 flex items-center justify-center cursor-pointer shadow-sm"
               title={locale === 'ar' ? 'حذف الحساب' : 'Delete'}
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-4 h-4" />
             </button>
           </div>
         );
@@ -282,7 +282,7 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6 animate-fade-in">
       {/* Top KPIs for this App's Users */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KPICard
@@ -308,52 +308,56 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
       </div>
 
       {/* Control Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-ink-900/60 border border-ink-800/80">
-        <div className="flex flex-1 items-center gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-ink-900/60 border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+        <div className="flex flex-1 flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px] max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500 pointer-events-none" />
             <input
               type="text"
               value={query}
               onChange={e => { setQuery(e.target.value); setPage(1); }}
               placeholder={locale === 'ar' ? `بحث في مستخدمي ${productNameAr}...` : `Search ${productNameEn} users...`}
-              className="input pl-9 w-full text-xs"
+              className="input pl-9 min-h-[42px] rounded-xl w-full text-xs bg-ink-950/80 border border-ink-800 focus:border-brand-500/50"
             />
           </div>
 
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-ink-950 border border-ink-800 text-xs">
+          {/* Tactile Segmented Status Filter */}
+          <div className="p-1.5 bg-ink-950/80 border border-ink-800/80 rounded-2xl inline-flex items-center gap-1.5 shadow-inner">
             {[
               { id: 'all', ar: 'الكل', en: 'All' },
               { id: 'active', ar: 'النشطين', en: 'Active' },
               { id: 'suspended', ar: 'الموقوفين', en: 'Suspended' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => { setStatusFilter(tab.id as any); setPage(1); }}
-                className={`px-3 py-1 rounded-lg text-2xs font-medium transition ${
-                  statusFilter === tab.id
-                    ? 'bg-brand-600 text-white shadow-soft'
-                    : 'text-ink-400 hover:text-ink-200'
-                }`}
-              >
-                {locale === 'ar' ? tab.ar : tab.en}
-              </button>
-            ))}
+            ].map(tabItem => {
+              const isActive = statusFilter === tabItem.id;
+              return (
+                <button
+                  key={tabItem.id}
+                  onClick={() => { setStatusFilter(tabItem.id as any); setPage(1); }}
+                  className={`px-3 py-1.5 min-h-[38px] rounded-xl text-2xs font-bold transition-all duration-200 active:scale-95 cursor-pointer ${
+                    isActive
+                      ? 'bg-ink-800 text-brand-300 shadow-sm border border-brand-500/30 scale-[1.02] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]'
+                      : 'text-ink-400 hover:text-ink-200 hover:bg-ink-900/60'
+                  }`}
+                >
+                  {locale === 'ar' ? tabItem.ar : tabItem.en}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={handleExportCsv}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-ink-950 text-emerald-400 border border-emerald-500/30 hover:bg-ink-900 transition"
+            className="flex items-center gap-2 min-h-[42px] px-4 py-2 rounded-xl text-xs font-semibold bg-ink-950/80 text-emerald-400 border border-emerald-500/30 hover:bg-ink-900 active:scale-95 transition-all cursor-pointer shadow-sm"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <FileSpreadsheet className="w-4 h-4" />
             <span>{locale === 'ar' ? 'تصدير' : 'Export'}</span>
           </button>
 
           <button
             onClick={() => setAddModalOpen(true)}
-            className="btn-primary flex items-center gap-1.5 text-xs py-1.5 px-3.5"
+            className="btn-primary min-h-[42px] flex items-center gap-2 text-xs py-2 px-5 rounded-xl font-bold shadow-md shadow-brand-500/20 active:scale-95 transition-all cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             <span>{locale === 'ar' ? 'إضافة مستخدم جديد' : 'Add New User'}</span>
@@ -376,23 +380,23 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
 
       {/* ── Modal: Add New User ── */}
       {addModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="card w-full max-w-md bg-ink-950 border border-ink-800 shadow-2xl rounded-2xl overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-ink-800 bg-ink-900/50">
-              <div className="flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-md animate-fade-in">
+          <div className="card w-full max-w-md bg-ink-950 border border-ink-700/80 shadow-2xl rounded-2xl overflow-hidden shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+            <div className="flex items-center justify-between p-5 border-b border-ink-800 bg-ink-900/50">
+              <div className="flex items-center gap-2.5">
                 <UserPlus className="w-5 h-5 text-brand-400" />
                 <h3 className="text-sm font-bold text-ink-50">
                   {locale === 'ar' ? `إضافة مستخدم جديد إلى ${productNameAr}` : `Add New User to ${productNameEn}`}
                 </h3>
               </div>
-              <button onClick={() => setAddModalOpen(false)} className="text-ink-400 hover:text-white">
+              <button onClick={() => setAddModalOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-white hover:bg-ink-800/60 active:scale-90 transition-all cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateUser} className="p-5 space-y-3.5">
+            <form onSubmit={handleCreateUser} className="p-6 space-y-4">
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'الاسم الكامل *' : 'Full Name *'}
                 </label>
                 <input
@@ -401,12 +405,12 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
                   value={newUserData.name}
                   onChange={e => setNewUserData({ ...newUserData, name: e.target.value })}
                   placeholder={locale === 'ar' ? 'أحمد محمد' : 'John Doe'}
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'البريد الإلكتروني *' : 'Email Address *'}
                 </label>
                 <input
@@ -415,12 +419,12 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
                   value={newUserData.email}
                   onChange={e => setNewUserData({ ...newUserData, email: e.target.value })}
                   placeholder="user@example.com"
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'رقم الهاتف' : 'Phone Number'}
                 </label>
                 <input
@@ -428,12 +432,12 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
                   value={newUserData.phone}
                   onChange={e => setNewUserData({ ...newUserData, phone: e.target.value })}
                   placeholder="+20 100 000 0000"
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'كلمة المرور *' : 'Password *'}
                 </label>
                 <input
@@ -443,38 +447,38 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
                   value={newUserData.password}
                   onChange={e => setNewUserData({ ...newUserData, password: e.target.value })}
                   placeholder="••••••••"
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'حالة الحساب الأولية' : 'Initial Status'}
                 </label>
                 <select
                   value={newUserData.status}
                   onChange={e => setNewUserData({ ...newUserData, status: e.target.value as any })}
-                  className="input w-full text-xs bg-ink-950"
+                  className="input w-full min-h-[42px] rounded-xl text-xs bg-ink-950 cursor-pointer"
                 >
                   <option value="active">{locale === 'ar' ? 'نشط (مفعل)' : 'Active'}</option>
                   <option value="suspended">{locale === 'ar' ? 'معلق (موقوف)' : 'Suspended'}</option>
                 </select>
               </div>
 
-              <div className="pt-3 border-t border-ink-800/80 flex justify-end gap-2">
+              <div className="pt-4 border-t border-ink-800/80 flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-ink-400 hover:text-white"
+                  className="px-4 py-2 min-h-[42px] rounded-xl text-xs font-semibold text-ink-400 hover:text-white hover:bg-ink-800 transition active:scale-95 cursor-pointer"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="btn-primary flex items-center gap-1.5 text-xs py-2 px-4"
+                  className="btn-primary min-h-[44px] px-6 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 active:scale-95 transition-all cursor-pointer"
                 >
-                  <Save className="w-3.5 h-3.5" />
+                  <Save className="w-4 h-4" />
                   <span>{saving ? t('common.saving') : (locale === 'ar' ? 'حفظ وإنشاء' : 'Save & Create')}</span>
                 </button>
               </div>
@@ -485,23 +489,23 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
 
       {/* ── Modal: Edit User ── */}
       {editUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="card w-full max-w-md bg-ink-950 border border-ink-800 shadow-2xl rounded-2xl overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-ink-800 bg-ink-900/50">
-              <div className="flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-md animate-fade-in">
+          <div className="card w-full max-w-md bg-ink-950 border border-ink-700/80 shadow-2xl rounded-2xl overflow-hidden shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+            <div className="flex items-center justify-between p-5 border-b border-ink-800 bg-ink-900/50">
+              <div className="flex items-center gap-2.5">
                 <Edit3 className="w-5 h-5 text-brand-400" />
                 <h3 className="text-sm font-bold text-ink-50">
                   {locale === 'ar' ? `تعديل حساب: ${editUser.name}` : `Edit User: ${editUser.name}`}
                 </h3>
               </div>
-              <button onClick={() => setEditUser(null)} className="text-ink-400 hover:text-white">
+              <button onClick={() => setEditUser(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-white hover:bg-ink-800/60 active:scale-90 transition-all cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleUpdateUser} className="p-5 space-y-3.5">
+            <form onSubmit={handleUpdateUser} className="p-6 space-y-4">
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'الاسم الكامل' : 'Full Name'}
                 </label>
                 <input
@@ -509,12 +513,12 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
                   required
                   value={editFormData.name}
                   onChange={e => setEditFormData({ ...editFormData, name: e.target.value })}
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}
                 </label>
                 <input
@@ -522,25 +526,25 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
                   required
                   value={editFormData.email}
                   onChange={e => setEditFormData({ ...editFormData, email: e.target.value })}
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'رقم الهاتف' : 'Phone Number'}
                 </label>
                 <input
                   type="text"
                   value={editFormData.phone}
                   onChange={e => setEditFormData({ ...editFormData, phone: e.target.value })}
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1 flex items-center gap-1">
-                  <Key className="w-3 h-3 text-warning-400" />
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5 flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5 text-warning-400" />
                   <span>{t('users.password_hint')}</span>
                 </label>
                 <input
@@ -548,38 +552,38 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
                   placeholder="••••••••"
                   value={editFormData.password}
                   onChange={e => setEditFormData({ ...editFormData, password: e.target.value })}
-                  className="input w-full text-xs"
+                  className="input w-full min-h-[42px] rounded-xl text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'حالة الحساب' : 'Account Status'}
                 </label>
                 <select
                   value={editFormData.status}
                   onChange={e => setEditFormData({ ...editFormData, status: e.target.value as any })}
-                  className="input w-full text-xs bg-ink-950"
+                  className="input w-full min-h-[42px] rounded-xl text-xs bg-ink-950 cursor-pointer"
                 >
                   <option value="active">{locale === 'ar' ? 'نشط' : 'Active'}</option>
                   <option value="suspended">{locale === 'ar' ? 'معلق (موقوف)' : 'Suspended'}</option>
                 </select>
               </div>
 
-              <div className="pt-3 border-t border-ink-800/80 flex justify-end gap-2">
+              <div className="pt-4 border-t border-ink-800/80 flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setEditUser(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-ink-400 hover:text-white"
+                  className="px-4 py-2 min-h-[42px] rounded-xl text-xs font-semibold text-ink-400 hover:text-white hover:bg-ink-800 transition active:scale-95 cursor-pointer"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="btn-primary flex items-center gap-1.5 text-xs py-2 px-4"
+                  className="btn-primary min-h-[44px] px-6 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 active:scale-95 transition-all cursor-pointer"
                 >
-                  <Save className="w-3.5 h-3.5" />
+                  <Save className="w-4 h-4" />
                   <span>{saving ? t('common.saving') : t('common.save')}</span>
                 </button>
               </div>
@@ -590,15 +594,15 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
 
       {/* ── Modal: Delete User Confirmation ── */}
       {deleteUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="card w-full max-w-sm bg-ink-950 border border-rose-500/30 shadow-2xl rounded-2xl p-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-md animate-fade-in">
+          <div className="card w-full max-w-sm bg-ink-950 border border-rose-500/40 shadow-2xl rounded-2xl p-6 space-y-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center shrink-0 shadow-sm">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-ink-50">{t('users.delete_user')}</h3>
-                <p className="text-xs text-ink-400">{deleteUser.name} ({deleteUser.email})</p>
+                <p className="text-xs text-ink-400 mt-0.5">{deleteUser.name} ({deleteUser.email})</p>
               </div>
             </div>
 
@@ -606,17 +610,17 @@ export function AppUsersManager({ product, productNameAr, productNameEn, icon }:
               {t('users.confirm_delete')}
             </p>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-ink-800/80">
               <button
                 onClick={() => setDeleteUser(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-ink-400 hover:text-white"
+                className="px-4 py-2 min-h-[42px] rounded-xl text-xs font-semibold text-ink-400 hover:text-white hover:bg-ink-800 transition active:scale-95 cursor-pointer"
               >
                 {t('common.cancel')}
               </button>
               <button
                 onClick={handleDeleteUser}
                 disabled={saving}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition disabled:opacity-50"
+                className="px-5 py-2 min-h-[42px] rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white transition active:scale-95 shadow-md shadow-rose-500/20 disabled:opacity-50 cursor-pointer"
               >
                 {saving ? t('common.saving') : t('common.delete')}
               </button>

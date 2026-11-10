@@ -519,45 +519,45 @@ function InvitationDetail({
   return (
     <div className="space-y-6">
       {/* Action Control Panel */}
-      <div className="p-4 rounded-xl border border-ink-800 bg-ink-900/80 shadow-sm">
+      <div className="p-4 sm:p-5 rounded-2xl border border-ink-800/80 bg-ink-950/60 backdrop-blur-sm shadow-soft">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <StatusBadge status={inv.status} />
-            <span className="text-xs text-ink-400 font-mono">/{inv.slug}</span>
+            <span className="text-xs text-ink-400 font-mono font-bold">/{inv.slug}</span>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-ink-800 hover:bg-ink-700 text-ink-200 hover:text-white border border-ink-700 transition"
+              className="flex items-center justify-center gap-1.5 px-4 min-h-[40px] rounded-xl text-xs font-semibold bg-ink-850 hover:bg-ink-800 text-ink-200 hover:text-white border border-ink-700/80 transition-all active:scale-95 shadow-sm cursor-pointer"
             >
               {isEditing ? <X className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
-              {isEditing ? (locale === 'ar' ? 'إلغاء' : 'Cancel') : (locale === 'ar' ? 'تعديل البيانات' : 'Edit Details')}
+              <span>{isEditing ? (locale === 'ar' ? 'إلغاء' : 'Cancel') : (locale === 'ar' ? 'تعديل البيانات' : 'Edit Details')}</span>
             </button>
 
             <button
               onClick={onTogglePublish}
               disabled={toggling}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 min-h-[40px] rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer ${
                 isPublished
-                  ? 'bg-ink-800 hover:bg-ink-700 text-amber-300 border border-amber-500/30 hover:border-amber-500/50'
-                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/40 hover:shadow-emerald-900/60'
+                  ? 'bg-ink-800 hover:bg-ink-750 text-amber-300 border border-amber-500/30 hover:border-amber-500/50'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/40'
               }`}
             >
               {toggling ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  {locale === 'ar' ? 'جاري التحديث...' : 'Updating...'}
+                  <span>{locale === 'ar' ? 'جاري التحديث...' : 'Updating...'}</span>
                 </>
               ) : isPublished ? (
                 <>
                   <PauseCircle className="w-3.5 h-3.5 text-amber-400" />
-                  {locale === 'ar' ? 'تعطيل' : 'Deactivate'}
+                  <span>{locale === 'ar' ? 'تعطيل' : 'Deactivate'}</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-                  {locale === 'ar' ? 'تفعيل ونشر' : 'Activate & Publish'}
+                  <span>{locale === 'ar' ? 'تفعيل ونشر' : 'Activate & Publish'}</span>
                 </>
               )}
             </button>
@@ -567,110 +567,112 @@ function InvitationDetail({
                 href={liveUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition-colors"
+                className="flex items-center justify-center gap-1.5 px-3.5 min-h-[40px] rounded-xl text-xs font-semibold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition-all active:scale-95 shadow-sm"
               >
-                {locale === 'ar' ? 'معاينة مباشرة' : 'Live'} <ExternalLink className="w-3 h-3" />
+                <span>{locale === 'ar' ? 'معاينة مباشرة' : 'Live'}</span>
+                <ExternalLink className="w-3 h-3" />
               </a>
             )}
 
             <button
               onClick={onDelete}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition"
+              className="flex items-center justify-center min-w-[40px] min-h-[40px] px-2.5 rounded-xl text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-all active:scale-90 cursor-pointer"
               title={locale === 'ar' ? 'حذف الدعوة' : 'Delete Invitation'}
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
 
       {successMsg && (
-        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
+        <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2.5">
           <CheckCircle2 className="w-4 h-4" />
-          <span>{successMsg}</span>
+          <span className="font-semibold">{successMsg}</span>
         </div>
       )}
 
       {/* Edit Form */}
       {isEditing && (
-        <form onSubmit={handleSave} className="p-4 rounded-xl bg-ink-950/80 border border-ink-800/80 space-y-3 animate-fade-in">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400">
-            {locale === 'ar' ? 'تعديل بيانات الدعوة والمناسبة' : 'Edit Invitation & Event Data'}
+        <form onSubmit={handleSave} className="p-5 rounded-2xl bg-ink-950/90 border border-ink-800/80 space-y-4 shadow-soft animate-fade-in">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
+            <Edit3 className="w-4 h-4" />
+            <span>{locale === 'ar' ? 'تعديل بيانات الدعوة والمناسبة' : 'Edit Invitation & Event Data'}</span>
           </h4>
           
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'اسم العريس' : 'Groom Name'}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'اسم العريس' : 'Groom Name'}</label>
               <input
                 type="text"
                 required
                 value={formData.groom_name}
                 onChange={e => setFormData({ ...formData, groom_name: e.target.value })}
-                className="input w-full text-xs"
+                className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
               />
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'اسم العروس' : 'Bride Name'}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'اسم العروس' : 'Bride Name'}</label>
               <input
                 type="text"
                 required
                 value={formData.bride_name}
                 onChange={e => setFormData({ ...formData, bride_name: e.target.value })}
-                className="input w-full text-xs"
+                className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'تاريخ الزفاف' : 'Wedding Date'}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'تاريخ الزفاف' : 'Wedding Date'}</label>
               <input
                 type="date"
                 required
                 value={formData.wedding_date}
                 onChange={e => setFormData({ ...formData, wedding_date: e.target.value })}
-                className="input w-full text-xs"
+                className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
               />
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'الوقت' : 'Time'}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'الوقت' : 'Time'}</label>
               <input
                 type="text"
                 value={formData.time}
                 onChange={e => setFormData({ ...formData, time: e.target.value })}
-                className="input w-full text-xs"
+                className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'اسم القاعة' : 'Venue Name'}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'اسم القاعة' : 'Venue Name'}</label>
               <input
                 type="text"
                 value={formData.venue_name}
                 onChange={e => setFormData({ ...formData, venue_name: e.target.value })}
-                className="input w-full text-xs"
+                className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
               />
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'عنوان القاعة / الخريطة' : 'Venue Address / Maps'}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'عنوان القاعة / الخريطة' : 'Venue Address / Maps'}</label>
               <input
                 type="text"
                 value={formData.venue_address}
                 onChange={e => setFormData({ ...formData, venue_address: e.target.value })}
-                className="input w-full text-xs"
+                className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'نوع المناسبة' : 'Occasion Type'}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'نوع المناسبة' : 'Occasion Type'}</label>
               <select
                 value={formData.occasion_type}
                 onChange={e => setFormData({ ...formData, occasion_type: e.target.value })}
-                className="input w-full text-xs bg-ink-950"
+                className="input w-full min-h-[42px] rounded-xl px-3 text-xs bg-ink-950 font-medium cursor-pointer"
               >
                 {occasionsList.length > 0 ? (
                   occasionsList.map((occ: any) => (
@@ -694,11 +696,11 @@ function InvitationDetail({
               </select>
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'قالب التصميم' : 'Design Template'}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'قالب التصميم' : 'Design Template'}</label>
               <select
                 value={formData.template_id}
                 onChange={e => setFormData({ ...formData, template_id: e.target.value })}
-                className="input w-full text-xs bg-ink-950"
+                className="input w-full min-h-[42px] rounded-xl px-3 text-xs bg-ink-950 font-medium cursor-pointer"
               >
                 {templatesList.length > 0 ? (
                   templatesList.map((tpl: any) => (
@@ -719,11 +721,11 @@ function InvitationDetail({
               </select>
             </div>
             <div>
-              <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'التذكير قبل (أيام)' : 'Reminder (Days)'}</label>
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'التذكير قبل (أيام)' : 'Reminder (Days)'}</label>
               <select
                 value={formData.reminder_days}
                 onChange={e => setFormData({ ...formData, reminder_days: Number(e.target.value) })}
-                className="input w-full text-xs bg-ink-950"
+                className="input w-full min-h-[42px] rounded-xl px-3 text-xs bg-ink-950 font-medium cursor-pointer"
               >
                 <option value={1}>{locale === 'ar' ? 'يوم واحد قبل المناسبة' : '1 Day Before'}</option>
                 <option value={2}>{locale === 'ar' ? 'يومان قبل المناسبة' : '2 Days Before'}</option>
@@ -737,11 +739,11 @@ function InvitationDetail({
           </div>
 
           <div>
-            <label className="block text-2xs text-ink-400 mb-1">{t('common.status')}</label>
+            <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{t('common.status')}</label>
             <select
               value={formData.status}
               onChange={e => setFormData({ ...formData, status: e.target.value as any })}
-              className="input w-full text-xs bg-ink-950"
+              className="input w-full min-h-[42px] rounded-xl px-3 text-xs bg-ink-950 font-medium cursor-pointer"
             >
               <option value="published">{locale === 'ar' ? 'منشورة ونشطة' : 'Published'}</option>
               <option value="draft">{locale === 'ar' ? 'مسودة' : 'Draft'}</option>
@@ -751,31 +753,31 @@ function InvitationDetail({
           </div>
 
           <div>
-            <label className="block text-2xs text-ink-400 mb-1">{locale === 'ar' ? 'الرابط المخصص (Slug)' : 'URL Slug'}</label>
+            <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{locale === 'ar' ? 'الرابط المخصص (Slug)' : 'URL Slug'}</label>
             <input
               type="text"
               required
               value={formData.slug}
               onChange={e => setFormData({ ...formData, slug: e.target.value })}
-              className="input w-full text-xs font-mono"
+              className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-mono font-bold"
             />
           </div>
 
-          <div className="pt-2 flex justify-end gap-2">
+          <div className="pt-2 flex justify-end gap-2.5">
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white"
+              className="min-h-[40px] px-4 rounded-xl text-xs font-semibold text-ink-300 hover:text-white hover:bg-ink-800 transition-all active:scale-95 cursor-pointer"
             >
               {locale === 'ar' ? 'إلغاء' : 'Cancel'}
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 text-white hover:bg-rose-500 transition disabled:opacity-50"
+              className="min-h-[40px] px-5 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-500 shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
             >
-              <Save className="w-3.5 h-3.5" />
-              {saving ? (locale === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (locale === 'ar' ? 'حفظ التعديلات' : 'Save Changes')}
+              <Save className="w-4 h-4" />
+              <span>{saving ? (locale === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (locale === 'ar' ? 'حفظ التعديلات' : 'Save Changes')}</span>
             </button>
           </div>
         </form>

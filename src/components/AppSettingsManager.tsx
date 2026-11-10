@@ -401,17 +401,17 @@ export function AppSettingsManager({
   return (
     <div className="space-y-6 max-w-4xl animate-fade-in">
       {/* ── Top Header Card with Auto-Save Badge ── */}
-      <div className="p-4 rounded-xl bg-ink-900/80 border border-ink-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-soft">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 shrink-0">
+      <div className="p-5 rounded-2xl bg-ink-900/80 border border-ink-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-soft shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 shrink-0 shadow-sm">
             {icon || <Settings className="w-5 h-5" />}
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <h2 className="text-base font-bold text-ink-50">
                 {locale === 'ar' ? `إعدادات ${appNameAr}` : `${appNameEn} Settings`}
               </h2>
-              <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-ink-800 text-ink-300 border border-ink-700">
+              <span className="text-2xs font-semibold px-2.5 py-0.5 rounded-full bg-ink-800 text-ink-300 border border-ink-700">
                 {appId}
               </span>
             </div>
@@ -422,31 +422,31 @@ export function AppSettingsManager({
         </div>
 
         {/* Live Auto-Save Indicator */}
-        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+        <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
           {autoSaveStatus === 'saving' && (
-            <span className="flex items-center gap-1.5 text-xs text-brand-400 bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/20 animate-pulse">
+            <span className="flex items-center gap-1.5 text-xs text-brand-400 bg-brand-500/10 px-3 py-1.5 rounded-full border border-brand-500/20 animate-pulse font-semibold">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span>{locale === 'ar' ? 'جاري الحفظ...' : 'Saving...'}</span>
             </span>
           )}
           {autoSaveStatus === 'saved' && (
-            <span className="flex items-center gap-1.5 text-xs text-success-400 bg-success-500/10 px-3 py-1 rounded-full border border-success-500/20">
+            <span className="flex items-center gap-1.5 text-xs text-success-400 bg-success-500/10 px-3 py-1.5 rounded-full border border-success-500/20 font-semibold">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{locale === 'ar' ? 'تم الحفظ تلقائياً ✓' : 'Auto-saved ✓'}</span>
             </span>
           )}
           {autoSaveStatus === 'idle' && (
-            <span className="text-2xs text-ink-500 flex items-center gap-1">
-              <Zap className="w-3 h-3 text-brand-400" />
+            <span className="text-2xs text-ink-500 flex items-center gap-1 font-medium">
+              <Zap className="w-3.5 h-3.5 text-brand-400" />
               <span>{locale === 'ar' ? 'متزامن تلقائياً' : 'Auto-synced'}</span>
             </span>
           )}
           <button
             onClick={handleManualSave}
             disabled={saving}
-            className="btn-primary text-xs py-1.5 px-3"
+            className="btn-primary min-h-[42px] text-xs font-bold py-2 px-5 rounded-xl shadow-md shadow-brand-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
           >
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{saving ? t('common.saving') : t('common.save')}</span>
           </button>
         </div>
@@ -454,7 +454,7 @@ export function AppSettingsManager({
 
       {/* Global Emergency Free Mode Warning if Active */}
       {isGlobalFreeMode && (
-        <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-500/50 flex items-start gap-3 text-rose-200">
+        <div className="p-4.5 rounded-2xl bg-rose-950/40 border border-rose-500/50 flex items-start gap-3.5 text-rose-200 shadow-md">
           <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
           <div className="text-xs space-y-1">
             <p className="font-bold">
@@ -470,10 +470,12 @@ export function AppSettingsManager({
       )}
 
       {/* ── SECTION 1: PAYWALL & PRICING (الدفع والتسعير والوضع المجاني) ── */}
-      <div className="card p-5 space-y-5">
-        <div className="flex items-center justify-between border-b border-ink-800 pb-3">
-          <div className="flex items-center gap-2.5">
-            <CreditCard className="w-4 h-4 text-brand-400" />
+      <div className="card p-6 rounded-2xl space-y-5 border border-ink-800/80 bg-ink-900/40 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+        <div className="flex items-center justify-between border-b border-ink-800/70 pb-3.5">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/20">
+              <CreditCard className="w-4 h-4" />
+            </div>
             <div>
               <h3 className="text-sm font-bold text-ink-100">
                 {locale === 'ar' ? 'التحكم في الدفع والتسعير (Paywall & Pricing)' : 'Paywall & Pricing Control'}
@@ -485,7 +487,7 @@ export function AppSettingsManager({
           </div>
 
           {/* Status Badge */}
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border transition-all ${
+          <span className={`text-xs font-semibold px-3 py-1 rounded-full border transition-all ${
             effectiveFreeMode
               ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
               : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
@@ -497,17 +499,17 @@ export function AppSettingsManager({
         </div>
 
         {/* Free Mode Switch Card */}
-        <div className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+        <div className={`p-4.5 rounded-xl border transition-all duration-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
           isAppFreeMode
             ? 'bg-emerald-950/20 border-emerald-500/30'
-            : 'bg-ink-950/40 border-ink-800'
+            : 'bg-ink-950/50 border-ink-800'
         }`}>
           <div>
             <div className="flex items-center gap-2">
               <h4 className="text-xs font-bold text-ink-100">
                 {locale === 'ar' ? 'الوضع المجاني للتطبيق (Store Review / Free Mode)' : 'App Free Mode'}
               </h4>
-              <span className={`text-3xs font-bold px-2 py-0.5 rounded-full ${
+              <span className={`text-3xs font-bold px-2.5 py-0.5 rounded-full ${
                 isAppFreeMode ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-ink-800 text-ink-400'
               }`}>
                 {isAppFreeMode ? (locale === 'ar' ? 'مفعّل (مجاني)' : 'Enabled') : (locale === 'ar' ? 'معطّل (مدفوع)' : 'Disabled')}
@@ -523,9 +525,9 @@ export function AppSettingsManager({
           <button
             type="button"
             onClick={toggleAppFreeMode}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${
+            className={`min-h-[40px] flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 shrink-0 active:scale-95 cursor-pointer ${
               isAppFreeMode
-                ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/40'
+                ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/40 shadow-sm'
                 : 'bg-ink-800 hover:bg-ink-700 text-ink-200 border border-ink-700'
             }`}
           >
@@ -538,7 +540,7 @@ export function AppSettingsManager({
         <div className="space-y-4 pt-1">
           {appId === 'dawaty' && (
             <div>
-              <label className="block text-xs font-medium text-ink-300 mb-1.5">
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">
                 {locale === 'ar' ? 'سعر حجز الدعوة الواحدة (بالجنيه المصري)' : 'Single Invitation Price (EGP)'}
               </label>
               <div className="relative max-w-xs">
@@ -547,13 +549,13 @@ export function AppSettingsManager({
                   min={0}
                   value={settings.dawaty_invitation_price ?? 150}
                   onChange={e => updateField('dawaty_invitation_price', Number(e.target.value))}
-                  className="input w-full pl-3 pr-12 text-sm font-semibold"
+                  className="input w-full min-h-[42px] rounded-xl pl-3 pr-12 text-sm font-semibold"
                 />
                 <span className={`absolute top-1/2 -translate-y-1/2 text-xs font-bold text-ink-400 ${isRTL ? 'left-3' : 'right-3'}`}>
                   {locale === 'ar' ? 'ج.م' : 'EGP'}
                 </span>
               </div>
-              <p className="text-2xs text-ink-500 mt-1">
+              <p className="text-3xs text-ink-500 mt-1">
                 {locale === 'ar' ? 'السعر الذي يظهر للمستخدم في شاشة الدفع لتأكيد حجز الدعوة الإلكترونية.' : 'The price shown to users on checkout.'}
               </p>
             </div>
@@ -562,7 +564,7 @@ export function AppSettingsManager({
           {appId === 'digital_menu' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-ink-300 mb-1.5">
+                <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'سعر الاشتراك الشهري للمطعم (ج.م / شهر)' : 'Monthly Restaurant Price (EGP/mo)'}
                 </label>
                 <div className="relative">
@@ -571,7 +573,7 @@ export function AppSettingsManager({
                     min={0}
                     value={settings.menu_price_monthly ?? 100}
                     onChange={e => updateField('menu_price_monthly', Number(e.target.value))}
-                    className="input w-full pl-3 pr-12 text-sm font-semibold"
+                    className="input w-full min-h-[42px] rounded-xl pl-3 pr-12 text-sm font-semibold"
                   />
                   <span className={`absolute top-1/2 -translate-y-1/2 text-xs font-bold text-ink-400 ${isRTL ? 'left-3' : 'right-3'}`}>
                     {locale === 'ar' ? 'ج.م' : 'EGP'}
@@ -579,7 +581,7 @@ export function AppSettingsManager({
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-300 mb-1.5">
+                <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'سعر الاشتراك السنوي للمطعم (ج.م / سنة)' : 'Yearly Restaurant Price (EGP/yr)'}
                 </label>
                 <div className="relative">
@@ -588,7 +590,7 @@ export function AppSettingsManager({
                     min={0}
                     value={settings.menu_price_yearly ?? 1000}
                     onChange={e => updateField('menu_price_yearly', Number(e.target.value))}
-                    className="input w-full pl-3 pr-12 text-sm font-semibold"
+                    className="input w-full min-h-[42px] rounded-xl pl-3 pr-12 text-sm font-semibold"
                   />
                   <span className={`absolute top-1/2 -translate-y-1/2 text-xs font-bold text-ink-400 ${isRTL ? 'left-3' : 'right-3'}`}>
                     {locale === 'ar' ? 'ج.م' : 'EGP'}
@@ -601,7 +603,7 @@ export function AppSettingsManager({
           {appId === 'cv_maker' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-ink-300 mb-1.5">
+                <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'سعر تصدير السيرة الذاتية PDF الواحدة' : 'Single PDF Export Price'}
                 </label>
                 <div className="relative">
@@ -613,7 +615,7 @@ export function AppSettingsManager({
                       const val = Number(e.target.value);
                       updateField('cv_price_single', val, { cv_maker_pdf_price: val });
                     }}
-                    className="input w-full pl-3 pr-12 text-sm font-semibold"
+                    className="input w-full min-h-[42px] rounded-xl pl-3 pr-12 text-sm font-semibold"
                   />
                   <span className={`absolute top-1/2 -translate-y-1/2 text-xs font-bold text-ink-400 ${isRTL ? 'left-3' : 'right-3'}`}>
                     {locale === 'ar' ? 'ج.م' : 'EGP'}
@@ -621,7 +623,7 @@ export function AppSettingsManager({
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-300 mb-1.5">
+                <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'سعر اشتراك القوالب غير المحدود' : 'Unlimited Subscription Price'}
                 </label>
                 <div className="relative">
@@ -630,7 +632,7 @@ export function AppSettingsManager({
                     min={0}
                     value={settings.cv_price_subscription ?? 120}
                     onChange={e => updateField('cv_price_subscription', Number(e.target.value))}
-                    className="input w-full pl-3 pr-12 text-sm font-semibold"
+                    className="input w-full min-h-[42px] rounded-xl pl-3 pr-12 text-sm font-semibold"
                   />
                   <span className={`absolute top-1/2 -translate-y-1/2 text-xs font-bold text-ink-400 ${isRTL ? 'left-3' : 'right-3'}`}>
                     {locale === 'ar' ? 'ج.م' : 'EGP'}
@@ -642,7 +644,7 @@ export function AppSettingsManager({
 
           {appId === 'qr_me' && (
             <div>
-              <label className="block text-xs font-medium text-ink-300 mb-1.5">
+              <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">
                 {locale === 'ar' ? 'سعر قالب الباركود VIP والتحميل عالي الدقة' : 'VIP QR Template Price (EGP)'}
               </label>
               <div className="relative max-w-xs">
@@ -651,7 +653,7 @@ export function AppSettingsManager({
                   min={0}
                   value={settings.qr_me_vip_price ?? 15}
                   onChange={e => updateField('qr_me_vip_price', Number(e.target.value))}
-                  className="input w-full pl-3 pr-12 text-sm font-semibold"
+                  className="input w-full min-h-[42px] rounded-xl pl-3 pr-12 text-sm font-semibold"
                 />
                 <span className={`absolute top-1/2 -translate-y-1/2 text-xs font-bold text-ink-400 ${isRTL ? 'left-3' : 'right-3'}`}>
                   {locale === 'ar' ? 'ج.م' : 'EGP'}
@@ -662,10 +664,10 @@ export function AppSettingsManager({
         </div>
 
         {/* Dedicated Per-App Payment Gateways Card */}
-        <div className="p-4 rounded-xl bg-ink-950/60 border border-ink-800/80 space-y-4">
+        <div className="p-4.5 rounded-xl bg-ink-950/60 border border-ink-800/80 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-ink-800/70 pb-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-brand-500/10 text-brand-400 border border-brand-500/20">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/20">
                 <Wallet className="w-4 h-4" />
               </div>
               <div>
@@ -686,11 +688,11 @@ export function AppSettingsManager({
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Vodafone Cash Box */}
-            <div className={`p-3.5 rounded-xl border transition-all ${isVcEnabled ? 'bg-ink-900/70 border-rose-500/30' : 'bg-ink-950/40 border-ink-800 opacity-60'}`}>
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-ink-800/60">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs">
-                    <Phone className="w-3.5 h-3.5" />
+            <div className={`p-4 rounded-xl border transition-all duration-200 ${isVcEnabled ? 'bg-ink-900/70 border-rose-500/30' : 'bg-ink-950/40 border-ink-800 opacity-60'}`}>
+              <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-ink-800/60">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+                    <Phone className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="text-xs font-bold text-ink-100 block">
@@ -705,7 +707,7 @@ export function AppSettingsManager({
                 <button
                   type="button"
                   onClick={() => togglePaymentMethod(vcEnabledKey)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-2xs font-semibold transition-all ${
+                  className={`min-h-[36px] flex items-center gap-1.5 px-3 py-1 rounded-full text-2xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer ${
                     isVcEnabled
                       ? 'bg-success-500/20 text-success-300 border border-success-500/30 hover:bg-success-500/30'
                       : 'bg-ink-800 text-ink-400 border border-ink-700 hover:bg-ink-700'
@@ -713,21 +715,21 @@ export function AppSettingsManager({
                 >
                   {isVcEnabled ? (
                     <>
-                      <ToggleRight className="w-3.5 h-3.5 text-success-400" />
+                      <ToggleRight className="w-4 h-4 text-success-400" />
                       <span>{locale === 'ar' ? 'مفعلة' : 'Active'}</span>
                     </>
                   ) : (
                     <>
-                      <ToggleLeft className="w-3.5 h-3.5 text-ink-400" />
+                      <ToggleLeft className="w-4 h-4 text-ink-400" />
                       <span>{locale === 'ar' ? 'معطلة' : 'Disabled'}</span>
                     </>
                   )}
                 </button>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-2xs font-medium text-ink-300 mb-1">
+                  <label className="block text-2xs font-semibold text-ink-300 mb-1">
                     {locale === 'ar' ? 'رقم محفظة فودافون كاش لهذا التطبيق' : 'Dedicated Wallet Number'}
                   </label>
                   <div className="relative">
@@ -737,15 +739,15 @@ export function AppSettingsManager({
                       value={appVcNumber}
                       onChange={e => updateField(vcKey, e.target.value)}
                       placeholder="01019603225"
-                      className="input w-full pl-8 pr-3 text-xs font-mono font-bold"
+                      className="input w-full pl-9 pr-3 min-h-[42px] rounded-xl text-xs font-mono font-bold"
                       disabled={!isVcEnabled}
                     />
-                    <Phone className="w-3.5 h-3.5 text-ink-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <Phone className="w-4 h-4 text-ink-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-2xs font-medium text-ink-300 mb-1">
+                  <label className="block text-2xs font-semibold text-ink-300 mb-1">
                     {locale === 'ar' ? 'رابط الدفع المباشر عبر فودافون كاش (Direct Vodafone Cash Link)' : 'Direct Vodafone Cash Link'}
                   </label>
                   <div className="relative">
@@ -755,12 +757,12 @@ export function AppSettingsManager({
                       value={appVcLink}
                       onChange={e => updateField(vcLinkKey, e.target.value)}
                       placeholder="http://vf.eg/vfcash?id=..."
-                      className="input w-full pl-8 pr-3 text-xs font-mono"
+                      className="input w-full pl-9 pr-3 min-h-[42px] rounded-xl text-xs font-mono"
                       disabled={!isVcEnabled}
                     />
-                    <Link2 className="w-3.5 h-3.5 text-ink-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <Link2 className="w-4 h-4 text-ink-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
-                  <p className="text-3xs text-ink-500 mt-0.5">
+                  <p className="text-3xs text-ink-500 mt-1">
                     {locale === 'ar' ? 'يفتح تطبيق فودافون كاش أو رابط الدفع المباشر للمستخدم بضغطة واحدة.' : 'Deep-links users directly into Vodafone Cash payment.'}
                   </p>
                 </div>
@@ -768,11 +770,11 @@ export function AppSettingsManager({
             </div>
 
             {/* InstaPay Box */}
-            <div className={`p-3.5 rounded-xl border transition-all ${isIpEnabled ? 'bg-ink-900/70 border-violet-500/30' : 'bg-ink-950/40 border-ink-800 opacity-60'}`}>
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-ink-800/60">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-violet-500/20 text-violet-400 border border-violet-500/30 flex items-center justify-center font-bold text-xs">
-                    <CreditCard className="w-3.5 h-3.5" />
+            <div className={`p-4 rounded-xl border transition-all duration-200 ${isIpEnabled ? 'bg-ink-900/70 border-violet-500/30' : 'bg-ink-950/40 border-ink-800 opacity-60'}`}>
+              <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-ink-800/60">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-violet-500/20 text-violet-400 border border-violet-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+                    <CreditCard className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="text-xs font-bold text-ink-100 block">
@@ -787,7 +789,7 @@ export function AppSettingsManager({
                 <button
                   type="button"
                   onClick={() => togglePaymentMethod(ipEnabledKey)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-2xs font-semibold transition-all ${
+                  className={`min-h-[36px] flex items-center gap-1.5 px-3 py-1 rounded-full text-2xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer ${
                     isIpEnabled
                       ? 'bg-success-500/20 text-success-300 border border-success-500/30 hover:bg-success-500/30'
                       : 'bg-ink-800 text-ink-400 border border-ink-700 hover:bg-ink-700'
@@ -795,21 +797,21 @@ export function AppSettingsManager({
                 >
                   {isIpEnabled ? (
                     <>
-                      <ToggleRight className="w-3.5 h-3.5 text-success-400" />
+                      <ToggleRight className="w-4 h-4 text-success-400" />
                       <span>{locale === 'ar' ? 'مفعلة' : 'Active'}</span>
                     </>
                   ) : (
                     <>
-                      <ToggleLeft className="w-3.5 h-3.5 text-ink-400" />
+                      <ToggleLeft className="w-4 h-4 text-ink-400" />
                       <span>{locale === 'ar' ? 'معطلة' : 'Disabled'}</span>
                     </>
                   )}
                 </button>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-2xs font-medium text-ink-300 mb-1">
+                  <label className="block text-2xs font-semibold text-ink-300 mb-1">
                     {locale === 'ar' ? 'عنوان أو رقم حساب انستاباي (IPA / Mobile)' : 'InstaPay Address / IPA'}
                   </label>
                   <input
@@ -818,13 +820,13 @@ export function AppSettingsManager({
                     value={appIpAddress}
                     onChange={e => updateField(ipAddrKey, e.target.value)}
                     placeholder="username@instapay"
-                    className="input w-full px-3 text-xs font-mono font-bold"
+                    className="input w-full px-3.5 min-h-[42px] rounded-xl text-xs font-mono font-bold"
                     disabled={!isIpEnabled}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-2xs font-medium text-ink-300 mb-1">
+                  <label className="block text-2xs font-semibold text-ink-300 mb-1">
                     {locale === 'ar' ? 'رابط الدفع المباشر عبر انستاباي (Direct Payment Link)' : 'Direct InstaPay Link'}
                   </label>
                   <div className="relative">
@@ -834,12 +836,12 @@ export function AppSettingsManager({
                       value={appIpLink}
                       onChange={e => updateField(ipLinkKey, e.target.value)}
                       placeholder="https://ipn.eg/..."
-                      className="input w-full pl-8 pr-3 text-xs font-mono"
+                      className="input w-full pl-9 pr-3 min-h-[42px] rounded-xl text-xs font-mono"
                       disabled={!isIpEnabled}
                     />
-                    <Link2 className="w-3.5 h-3.5 text-ink-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <Link2 className="w-4 h-4 text-ink-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
-                  <p className="text-3xs text-ink-500 mt-0.5">
+                  <p className="text-3xs text-ink-500 mt-1">
                     {locale === 'ar' ? 'يفتح تطبيق انستاباي للمستخدم مباشرة لإتمام التحويل بضغطة واحدة.' : 'Deep-links users directly into the InstaPay app.'}
                   </p>
                 </div>
@@ -850,10 +852,12 @@ export function AppSettingsManager({
       </div>
 
       {/* ── SECTION 2: VERSION CONTROL & FORCE UPDATE (التحكم في التحديثات والإصدارات) ── */}
-      <div className="card p-5 space-y-5">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-ink-800 pb-3">
-          <div className="flex items-center gap-2.5">
-            <Tag className="w-4 h-4 text-brand-400" />
+      <div className="card p-5 sm:p-6 rounded-2xl border border-ink-800/80 bg-ink-950/40 backdrop-blur-sm space-y-5 shadow-soft">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-ink-800/80 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 shrink-0">
+              <Tag className="w-5 h-5" />
+            </div>
             <div>
               <h3 className="text-sm font-bold text-ink-100">
                 {locale === 'ar' ? 'التحكم في الإصدارات والتحديث الإجباري (App Version Control)' : 'App Version Control'}
@@ -869,103 +873,103 @@ export function AppSettingsManager({
           {/* Quick status pill */}
           <div className="flex items-center gap-2">
             {isForceUpdate ? (
-              <span className="text-2xs font-bold px-2.5 py-1 rounded-full bg-danger-500/20 text-danger-300 border border-danger-500/30 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" /> {locale === 'ar' ? 'تحديث إجباري نشط 🔴' : 'Forced Update Active'}
+              <span className="text-2xs font-bold px-3 py-1 rounded-full bg-danger-500/20 text-danger-300 border border-danger-500/30 flex items-center gap-1.5 shadow-sm">
+                <AlertTriangle className="w-3.5 h-3.5 text-danger-400" /> {locale === 'ar' ? 'تحديث إجباري نشط 🔴' : 'Forced Update Active'}
               </span>
             ) : hasUpdatePending ? (
-              <span className="text-2xs font-bold px-2.5 py-1 rounded-full bg-warning-500/20 text-warning-300 border border-warning-500/30 flex items-center gap-1">
-                <Tag className="w-3 h-3" /> {locale === 'ar' ? 'تحديث اختياري متوفر' : 'Optional Update Available'}
+              <span className="text-2xs font-bold px-3 py-1 rounded-full bg-warning-500/20 text-warning-300 border border-warning-500/30 flex items-center gap-1.5 shadow-sm">
+                <Tag className="w-3.5 h-3.5 text-warning-400" /> {locale === 'ar' ? 'تحديث اختياري متوفر' : 'Optional Update Available'}
               </span>
             ) : (
-              <span className="text-2xs font-bold px-2.5 py-1 rounded-full bg-success-500/15 text-success-400 border border-success-500/30 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> {locale === 'ar' ? 'التطبيق مستقر (لا يوجد إشعار تحديث)' : 'Up to Date'}
+              <span className="text-2xs font-bold px-3 py-1 rounded-full bg-success-500/15 text-success-400 border border-success-500/30 flex items-center gap-1.5 shadow-sm">
+                <CheckCircle2 className="w-3.5 h-3.5 text-success-400" /> {locale === 'ar' ? 'التطبيق مستقر (لا يوجد إشعار تحديث)' : 'Up to Date'}
               </span>
             )}
           </div>
         </div>
 
         {/* Quick Action Buttons for Update Control */}
-        <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-ink-950/40 border border-ink-800">
-          <span className="text-2xs font-semibold text-ink-400">
+        <div className="flex flex-wrap items-center gap-2.5 p-3.5 rounded-2xl bg-ink-950/60 border border-ink-800/80">
+          <span className="text-2xs font-bold text-ink-400 uppercase tracking-wider">
             {locale === 'ar' ? 'إجراءات سريعة:' : 'Quick Actions:'}
           </span>
           <button
             type="button"
             onClick={handleStopUpdates}
-            className="px-2.5 py-1 rounded-lg text-xs font-medium bg-ink-800 hover:bg-ink-700 text-ink-200 border border-ink-700 transition-colors flex items-center gap-1.5"
+            className="min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold bg-ink-850 hover:bg-ink-800 text-ink-200 border border-ink-700/80 hover:border-ink-600 transition-all flex items-center gap-2 active:scale-95 cursor-pointer shadow-sm"
             title="مساواة أقل إصدار بأحدث إصدار وإلغاء الإجبار لإيقاف أي إزعاج للمستخدمين"
           >
-            <Check className="w-3.5 h-3.5 text-success-400" />
+            <Check className="w-4 h-4 text-success-400" />
             <span>{locale === 'ar' ? 'إيقاف / كتم إشعار التحديث للجميع' : 'Stop Update Prompt'}</span>
           </button>
           <button
             type="button"
             onClick={handleEnforceForceUpdate}
-            className="px-2.5 py-1 rounded-lg text-xs font-medium bg-danger-950/40 hover:bg-danger-900/40 text-danger-300 border border-danger-500/30 transition-colors flex items-center gap-1.5"
+            className="min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold bg-danger-950/40 hover:bg-danger-900/50 text-danger-300 border border-danger-500/30 hover:border-danger-500/50 transition-all flex items-center gap-2 active:scale-95 cursor-pointer shadow-sm"
             title="تفعيل التحديث الإجباري فوراً لمنع تشغيل الإصدارات القديمة"
           >
-            <AlertTriangle className="w-3.5 h-3.5 text-danger-400" />
+            <AlertTriangle className="w-4 h-4 text-danger-400" />
             <span>{locale === 'ar' ? 'فرض التحديث الإجباري الفوري' : 'Enforce Force Update'}</span>
           </button>
         </div>
 
         {/* Versions Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-2xs font-medium text-ink-400 mb-1">
+          <div className="p-4 rounded-2xl bg-ink-950/40 border border-ink-800/60 space-y-2">
+            <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300">
               {locale === 'ar' ? 'أحدث إصدار مرفوع على المتجر (Latest Version)' : 'Latest Version (Store)'}
             </label>
             <div className="relative">
-              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-500" />
+              <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="1.0.0"
                 value={latestVersion}
                 onChange={e => updateField(latestKey, e.target.value)}
-                className="input w-full pl-9 text-xs font-mono"
+                className="input w-full min-h-[42px] rounded-xl pl-10 pr-3.5 text-xs font-mono font-bold tracking-wider"
               />
             </div>
-            <p className="text-3xs text-ink-500 mt-1">
+            <p className="text-3xs text-ink-500">
               {locale === 'ar' ? 'رقم الإصدار الأحدث المتوفر للتنزيل.' : 'Highest version published.'}
             </p>
           </div>
 
-          <div>
-            <label className="block text-2xs font-medium text-ink-400 mb-1">
+          <div className="p-4 rounded-2xl bg-ink-950/40 border border-ink-800/60 space-y-2">
+            <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300">
               {locale === 'ar' ? 'أقل إصدار مسموح بتشغيله (Min Supported Version)' : 'Min Supported Version'}
             </label>
             <div className="relative">
-              <AlertTriangle className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-500" />
+              <AlertTriangle className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="1.0.0"
                 value={minVersion}
                 onChange={e => updateField(minKey, e.target.value)}
-                className="input w-full pl-9 text-xs font-mono"
+                className="input w-full min-h-[42px] rounded-xl pl-10 pr-3.5 text-xs font-mono font-bold tracking-wider"
               />
             </div>
-            <p className="text-3xs text-ink-500 mt-1">
+            <p className="text-3xs text-ink-500">
               {locale === 'ar' ? 'أي مستخدم يمتلك إصداراً أقل من هذا الرقم سيُطلب منه التحديث.' : 'Users below this will be asked to update.'}
             </p>
           </div>
         </div>
 
         {/* Force Update Toggle Switch */}
-        <div className={`p-4 rounded-xl border transition-all flex items-center justify-between gap-3 ${
-          isForceUpdate ? 'bg-danger-950/30 border-danger-500/40' : 'bg-ink-950/40 border-ink-800'
+        <div className={`p-4 sm:p-5 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-3 ${
+          isForceUpdate ? 'bg-danger-950/30 border-danger-500/40 shadow-sm' : 'bg-ink-950/50 border-ink-800/80'
         }`}>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <h4 className="text-xs font-bold text-ink-100">
                 {locale === 'ar' ? 'تفعيل التحديث الإجباري (Force Update)' : 'Force Update'}
               </h4>
-              <span className={`text-3xs font-bold px-2 py-0.5 rounded-full ${
+              <span className={`text-3xs font-bold px-2.5 py-0.5 rounded-full ${
                 isForceUpdate ? 'bg-danger-500/20 text-danger-300 border border-danger-500/30' : 'bg-ink-800 text-ink-400'
               }`}>
                 {isForceUpdate ? (locale === 'ar' ? 'إجباري (ممنوع التخطي)' : 'Mandatory') : (locale === 'ar' ? 'اختياري (يمكن التخطي)' : 'Optional')}
               </span>
             </div>
-            <p className="text-2xs text-ink-400 mt-1">
+            <p className="text-2xs text-ink-400 mt-1 max-w-xl">
               {isForceUpdate
                 ? (locale === 'ar' ? '🔴 لا يستطيع المستخدم الدخول أو استخدام التطبيق حتى ينتهي من تحديثه.' : 'Users cannot dismiss the update screen.')
                 : (locale === 'ar' ? 'المستخدم يستطيع إغلاق شاشة التحديث ومتابعة استخدام التطبيق بشكل طبيعي.' : 'Users can dismiss the dialog and continue using the app.')}
@@ -975,20 +979,22 @@ export function AppSettingsManager({
           <button
             type="button"
             onClick={() => handleToggle(forceKey)}
-            className={`relative w-12 h-6.5 rounded-full transition-colors shrink-0 ${
-              isForceUpdate ? 'bg-danger-600' : 'bg-ink-700'
+            aria-label={locale === 'ar' ? 'تبديل التحديث الإجباري' : 'Toggle Force Update'}
+            className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all duration-200 active:scale-95 cursor-pointer shrink-0 ${
+              isForceUpdate
+                ? 'bg-danger-500/20 hover:bg-danger-500/30 text-danger-200 border border-danger-500/40 shadow-sm'
+                : 'bg-ink-800 hover:bg-ink-750 text-ink-300 border border-ink-700'
             }`}
           >
-            <span className={`absolute top-0.5 w-5.5 h-5.5 rounded-full bg-white transition-transform ${
-              isForceUpdate ? 'translate-x-6' : 'translate-x-0.5'
-            }`} />
+            {isForceUpdate ? <ToggleRight className="w-5 h-5 text-danger-400" /> : <ToggleLeft className="w-5 h-5 text-ink-400" />}
+            <span>{isForceUpdate ? (locale === 'ar' ? 'إجباري مفعل' : 'Forced Active') : (locale === 'ar' ? 'تحديث اختياري' : 'Optional Update')}</span>
           </button>
         </div>
 
         {/* Update Notice Message in Arabic */}
-        <div className="space-y-3">
+        <div className="space-y-4 pt-1">
           <div>
-            <label className="block text-2xs font-medium text-ink-300 mb-1">
+            <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">
               {locale === 'ar' ? 'عنوان رسالة التحديث في الموبايل' : 'Update Dialog Title (Arabic)'}
             </label>
             <input
@@ -996,20 +1002,20 @@ export function AppSettingsManager({
               value={updateTitleAr}
               onChange={e => updateField(titleArKey, e.target.value)}
               placeholder="تحديث جديد متوفر!"
-              className="input w-full text-xs"
+              className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
               dir="rtl"
             />
           </div>
 
           <div>
-            <label className="block text-2xs font-medium text-ink-300 mb-1">
+            <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">
               {locale === 'ar' ? 'نص وتفاصيل رسالة التحديث (عربي)' : 'Update Dialog Message (Arabic)'}
             </label>
             <textarea
               value={updateMsgAr}
               onChange={e => updateField(msgArKey, e.target.value)}
               placeholder="يرجى التحديث للحصول على أفضل تجربة والميزات الجديدة."
-              className="input w-full text-xs resize-none"
+              className="input w-full rounded-xl p-3 text-xs leading-relaxed resize-none min-h-[72px]"
               rows={2}
               dir="rtl"
             />
@@ -1018,9 +1024,11 @@ export function AppSettingsManager({
       </div>
 
       {/* ── SECTION 3: STORE LINKS (روابط التطبيق على Google Play و App Store) ── */}
-      <div className="card p-5 space-y-4">
-        <div className="flex items-center gap-2.5 border-b border-ink-800 pb-3">
-          <Smartphone className="w-4 h-4 text-brand-400" />
+      <div className="card p-5 sm:p-6 rounded-2xl border border-ink-800/80 bg-ink-950/40 backdrop-blur-sm space-y-5 shadow-soft">
+        <div className="flex items-center gap-3 border-b border-ink-800/80 pb-4">
+          <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 shrink-0">
+            <Smartphone className="w-5 h-5" />
+          </div>
           <div>
             <h3 className="text-sm font-bold text-ink-100">
               {locale === 'ar' ? 'روابط المتاجر (Store Links & Downloads)' : 'Store Download Links'}
@@ -1035,10 +1043,10 @@ export function AppSettingsManager({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Google Play */}
-          <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-2">
+          <div className="p-4 rounded-2xl bg-ink-950/60 border border-ink-800/80 space-y-2.5">
             <div className="flex items-center justify-between">
-              <label className="text-2xs font-bold text-ink-200 flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-emerald-400" />
+              <label className="text-2xs font-bold text-ink-200 flex items-center gap-2">
+                <Globe className="w-4 h-4 text-emerald-400" />
                 <span>Google Play Store URL</span>
               </label>
               {playStoreUrl && (
@@ -1046,27 +1054,28 @@ export function AppSettingsManager({
                   href={playStoreUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-3xs text-brand-400 hover:underline flex items-center gap-0.5"
+                  className="min-h-[32px] px-2.5 py-1 rounded-lg text-3xs font-semibold text-brand-400 hover:text-brand-300 hover:bg-brand-500/10 flex items-center gap-1 transition-all active:scale-95"
                 >
                   <span>{locale === 'ar' ? 'فتح الرابط' : 'Open'}</span>
-                  <ExternalLink className="w-2.5 h-2.5" />
+                  <ExternalLink className="w-3 h-3" />
                 </a>
               )}
             </div>
             <input
               type="url"
+              dir="ltr"
               placeholder="https://play.google.com/store/apps/details?id=..."
               value={playStoreUrl}
               onChange={e => updateField(playKey, e.target.value)}
-              className="input w-full text-xs font-mono"
+              className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-mono font-medium"
             />
           </div>
 
           {/* App Store */}
-          <div className="p-3.5 rounded-xl bg-ink-950/40 border border-ink-800 space-y-2">
+          <div className="p-4 rounded-2xl bg-ink-950/60 border border-ink-800/80 space-y-2.5">
             <div className="flex items-center justify-between">
-              <label className="text-2xs font-bold text-ink-200 flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-blue-400" />
+              <label className="text-2xs font-bold text-ink-200 flex items-center gap-2">
+                <Globe className="w-4 h-4 text-sky-400" />
                 <span>Apple App Store URL</span>
               </label>
               {appStoreUrl && (
@@ -1074,35 +1083,36 @@ export function AppSettingsManager({
                   href={appStoreUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-3xs text-brand-400 hover:underline flex items-center gap-0.5"
+                  className="min-h-[32px] px-2.5 py-1 rounded-lg text-3xs font-semibold text-brand-400 hover:text-brand-300 hover:bg-brand-500/10 flex items-center gap-1 transition-all active:scale-95"
                 >
                   <span>{locale === 'ar' ? 'فتح الرابط' : 'Open'}</span>
-                  <ExternalLink className="w-2.5 h-2.5" />
+                  <ExternalLink className="w-3 h-3" />
                 </a>
               )}
             </div>
             <input
               type="url"
+              dir="ltr"
               placeholder="https://apps.apple.com/app/..."
               value={appStoreUrl}
               onChange={e => updateField(iosKey, e.target.value)}
-              className="input w-full text-xs font-mono"
+              className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-mono font-medium"
             />
           </div>
         </div>
       </div>
 
       {/* ── SECTION 4: INSTANT PUSH NOTIFICATIONS BROADCAST (إرسال الإشعارات الفورية للمستخدمين) ── */}
-      <div className="card p-5 space-y-5 border border-amber-500/30 bg-gradient-to-br from-amber-950/15 via-ink-900 to-ink-950 shadow-soft">
-        <div className="flex items-center justify-between border-b border-ink-800 pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-              <Bell className="w-4 h-4 animate-bounce" />
+      <div className="card p-5 sm:p-6 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-950/20 via-ink-900/90 to-ink-950/90 backdrop-blur-md space-y-5 shadow-soft">
+        <div className="flex items-center justify-between border-b border-ink-800/80 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-sm">
+              <Bell className="w-5 h-5 animate-bounce" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
                 <span>{locale === 'ar' ? `إرسال إشعار فوري لمستخدمي ${appNameAr}` : `Broadcast Push Notification to ${appNameEn}`}</span>
-                <span className="text-3xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <span className="text-3xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   FCM Push & In-App
                 </span>
               </h3>
@@ -1117,7 +1127,7 @@ export function AppSettingsManager({
 
         {/* Quick Pre-fill Template Pills */}
         <div>
-          <label className="block text-2xs font-semibold text-ink-400 uppercase tracking-wider mb-2">
+          <label className="block text-2xs font-semibold text-ink-300 uppercase tracking-wider mb-2.5">
             {locale === 'ar' ? 'قوالب إشعارات سريعة جاهزة بضغطة واحدة:' : 'Quick Pre-fill Templates:'}
           </label>
           <div className="flex flex-wrap items-center gap-2">
@@ -1160,7 +1170,7 @@ export function AppSettingsManager({
                   setNotifTitleEn(tmpl.titleEn);
                   setNotifBodyEn(tmpl.bodyEn);
                 }}
-                className="text-2xs px-2.5 py-1 rounded-lg bg-ink-800/80 hover:bg-amber-500/20 hover:text-amber-300 hover:border-amber-500/40 border border-ink-700/60 text-ink-300 transition-all font-medium"
+                className="min-h-[38px] text-2xs px-3.5 py-2 rounded-xl bg-ink-850 hover:bg-amber-500/20 hover:text-amber-200 hover:border-amber-500/40 border border-ink-750 text-ink-300 transition-all font-semibold active:scale-95 cursor-pointer shadow-sm"
               >
                 {tmpl.label}
               </button>
@@ -1172,19 +1182,19 @@ export function AppSettingsManager({
           {/* Notification Form (3 cols) */}
           <div className="lg:col-span-3 space-y-4">
             {/* Arabic Card */}
-            <div className="p-3.5 rounded-xl bg-ink-900/70 border border-ink-800 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-ink-800">
+            <div className="p-4 rounded-2xl bg-ink-900/80 border border-ink-800/80 space-y-3.5 shadow-sm">
+              <div className="flex items-center justify-between pb-2.5 border-b border-ink-800/80">
                 <span className="flex items-center gap-2 text-xs font-bold text-ink-200">
                   <span className="text-sm">🇸🇦</span>
                   <span>{locale === 'ar' ? 'النسخة العربية (للمستخدمين العرب)' : 'Arabic Version (For Arabic Users)'}</span>
                 </span>
-                <span className="text-3xs px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium">
+                <span className="text-3xs px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
                   RTL Target
                 </span>
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'عنوان الإشعار (عربي)' : 'Arabic Title'} <span className="text-rose-400">*</span>
                 </label>
                 <input
@@ -1193,12 +1203,12 @@ export function AppSettingsManager({
                   placeholder="مثال: عرض خاص ومميز ينتظرك اليوم! 🎉"
                   value={notifTitleAr}
                   onChange={e => setNotifTitleAr(e.target.value)}
-                  className="input w-full text-xs font-medium"
+                  className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
                 />
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'نص ورسالة الإشعار (عربي)' : 'Arabic Body'} <span className="text-rose-400">*</span>
                 </label>
                 <textarea
@@ -1206,25 +1216,25 @@ export function AppSettingsManager({
                   placeholder="اكتب الرسالة التي ستصل للعملاء على شاشة هاتفهم باللغة العربية..."
                   value={notifBodyAr}
                   onChange={e => setNotifBodyAr(e.target.value)}
-                  className="input w-full text-xs resize-none h-16"
+                  className="input w-full rounded-xl p-3 text-xs leading-relaxed resize-none min-h-[72px]"
                 />
               </div>
             </div>
 
             {/* English Card */}
-            <div className="p-3.5 rounded-xl bg-ink-900/70 border border-ink-800 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-ink-800">
+            <div className="p-4 rounded-2xl bg-ink-900/80 border border-ink-800/80 space-y-3.5 shadow-sm">
+              <div className="flex items-center justify-between pb-2.5 border-b border-ink-800/80">
                 <span className="flex items-center gap-2 text-xs font-bold text-ink-200">
                   <span className="text-sm">🇬🇧</span>
                   <span>{locale === 'ar' ? 'النسخة الإنجليزية (للمستخدمين الأجانب)' : 'English Version (For English Users)'}</span>
                 </span>
-                <span className="text-3xs px-2 py-0.5 rounded bg-sky-500/15 text-sky-400 border border-sky-500/30 font-medium">
+                <span className="text-3xs px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30 font-bold">
                   LTR Target
                 </span>
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'عنوان الإشعار (إنجليزي)' : 'English Title'}
                 </label>
                 <input
@@ -1233,12 +1243,12 @@ export function AppSettingsManager({
                   placeholder="e.g. Special offer just for you! 🎉"
                   value={notifTitleEn}
                   onChange={e => setNotifTitleEn(e.target.value)}
-                  className="input w-full text-xs font-medium"
+                  className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-semibold"
                 />
               </div>
 
               <div>
-                <label className="block text-2xs font-semibold text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'نص ورسالة الإشعار (إنجليزي)' : 'English Body'}
                 </label>
                 <textarea
@@ -1246,20 +1256,20 @@ export function AppSettingsManager({
                   placeholder="Enter the English notification message that will appear on lockscreens..."
                   value={notifBodyEn}
                   onChange={e => setNotifBodyEn(e.target.value)}
-                  className="input w-full text-xs resize-none h-16"
+                  className="input w-full rounded-xl p-3 text-xs leading-relaxed resize-none min-h-[72px]"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-2xs font-medium text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'الجمهور المستهدف' : 'Target Audience'}
                 </label>
                 <select
                   value={notifTarget}
                   onChange={e => setNotifTarget(e.target.value as any)}
-                  className="input w-full text-xs cursor-pointer"
+                  className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-medium cursor-pointer"
                 >
                   <option value="all">{locale === 'ar' ? '📢 كافة مستخدمي التطبيق (الجميع)' : 'All App Users (Broadcast)'}</option>
                   <option value="subscribers">{locale === 'ar' ? '💎 المشتركين النشطين فقط' : 'Active Subscribers Only'}</option>
@@ -1268,15 +1278,16 @@ export function AppSettingsManager({
               </div>
 
               <div>
-                <label className="block text-2xs font-medium text-ink-300 mb-1">
+                <label className="block text-2xs font-semibold text-ink-300 mb-1.5">
                   {locale === 'ar' ? 'رابط مباشر عند النقر (اختياري)' : 'Deep Link URL (Optional)'}
                 </label>
                 <input
                   type="text"
+                  dir="ltr"
                   placeholder="app://offers أو https://..."
                   value={notifDeepLink}
                   onChange={e => setNotifDeepLink(e.target.value)}
-                  className="input w-full text-xs font-mono"
+                  className="input w-full min-h-[42px] rounded-xl px-3.5 text-xs font-mono"
                 />
               </div>
             </div>
@@ -1285,7 +1296,7 @@ export function AppSettingsManager({
               type="button"
               onClick={handleSendNotification}
               disabled={sendingNotif || (!notifTitleAr.trim() && !notifTitleEn.trim())}
-              className="btn-primary w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-ink-950 font-bold shadow-lg shadow-amber-500/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              className="btn-primary min-h-[46px] w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-ink-950 font-bold shadow-lg shadow-amber-500/20 active:scale-[0.98] disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               {sendingNotif ? (
                 <>
@@ -1302,21 +1313,21 @@ export function AppSettingsManager({
           </div>
 
           {/* Interactive Mobile Lockscreen Preview (2 cols) */}
-          <div className="lg:col-span-2 flex flex-col justify-between p-4 rounded-2xl bg-ink-950/70 border border-ink-800 shadow-inner">
+          <div className="lg:col-span-2 flex flex-col justify-between p-5 rounded-2xl bg-ink-950/80 border border-ink-800/90 shadow-2xl">
             <div>
-              <div className="flex items-center justify-between pb-3 border-b border-ink-800/80 mb-3">
-                <span className="flex items-center gap-1.5 text-amber-400 font-semibold text-3xs">
-                  <Smartphone className="w-3.5 h-3.5" />
+              <div className="flex items-center justify-between pb-3.5 border-b border-ink-800/80 mb-4">
+                <span className="flex items-center gap-1.5 text-amber-400 font-bold text-2xs">
+                  <Smartphone className="w-4 h-4" />
                   <span>{locale === 'ar' ? 'معاينة شاشة الهاتف' : 'Phone Lockscreen Preview'}</span>
                 </span>
                 
                 {/* Preview Language Toggle */}
-                <div className="flex items-center bg-ink-900 rounded-lg p-0.5 border border-ink-800 text-3xs">
+                <div className="flex items-center bg-ink-900 rounded-xl p-1 border border-ink-800 text-3xs">
                   <button
                     type="button"
                     onClick={() => setPreviewLang('ar')}
-                    className={`px-2 py-0.5 rounded font-medium transition-all ${
-                      previewLang === 'ar' ? 'bg-amber-500 text-ink-950 font-bold' : 'text-ink-400 hover:text-ink-200'
+                    className={`min-h-[28px] px-2.5 py-0.5 rounded-lg font-bold transition-all active:scale-95 cursor-pointer ${
+                      previewLang === 'ar' ? 'bg-amber-500 text-ink-950 shadow-sm' : 'text-ink-400 hover:text-ink-200'
                     }`}
                   >
                     🇸🇦 العربية
@@ -1324,8 +1335,8 @@ export function AppSettingsManager({
                   <button
                     type="button"
                     onClick={() => setPreviewLang('en')}
-                    className={`px-2 py-0.5 rounded font-medium transition-all ${
-                      previewLang === 'en' ? 'bg-amber-500 text-ink-950 font-bold' : 'text-ink-400 hover:text-ink-200'
+                    className={`min-h-[28px] px-2.5 py-0.5 rounded-lg font-bold transition-all active:scale-95 cursor-pointer ${
+                      previewLang === 'en' ? 'bg-amber-500 text-ink-950 shadow-sm' : 'text-ink-400 hover:text-ink-200'
                     }`}
                   >
                     🇬🇧 English
@@ -1334,11 +1345,11 @@ export function AppSettingsManager({
               </div>
 
               {/* Realistic Mobile Push Banner */}
-              <div className="p-3.5 rounded-xl bg-ink-900/90 border border-amber-500/30 shadow-xl backdrop-blur-md space-y-2 relative overflow-hidden group">
+              <div className="p-4 rounded-xl bg-ink-900/95 border border-amber-500/30 shadow-xl backdrop-blur-md space-y-2.5 relative overflow-hidden group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-md bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 text-3xs">
-                      {icon || <Bell className="w-3 h-3" />}
+                    <div className="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 text-3xs shadow-sm">
+                      {icon || <Bell className="w-3.5 h-3.5" />}
                     </div>
                     <span className="text-2xs font-bold text-ink-200 tracking-tight">
                       {previewLang === 'ar' ? (appNameAr || appNameEn) : (appNameEn || appNameAr)}
@@ -1349,7 +1360,7 @@ export function AppSettingsManager({
                   </span>
                 </div>
 
-                <div className={`space-y-0.5 ${previewLang === 'ar' ? 'text-right' : 'text-left'}`} dir={previewLang === 'ar' ? 'rtl' : 'ltr'}>
+                <div className={`space-y-1 ${previewLang === 'ar' ? 'text-right' : 'text-left'}`} dir={previewLang === 'ar' ? 'rtl' : 'ltr'}>
                   <p className="text-xs font-bold text-white line-clamp-1">
                     {previewLang === 'ar'
                       ? (notifTitleAr.trim() || notifTitleEn.trim() || 'عنوان الإشعار بالعربية يظهر هنا')
@@ -1374,13 +1385,13 @@ export function AppSettingsManager({
 
         {/* Recent Notification Dispatch History */}
         {notifHistory.length > 0 && (
-          <div className="pt-4 border-t border-ink-800 space-y-2.5">
+          <div className="pt-4 border-t border-ink-800/80 space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-ink-200 flex items-center gap-1.5">
-                <History className="w-3.5 h-3.5 text-ink-400" />
+                <History className="w-4 h-4 text-ink-400" />
                 <span>{locale === 'ar' ? 'سجل الإشعارات المرسلة مؤخراً للتطبيق:' : 'Recent Dispatched Notifications:'}</span>
               </h4>
-              <span className="text-3xs font-mono text-ink-500">
+              <span className="text-3xs font-mono text-ink-400 font-bold">
                 {notifHistory.length} {locale === 'ar' ? 'إشعار مرسل' : 'sent'}
               </span>
             </div>
@@ -1389,15 +1400,15 @@ export function AppSettingsManager({
               {notifHistory.map((item: any, idx: number) => (
                 <div
                   key={item.id || idx}
-                  className="p-2.5 rounded-lg bg-ink-950/60 border border-ink-800/80 flex items-center justify-between text-xs hover:border-ink-700 transition-all"
+                  className="p-3 rounded-xl bg-ink-950/60 border border-ink-800/80 flex items-center justify-between text-xs hover:border-ink-700 transition-all"
                 >
                   <div className="space-y-0.5 min-w-0 flex-1 pr-3">
                     <p className="font-bold text-ink-100 truncate">{item.title}</p>
                     <p className="text-2xs text-ink-400 truncate">{item.body}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 text-3xs">
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium flex items-center gap-1">
-                      <CheckCircle2 className="w-2.5 h-2.5" />
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
                       <span>{locale === 'ar' ? 'تم الإرسال' : 'Delivered'}</span>
                     </span>
                     <span className="text-ink-500 font-mono">
@@ -1412,17 +1423,17 @@ export function AppSettingsManager({
       </div>
 
       {/* Bottom Save Bar */}
-      <div className="flex items-center justify-between gap-4 pt-2 border-t border-ink-800">
+      <div className="flex items-center justify-between gap-4 pt-4 border-t border-ink-800/80">
         <div className="flex items-center gap-2">
           {autoSaveStatus === 'saving' && (
-            <span className="flex items-center gap-1.5 text-xs text-brand-400 animate-pulse">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span className="flex items-center gap-1.5 text-xs text-brand-400 animate-pulse font-medium">
+              <Loader2 className="w-4 h-4 animate-spin" />
               <span>{locale === 'ar' ? 'جاري الحفظ الفوري والتطبيق على السيرفر...' : 'Saving to server...'}</span>
             </span>
           )}
           {autoSaveStatus === 'saved' && (
-            <span className="flex items-center gap-1.5 text-xs text-success-400">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+            <span className="flex items-center gap-1.5 text-xs text-success-400 font-medium">
+              <CheckCircle2 className="w-4 h-4" />
               <span>{locale === 'ar' ? 'جميع الإعدادات محدثة ومتزامنة بنجاح ✓' : 'All settings synced ✓'}</span>
             </span>
           )}
@@ -1430,7 +1441,7 @@ export function AppSettingsManager({
         <button
           onClick={handleManualSave}
           disabled={saving}
-          className="btn-primary"
+          className="btn-primary min-h-[44px] px-6 py-2.5 rounded-xl font-bold active:scale-95 transition-all shadow-md cursor-pointer flex items-center gap-2"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           <span>{saving ? t('common.saving') : (locale === 'ar' ? 'حفظ كافة إعدادات التطبيق' : 'Save App Settings')}</span>
