@@ -29,37 +29,45 @@ export function Settings({ onNavigate }: { onNavigate?: (p: PageKey) => void }) 
   const [tab, setTab] = useState<SubTab>('general');
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title={t('settings.title')}
         description={t('settings.description')}
-        icon={<SettingsIcon className="w-5 h-5" />}
+        icon={<SettingsIcon className="w-5 h-5 text-brand-400" />}
       />
 
-      <div className="flex items-center gap-1 mb-4 border-b border-ink-800">
+      {/* Tactile Segmented SubTabs with Concentric Geometry */}
+      <div className="p-1.5 bg-ink-950/80 border border-ink-800/80 rounded-2xl inline-flex flex-wrap items-center gap-1.5 backdrop-blur-md shadow-inner">
         {([
-          { key: 'general', label: t('settings.tab_general'), icon: <SettingsIcon className="w-3.5 h-3.5" /> },
-          { key: 'team', label: t('settings.tab_team'), icon: <Users className="w-3.5 h-3.5" /> },
-          { key: 'audit', label: t('settings.tab_audit'), icon: <ScrollText className="w-3.5 h-3.5" /> },
-          { key: 'health', label: t('settings.tab_health'), icon: <Activity className="w-3.5 h-3.5" /> },
-        ] as const).map(tabItem => (
-          <button
-            key={tabItem.key}
-            onClick={() => setTab(tabItem.key)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === tabItem.key ? 'border-brand-500 text-brand-300' : 'border-transparent text-ink-400 hover:text-ink-200'
-            }`}
-          >
-            {tabItem.icon}
-            {tabItem.label}
-          </button>
-        ))}
+          { key: 'general', label: t('settings.tab_general'), icon: <SettingsIcon className="w-4 h-4" /> },
+          { key: 'team', label: t('settings.tab_team'), icon: <Users className="w-4 h-4" /> },
+          { key: 'audit', label: t('settings.tab_audit'), icon: <ScrollText className="w-4 h-4" /> },
+          { key: 'health', label: t('settings.tab_health'), icon: <Activity className="w-4 h-4" /> },
+        ] as const).map(tabItem => {
+          const isActive = tab === tabItem.key;
+          return (
+            <button
+              key={tabItem.key}
+              onClick={() => setTab(tabItem.key)}
+              className={`flex items-center gap-2 px-4 py-2 min-h-[42px] text-xs font-bold rounded-xl transition-all duration-200 active:scale-95 cursor-pointer ${
+                isActive
+                  ? 'bg-ink-800 text-brand-300 shadow-md border border-brand-500/30 scale-[1.02] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]'
+                  : 'text-ink-400 hover:text-ink-200 hover:bg-ink-900/60'
+              }`}
+            >
+              {tabItem.icon}
+              <span>{tabItem.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {tab === 'general' && <GeneralTab onNavigate={onNavigate} />}
-      {tab === 'team' && <TeamTab canManage={canManageTeam} />}
-      {tab === 'audit' && <AuditTab />}
-      {tab === 'health' && <HealthTab />}
+      <div className="animate-fade-in">
+        {tab === 'general' && <GeneralTab onNavigate={onNavigate} />}
+        {tab === 'team' && <TeamTab canManage={canManageTeam} />}
+        {tab === 'audit' && <AuditTab />}
+        {tab === 'health' && <HealthTab />}
+      </div>
     </div>
   );
 }
@@ -287,26 +295,26 @@ function TeamTab({ canManage }: { canManage: boolean }) {
   return (
     <div>
       {/* Header & Controls */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-5">
-        <div className="flex items-center gap-3">
-          <p className="text-sm font-medium text-ink-300">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-sm font-semibold text-ink-300">
             {locale === 'ar' ? `${members.length} عضو في فريق العمل` : `${members.length} team members`}
           </p>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-ink-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-ink-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={locale === 'ar' ? 'بحث بالاسم أو البريد...' : 'Search by name or email...'}
-                className="input text-xs pl-8 pr-3 py-1.5 w-44 sm:w-56"
+                className="input text-xs pl-9 pr-3 min-h-[42px] rounded-xl w-44 sm:w-60 bg-ink-950/80 border border-ink-800 focus:border-brand-500/50"
               />
             </div>
             <select
               value={roleFilter}
               onChange={e => setRoleFilter(e.target.value)}
-              className="input text-xs py-1.5 px-2 bg-ink-950 text-ink-300"
+              className="input text-xs min-h-[42px] px-3 rounded-xl bg-ink-950/80 border border-ink-800 text-ink-300 cursor-pointer"
             >
               <option value="all">{locale === 'ar' ? 'جميع الأدوار' : 'All Roles'}</option>
               {ROLES.map(r => (
@@ -319,14 +327,14 @@ function TeamTab({ canManage }: { canManage: boolean }) {
         {canManage ? (
           <button
             onClick={openCreateModal}
-            className="btn-primary text-xs flex items-center justify-center gap-1.5 py-2 px-3.5 shadow-md shadow-brand-500/20"
+            className="btn-primary min-h-[42px] text-xs font-bold flex items-center justify-center gap-2 py-2 px-4 rounded-xl shadow-md shadow-brand-500/20 active:scale-95 transition-all cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             <span>{locale === 'ar' ? 'إضافة موظف جديد' : 'Add Employee'}</span>
           </button>
         ) : (
-          <div className="flex items-center gap-1.5 text-xs text-ink-400 px-3 py-2 rounded-lg bg-ink-800/60">
-            <Lock className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 text-xs text-ink-400 px-3.5 py-2 min-h-[42px] rounded-xl bg-ink-800/60 border border-ink-700/50">
+            <Lock className="w-4 h-4 text-ink-400" />
             <span>{locale === 'ar' ? 'فقط المالك يمكنه إدارة الفريق والصلاحيات' : 'Only the Owner can manage team'}</span>
           </div>
         )}
@@ -347,13 +355,13 @@ function TeamTab({ canManage }: { canManage: boolean }) {
             const perms = Array.isArray(m.permissions) ? m.permissions : [];
 
             return (
-              <div key={m.id} className="card card-hover p-4 flex flex-col justify-between gap-3 border border-ink-800 hover:border-ink-700 transition">
+              <div key={m.id} className="card card-hover p-5 rounded-2xl flex flex-col justify-between gap-4 border border-ink-800/80 hover:border-ink-700/80 bg-ink-900/50 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200">
                 <div>
                   {/* Top Row: Avatar, Name, Email, Status, Role */}
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-3.5 min-w-0">
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0 shadow-sm"
+                        className="w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0 shadow-sm border border-white/10"
                         style={{ backgroundColor: m.avatar_color || '#4f46e5' }}
                       >
                         {m.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
@@ -367,7 +375,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-ink-400 truncate flex items-center gap-1">
+                        <p className="text-xs text-ink-400 truncate flex items-center gap-1 mt-0.5">
                           <Mail className="w-3 h-3 text-ink-500 shrink-0" />
                           <span>{m.email}</span>
                         </p>
@@ -381,7 +389,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                     </div>
 
                     <div className="flex flex-col items-end gap-1.5 shrink-0">
-                      <span className={`badge text-2xs font-semibold ${
+                      <span className={`badge text-2xs font-semibold rounded-lg ${
                         m.role === 'owner' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30' :
                         m.role === 'admin' ? 'bg-brand-500/15 text-brand-400 border border-brand-500/30' :
                         m.role === 'sales' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
@@ -391,21 +399,21 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                       }`}>
                         {roleLabel(m.role)}
                       </span>
-                      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-3xs font-medium ${
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-3xs font-medium ${
                         isActive
                           ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                           : 'bg-danger-500/10 text-danger-400 border border-danger-500/20'
                       }`}>
-                        <span className={`w-1 h-1 rounded-full ${isActive ? 'bg-emerald-400' : 'bg-danger-400'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-400' : 'bg-danger-400'}`} />
                         {isActive ? (locale === 'ar' ? 'نشط' : 'Active') : (locale === 'ar' ? 'معطل' : 'Inactive')}
                       </span>
                     </div>
                   </div>
 
                   {/* Mid Row: Client Scopes & Metrics */}
-                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-ink-800/60">
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-ink-950/60 border border-ink-800/80">
-                      <Store className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+                  <div className="grid grid-cols-2 gap-2.5 mt-3.5 pt-3.5 border-t border-ink-800/60">
+                    <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-ink-950/60 border border-ink-800/80">
+                      <Store className="w-4 h-4 text-brand-400 shrink-0" />
                       <div className="min-w-0">
                         <p className="text-3xs text-ink-400 uppercase font-semibold">{locale === 'ar' ? 'المطاعم المخصصة' : 'Assigned Restaurants'}</p>
                         <p className="text-xs font-bold text-ink-100 tabular-nums">
@@ -413,8 +421,8 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-ink-950/60 border border-ink-800/80">
-                      <Users className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                    <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-ink-950/60 border border-ink-800/80">
+                      <Users className="w-4 h-4 text-sky-400 shrink-0" />
                       <div className="min-w-0">
                         <p className="text-3xs text-ink-400 uppercase font-semibold">{locale === 'ar' ? 'العملاء المخصصون' : 'Assigned Clients'}</p>
                         <p className="text-xs font-bold text-ink-100 tabular-nums">
@@ -425,7 +433,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                   </div>
 
                   {/* Apps & Permissions preview */}
-                  <div className="mt-2.5 space-y-1.5">
+                  <div className="mt-3 space-y-1.5">
                     <div className="flex items-center justify-between text-3xs text-ink-400">
                       <span>{locale === 'ar' ? 'التطبيقات المصرح بها:' : 'Assigned Apps:'}</span>
                       <span className="text-ink-300 font-medium">
@@ -434,14 +442,14 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {isOwner ? (
-                        <span className="badge text-3xs bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                        <span className="badge text-3xs rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20">
                           {locale === 'ar' ? 'وصول شامل لجميع الأنظمة' : 'Full Unrestricted Access'}
                         </span>
                       ) : apps.length > 0 ? (
                         apps.map(appId => {
                           const appObj = ALL_APPS.find(a => a.id === appId);
                           return (
-                            <span key={appId} className="badge text-3xs bg-ink-800 text-ink-200 border border-ink-700">
+                            <span key={appId} className="badge text-3xs rounded-lg bg-ink-800 text-ink-200 border border-ink-700">
                               {appObj?.name || appId}
                             </span>
                           );
@@ -454,7 +462,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                 </div>
 
                 {/* Bottom Row: Actions */}
-                <div className="flex items-center justify-between pt-2 border-t border-ink-800/60 mt-1">
+                <div className="flex items-center justify-between pt-3 border-t border-ink-800/60 mt-1">
                   <span className="text-3xs text-ink-500">
                     {m.last_active ? `${locale === 'ar' ? 'آخر نشاط' : 'Active'} ${timeAgo(m.last_active, locale)}` : ''}
                   </span>
@@ -463,20 +471,20 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => openEditModal(m)}
-                        className="px-2.5 py-1 text-xs font-medium rounded-lg text-ink-200 hover:text-white bg-ink-800 hover:bg-ink-700 border border-ink-700 transition flex items-center gap-1"
+                        className="px-3 py-1.5 min-h-[36px] text-xs font-semibold rounded-xl text-ink-200 hover:text-white bg-ink-800/90 hover:bg-ink-700/90 border border-ink-700/80 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
                         title={locale === 'ar' ? 'تعديل البيانات والصلاحيات' : 'Edit details & permissions'}
                       >
-                        <Edit2 className="w-3 h-3 text-brand-400" />
+                        <Edit2 className="w-3.5 h-3.5 text-brand-400" />
                         <span>{locale === 'ar' ? 'تعديل' : 'Edit'}</span>
                       </button>
 
                       {!isOwner && (
                         <button
                           onClick={() => handleDelete(m)}
-                          className="p-1.5 text-ink-400 hover:text-danger-400 hover:bg-danger-500/10 rounded-lg transition"
+                          className="w-9 h-9 flex items-center justify-center text-ink-400 hover:text-danger-400 hover:bg-danger-500/10 rounded-xl transition-all active:scale-90 border border-transparent hover:border-danger-500/20 cursor-pointer"
                           title={locale === 'ar' ? 'حذف الحساب' : 'Delete Account'}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       )}
                     </div>
@@ -490,10 +498,10 @@ function TeamTab({ canManage }: { canManage: boolean }) {
 
       {/* Modal: Add / Edit Team Member */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-sm animate-fade-in">
-          <div className="card max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-ink-700 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-md animate-fade-in">
+          <div className="card max-w-2xl w-full p-6 space-y-5 rounded-2xl shadow-2xl border border-ink-700/80 max-h-[92vh] overflow-y-auto shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-ink-800">
+            <div className="flex items-center justify-between pb-3.5 border-b border-ink-800">
               <h3 className="text-base font-bold text-ink-50 flex items-center gap-2">
                 <Shield className="w-5 h-5 text-brand-400" />
                 <span>
@@ -505,16 +513,16 @@ function TeamTab({ canManage }: { canManage: boolean }) {
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="text-ink-400 hover:text-ink-200 transition"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-400 hover:text-ink-200 hover:bg-ink-800/60 transition active:scale-90 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {formError && (
-              <div className="p-3 rounded-xl bg-danger-500/10 border border-danger-500/25 text-danger-300 text-xs flex items-center gap-2">
+              <div className="p-3.5 rounded-xl bg-danger-500/10 border border-danger-500/25 text-danger-300 text-xs flex items-center gap-2.5">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
-                <span>{formError}</span>
+                <span className="font-medium">{formError}</span>
               </div>
             )}
 
@@ -526,7 +534,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                   <span>{locale === 'ar' ? 'البيانات الشخصية وبيانات الدخول' : 'Personal & Login Credentials'}</span>
                 </h4>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
                     <label className="block text-2xs font-semibold text-ink-300 mb-1">
                       {locale === 'ar' ? 'الاسم الكامل *' : 'Full Name *'}
@@ -537,7 +545,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                       value={formData.name}
                       onChange={e => setFormData({ ...formData, name: e.target.value })}
                       placeholder="e.g. Mostafa Mahmoud"
-                      className="input w-full text-xs"
+                      className="input w-full min-h-[42px] rounded-xl text-xs"
                     />
                   </div>
 
@@ -551,7 +559,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                       value={formData.email}
                       onChange={e => setFormData({ ...formData, email: e.target.value })}
                       placeholder="staff@ouonex.com"
-                      className="input w-full text-xs"
+                      className="input w-full min-h-[42px] rounded-xl text-xs"
                     />
                   </div>
 
@@ -564,7 +572,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                       value={formData.phone}
                       onChange={e => setFormData({ ...formData, phone: e.target.value })}
                       placeholder="+2010..."
-                      className="input w-full text-xs"
+                      className="input w-full min-h-[42px] rounded-xl text-xs"
                     />
                   </div>
 
@@ -580,7 +588,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                       value={formData.password}
                       onChange={e => setFormData({ ...formData, password: e.target.value })}
                       placeholder={modalMode === 'create' ? '••••••••' : (locale === 'ar' ? 'بدون تغيير' : 'Unchanged')}
-                      className="input w-full text-xs"
+                      className="input w-full min-h-[42px] rounded-xl text-xs"
                     />
                   </div>
 
@@ -595,7 +603,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                         setFormData({ ...formData, role: nextRole });
                         handleApplyRoleDefaults(nextRole);
                       }}
-                      className="input w-full text-xs bg-ink-950"
+                      className="input w-full min-h-[42px] rounded-xl text-xs bg-ink-950 cursor-pointer"
                     >
                       <option value="employee">{locale === 'ar' ? 'موظف تشغيل (Employee)' : 'Employee (Operations)'}</option>
                       <option value="sales">{locale === 'ar' ? 'مسؤول مبيعات وعملاء (Sales)' : 'Sales & Clients'}</option>
@@ -613,7 +621,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                       <select
                         value={formData.status}
                         onChange={e => setFormData({ ...formData, status: e.target.value as any })}
-                        className="input w-full text-xs bg-ink-950"
+                        className="input w-full min-h-[42px] rounded-xl text-xs bg-ink-950 cursor-pointer"
                       >
                         <option value="active">{locale === 'ar' ? 'نشط (مسموح بالدخول)' : 'Active (Login allowed)'}</option>
                         <option value="inactive">{locale === 'ar' ? 'معطل (موقوف مؤقتاً)' : 'Inactive (Suspended)'}</option>
@@ -634,7 +642,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, assigned_apps: ALL_APPS.map(a => a.id) }))}
-                      className="text-3xs text-brand-400 hover:text-brand-300 font-semibold"
+                      className="text-3xs text-brand-400 hover:text-brand-300 font-semibold cursor-pointer"
                     >
                       {locale === 'ar' ? 'تحديد الكل' : 'Select All'}
                     </button>
@@ -642,23 +650,23 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, assigned_apps: [] }))}
-                      className="text-3xs text-ink-400 hover:text-ink-200"
+                      className="text-3xs text-ink-400 hover:text-ink-200 cursor-pointer"
                     >
                       {locale === 'ar' ? 'إلغاء التحديد' : 'Clear'}
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {ALL_APPS.map(app => {
                     const isChecked = formData.assigned_apps.includes(app.id);
                     return (
                       <div
                         key={app.id}
                         onClick={() => toggleApp(app.id)}
-                        className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition select-none ${
+                        className={`flex items-center gap-2.5 p-3 rounded-xl border min-h-[44px] cursor-pointer transition-all duration-200 select-none active:scale-[0.98] ${
                           isChecked
-                            ? 'bg-brand-500/10 border-brand-500/40 text-brand-200'
+                            ? 'bg-brand-500/10 border-brand-500/40 text-brand-200 shadow-sm'
                             : 'bg-ink-950/50 border-ink-800/80 text-ink-400 hover:bg-ink-900/60'
                         }`}
                       >
@@ -667,7 +675,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                         ) : (
                           <Square className="w-4 h-4 text-ink-500 shrink-0" />
                         )}
-                        <span className="text-xs font-medium">{app.name}</span>
+                        <span className="text-xs font-semibold">{app.name}</span>
                       </div>
                     );
                   })}
@@ -693,7 +701,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, permissions: ALL_PAGES.map(p => p.key) }))}
-                      className="text-3xs text-brand-400 hover:text-brand-300 font-semibold"
+                      className="text-3xs text-brand-400 hover:text-brand-300 font-semibold cursor-pointer"
                     >
                       {locale === 'ar' ? 'تحديد الكل' : 'Select All'}
                     </button>
@@ -701,7 +709,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, permissions: ['overview'] }))}
-                      className="text-3xs text-ink-400 hover:text-ink-200"
+                      className="text-3xs text-ink-400 hover:text-ink-200 cursor-pointer"
                     >
                       {locale === 'ar' ? 'الافتراضي فقط' : 'Overview only'}
                     </button>
@@ -715,9 +723,9 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                       <div
                         key={page.key}
                         onClick={() => togglePermission(page.key)}
-                        className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition select-none ${
+                        className={`flex items-center gap-2 p-2.5 rounded-xl border min-h-[40px] cursor-pointer transition-all duration-200 select-none active:scale-[0.98] ${
                           isChecked
-                            ? 'bg-brand-500/10 border-brand-500/40 text-brand-200 font-semibold'
+                            ? 'bg-brand-500/10 border-brand-500/40 text-brand-200 font-semibold shadow-sm'
                             : 'bg-ink-950/40 border-ink-800/80 text-ink-400 hover:bg-ink-900/40'
                         }`}
                       >
@@ -726,7 +734,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                         ) : (
                           <Square className="w-3.5 h-3.5 text-ink-600 shrink-0" />
                         )}
-                        <span className="text-xs truncate">
+                        <span className="text-xs truncate font-medium">
                           {locale === 'ar' ? page.labelAr : page.labelEn}
                         </span>
                       </div>
@@ -736,12 +744,12 @@ function TeamTab({ canManage }: { canManage: boolean }) {
               </div>
 
               {/* Modal Actions */}
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-ink-800">
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-ink-800">
                 <button
                   type="button"
                   disabled={submitting}
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold rounded-xl text-ink-300 hover:bg-ink-800 transition"
+                  className="px-4 py-2 min-h-[42px] text-xs font-semibold rounded-xl text-ink-300 hover:bg-ink-800 transition active:scale-95 cursor-pointer"
                 >
                   {locale === 'ar' ? 'إلغاء' : 'Cancel'}
                 </button>
@@ -749,7 +757,7 @@ function TeamTab({ canManage }: { canManage: boolean }) {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn-primary text-xs flex items-center gap-1.5 py-2 px-5 shadow-lg shadow-brand-500/20"
+                  className="btn-primary min-h-[44px] text-xs font-bold flex items-center gap-2 py-2 px-6 rounded-xl shadow-lg shadow-brand-500/20 active:scale-95 transition-all cursor-pointer"
                 >
                   {submitting ? (
                     <>
@@ -926,12 +934,12 @@ function HealthTab() {
   return (
     <div className="space-y-6">
       {/* Top Telemetry Header Bar */}
-      <div className="card p-5 bg-gradient-to-r from-ink-950 via-ink-900 to-ink-950 border border-ink-800 shadow-xl relative overflow-hidden">
+      <div className="card p-6 rounded-2xl bg-gradient-to-r from-ink-950 via-ink-900 to-ink-950 border border-ink-800/80 shadow-xl relative overflow-hidden shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full blur-3xl pointer-events-none" />
         
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-ink-800/80 border border-ink-700/60 flex items-center justify-center text-brand-400 shadow-inner">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-ink-800/80 border border-ink-700/60 flex items-center justify-center text-brand-400 shadow-inner shrink-0">
               <Server className="w-6 h-6" />
             </div>
             <div>
@@ -944,7 +952,7 @@ function HealthTab() {
                   {isRTL ? metrics?.stress_status_ar : metrics?.stress_status_en}
                 </span>
               </div>
-              <p className="text-xs text-ink-400 mt-1 flex items-center gap-2">
+              <p className="text-xs text-ink-400 mt-1 flex flex-wrap items-center gap-2">
                 <span>{metrics?.system.os_name}</span>
                 <span>•</span>
                 <span>PHP {metrics?.system.php_version}</span>
@@ -958,33 +966,35 @@ function HealthTab() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors flex items-center gap-1.5 ${
+              className={`min-h-[42px] px-4 py-2 rounded-xl text-xs font-semibold border transition-all active:scale-95 flex items-center gap-2 cursor-pointer ${
                 autoRefresh 
-                  ? 'bg-brand-500/10 text-brand-300 border-brand-500/30' 
+                  ? 'bg-brand-500/10 text-brand-300 border-brand-500/30 shadow-sm' 
                   : 'bg-ink-900 text-ink-400 border-ink-800 hover:text-ink-200'
               }`}
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-brand-400 animate-ping' : 'bg-ink-600'}`} />
-              {isRTL 
-                ? (autoRefresh ? 'تحديث تلقائي: نشط (15ث)' : 'تحديث تلقائي: متوقف') 
-                : (autoRefresh ? 'Auto-Refresh: ON (15s)' : 'Auto-Refresh: OFF')}
+              <span className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-brand-400 animate-ping' : 'bg-ink-600'}`} />
+              <span>
+                {isRTL 
+                  ? (autoRefresh ? 'تحديث تلقائي: نشط (15ث)' : 'تحديث تلقائي: متوقف') 
+                  : (autoRefresh ? 'Auto-Refresh: ON (15s)' : 'Auto-Refresh: OFF')}
+              </span>
             </button>
 
             <button
               onClick={() => loadData(true)}
               disabled={refreshing}
-              className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-3"
+              className="btn-secondary min-h-[42px] text-xs font-semibold flex items-center gap-2 py-2 px-4 rounded-xl active:scale-95 transition-all cursor-pointer shadow-sm"
               title={isRTL ? 'تحديث فوري للبيانات' : 'Refresh Telemetry'}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-brand-400' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-brand-400' : ''}`} />
               <span>{isRTL ? 'تحديث القياسات' : 'Refresh'}</span>
             </button>
 
             {lastUpdated && (
-              <span className="text-2xs text-ink-500 whitespace-nowrap">
+              <span className="text-2xs text-ink-500 whitespace-nowrap font-mono px-1">
                 {isRTL ? `منذ ${secondsAgo} ثانية` : `${secondsAgo}s ago`}
               </span>
             )}
@@ -993,16 +1003,16 @@ function HealthTab() {
 
         {/* Global Stress Score Meter */}
         <div className="mt-5 pt-4 border-t border-ink-800/80">
-          <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="text-ink-400 font-medium flex items-center gap-1.5">
-              <Gauge className="w-3.5 h-3.5 text-brand-400" />
+          <div className="flex items-center justify-between text-xs mb-2">
+            <span className="text-ink-400 font-semibold flex items-center gap-1.5">
+              <Gauge className="w-4 h-4 text-brand-400" />
               {isRTL ? 'مؤشر الضغط الكلي على موارد الخادم (Overall Stress Gauge)' : 'Overall Server Load & Stress Gauge'}
             </span>
-            <span className="font-mono font-bold text-ink-100">
+            <span className="font-mono font-bold text-ink-100 text-sm">
               {metrics?.stress_score}%
             </span>
           </div>
-          <div className="w-full h-2.5 bg-ink-950 rounded-full overflow-hidden border border-ink-800/80">
+          <div className="w-full h-3 bg-ink-950 rounded-full overflow-hidden border border-ink-800/80 p-0.5">
             <div 
               className={`h-full transition-all duration-700 ease-out rounded-full ${stressBarColor}`} 
               style={{ width: `${Math.min(100, Math.max(5, metrics?.stress_score || 0))}%` }}
@@ -1016,14 +1026,14 @@ function HealthTab() {
             {metrics.alerts.map((alert, idx) => (
               <div 
                 key={idx}
-                className={`p-3 rounded-lg border text-xs flex items-center gap-2.5 ${
+                className={`p-3.5 rounded-xl border text-xs flex items-center gap-2.5 ${
                   alert.level === 'critical'
                     ? 'bg-danger-500/10 border-danger-500/30 text-danger-300'
                     : 'bg-warning-500/10 border-warning-500/30 text-warning-300'
                 }`}
               >
                 <AlertTriangle className="w-4 h-4 shrink-0" />
-                <span className="font-medium">
+                <span className="font-semibold">
                   {isRTL ? alert.message_ar : alert.message_en}
                 </span>
               </div>
@@ -1035,13 +1045,13 @@ function HealthTab() {
       {/* 4 Core Hardware Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* CPU Load Card */}
-        <div className="card p-5 border border-ink-800 hover:border-ink-700 transition-colors">
+        <div className="card p-5 rounded-2xl border border-ink-800/80 bg-ink-900/50 hover:border-ink-700/80 transition-all duration-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] hover:-translate-y-0.5 hover:shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-ink-400 flex items-center gap-1.5">
               <Cpu className="w-4 h-4 text-brand-400" />
               {isRTL ? 'المعالج (CPU)' : 'CPU Compute'}
             </span>
-            <span className="badge bg-ink-800/80 text-ink-300 text-2xs px-2 py-0.5 rounded">
+            <span className="badge bg-ink-800/80 text-ink-300 text-2xs px-2 py-0.5 rounded-lg">
               {metrics?.cpu.cores} {isRTL ? 'أنوية' : 'Cores'}
             </span>
           </div>
@@ -1062,30 +1072,30 @@ function HealthTab() {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-1 pt-2 border-t border-ink-800/60 text-center">
-            <div>
-              <p className="text-3xs text-ink-500 uppercase">1m Load</p>
-              <p className="text-xs font-mono font-semibold text-ink-200">{metrics?.cpu.load_1m}</p>
+          <div className="grid grid-cols-3 gap-1 pt-2.5 border-t border-ink-800/60 text-center">
+            <div className="p-1 rounded-lg bg-ink-950/40">
+              <p className="text-3xs text-ink-500 uppercase font-semibold">1m Load</p>
+              <p className="text-xs font-mono font-bold text-ink-200">{metrics?.cpu.load_1m}</p>
             </div>
-            <div>
-              <p className="text-3xs text-ink-500 uppercase">5m Load</p>
-              <p className="text-xs font-mono font-semibold text-ink-200">{metrics?.cpu.load_5m}</p>
+            <div className="p-1 rounded-lg bg-ink-950/40">
+              <p className="text-3xs text-ink-500 uppercase font-semibold">5m Load</p>
+              <p className="text-xs font-mono font-bold text-ink-200">{metrics?.cpu.load_5m}</p>
             </div>
-            <div>
-              <p className="text-3xs text-ink-500 uppercase">15m Load</p>
-              <p className="text-xs font-mono font-semibold text-ink-200">{metrics?.cpu.load_15m}</p>
+            <div className="p-1 rounded-lg bg-ink-950/40">
+              <p className="text-3xs text-ink-500 uppercase font-semibold">15m Load</p>
+              <p className="text-xs font-mono font-bold text-ink-200">{metrics?.cpu.load_15m}</p>
             </div>
           </div>
         </div>
 
         {/* RAM Memory Card */}
-        <div className="card p-5 border border-ink-800 hover:border-ink-700 transition-colors">
+        <div className="card p-5 rounded-2xl border border-ink-800/80 bg-ink-900/50 hover:border-ink-700/80 transition-all duration-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] hover:-translate-y-0.5 hover:shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-ink-400 flex items-center gap-1.5">
               <Zap className="w-4 h-4 text-purple-400" />
               {isRTL ? 'الذاكرة (RAM)' : 'System Memory'}
             </span>
-            <span className="badge bg-ink-800/80 text-ink-300 text-2xs px-2 py-0.5 rounded">
+            <span className="badge bg-ink-800/80 text-ink-300 text-2xs px-2 py-0.5 rounded-lg">
               {metrics?.memory.total_formatted} Total
             </span>
           </div>
@@ -1106,14 +1116,14 @@ function HealthTab() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-ink-800/60 text-xs">
-            <div>
-              <p className="text-3xs text-ink-500">{isRTL ? 'الذاكرة المتاحة' : 'Free Memory'}</p>
-              <p className="font-mono font-medium text-ink-200">{metrics?.memory.free_formatted}</p>
+          <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-ink-800/60 text-xs">
+            <div className="p-2 rounded-xl bg-ink-950/40 border border-ink-800/60">
+              <p className="text-3xs text-ink-500 font-semibold">{isRTL ? 'الذاكرة المتاحة' : 'Free Memory'}</p>
+              <p className="font-mono font-bold text-ink-200">{metrics?.memory.free_formatted}</p>
             </div>
-            <div>
-              <p className="text-3xs text-ink-500">PHP Used / Peak</p>
-              <p className="font-mono font-medium text-ink-200">
+            <div className="p-2 rounded-xl bg-ink-950/40 border border-ink-800/60">
+              <p className="text-3xs text-ink-500 font-semibold">PHP Used / Peak</p>
+              <p className="font-mono font-bold text-ink-200 truncate">
                 {metrics?.memory.php_used_formatted} / {metrics?.memory.php_peak_formatted}
               </p>
             </div>
@@ -1121,13 +1131,13 @@ function HealthTab() {
         </div>
 
         {/* Storage / SSD Card */}
-        <div className="card p-5 border border-ink-800 hover:border-ink-700 transition-colors">
+        <div className="card p-5 rounded-2xl border border-ink-800/80 bg-ink-900/50 hover:border-ink-700/80 transition-all duration-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] hover:-translate-y-0.5 hover:shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-ink-400 flex items-center gap-1.5">
               <HardDrive className="w-4 h-4 text-amber-400" />
               {isRTL ? 'مساحة القرص (SSD)' : 'Storage / Disk'}
             </span>
-            <span className="badge bg-ink-800/80 text-ink-300 text-2xs px-2 py-0.5 rounded">
+            <span className="badge bg-ink-800/80 text-ink-300 text-2xs px-2 py-0.5 rounded-lg">
               {metrics?.storage.total_formatted} Total
             </span>
           </div>
@@ -1148,26 +1158,26 @@ function HealthTab() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-ink-800/60 text-xs">
-            <div>
-              <p className="text-3xs text-ink-500">{isRTL ? 'المساحة الفارغة' : 'Free Storage'}</p>
-              <p className="font-mono font-medium text-ink-200">{metrics?.storage.free_formatted}</p>
+          <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-ink-800/60 text-xs">
+            <div className="p-2 rounded-xl bg-ink-950/40 border border-ink-800/60">
+              <p className="text-3xs text-ink-500 font-semibold">{isRTL ? 'المساحة الفارغة' : 'Free Storage'}</p>
+              <p className="font-mono font-bold text-ink-200">{metrics?.storage.free_formatted}</p>
             </div>
-            <div>
-              <p className="text-3xs text-ink-500">{isRTL ? 'مجلد المرفقات' : 'Uploads Size'}</p>
-              <p className="font-mono font-medium text-ink-200">{metrics?.storage.uploads_formatted}</p>
+            <div className="p-2 rounded-xl bg-ink-950/40 border border-ink-800/60">
+              <p className="text-3xs text-ink-500 font-semibold">{isRTL ? 'مجلد المرفقات' : 'Uploads Size'}</p>
+              <p className="font-mono font-bold text-ink-200">{metrics?.storage.uploads_formatted}</p>
             </div>
           </div>
         </div>
 
         {/* Database Engine Card */}
-        <div className="card p-5 border border-ink-800 hover:border-ink-700 transition-colors">
+        <div className="card p-5 rounded-2xl border border-ink-800/80 bg-ink-900/50 hover:border-ink-700/80 transition-all duration-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] hover:-translate-y-0.5 hover:shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-ink-400 flex items-center gap-1.5">
               <Database className="w-4 h-4 text-cyan-400" />
               {isRTL ? 'قاعدة البيانات' : 'Database Engine'}
             </span>
-            <span className="badge bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-2xs px-2 py-0.5 rounded uppercase font-mono font-bold">
+            <span className="badge bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-2xs px-2 py-0.5 rounded-lg uppercase font-mono font-bold">
               {metrics?.database.driver}
             </span>
           </div>
@@ -1186,16 +1196,16 @@ function HealthTab() {
             <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-ink-800/60 text-xs">
-            <div>
-              <p className="text-3xs text-ink-500">{isRTL ? 'الحالة الحالية' : 'Engine State'}</p>
-              <p className="font-medium text-emerald-400">
+          <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-ink-800/60 text-xs">
+            <div className="p-2 rounded-xl bg-ink-950/40 border border-ink-800/60">
+              <p className="text-3xs text-ink-500 font-semibold">{isRTL ? 'الحالة الحالية' : 'Engine State'}</p>
+              <p className="font-bold text-emerald-400">
                 {metrics?.database.connected ? (isRTL ? 'متصل بنجاح ✓' : 'Online & Active') : 'Disconnected'}
               </p>
             </div>
-            <div>
-              <p className="text-3xs text-ink-500">{isRTL ? 'حجم البيانات' : 'Database Size'}</p>
-              <p className="font-mono font-medium text-ink-200">{metrics?.database.size_formatted}</p>
+            <div className="p-2 rounded-xl bg-ink-950/40 border border-ink-800/60">
+              <p className="text-3xs text-ink-500 font-semibold">{isRTL ? 'حجم البيانات' : 'Database Size'}</p>
+              <p className="font-mono font-bold text-ink-200">{metrics?.database.size_formatted}</p>
             </div>
           </div>
         </div>
@@ -1203,10 +1213,10 @@ function HealthTab() {
 
       {/* Connected Services & App Endpoints */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3.5">
           <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
             <Activity className="w-4 h-4 text-brand-400" />
-            {isRTL ? 'حالة التطبيقات والخدمات السحابية المتصلة' : 'Connected Applications & Microservices Status'}
+            <span>{isRTL ? 'حالة التطبيقات والخدمات السحابية المتصلة' : 'Connected Applications & Microservices Status'}</span>
           </h3>
           <span className="text-2xs text-ink-400">
             {isRTL ? 'فحص دوري لحالة استجابة الـ API وبوابة الرسائل' : 'Live health probes for APIs & SMS Gateway'}
@@ -1215,37 +1225,37 @@ function HealthTab() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {metrics?.services.map(s => (
-            <div key={s.id} className="card p-4.5 border border-ink-800 bg-ink-950/40 hover:bg-ink-950/70 transition-colors">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${s.reachable ? 'bg-success-500/10 text-success-400' : 'bg-danger-500/10 text-danger-400'}`}>
-                    {s.id === 'sms_gateway' ? <Smartphone className="w-4.5 h-4.5" /> : <Activity className="w-4.5 h-4.5" />}
+            <div key={s.id} className="card p-5 rounded-2xl border border-ink-800/80 bg-ink-950/40 hover:bg-ink-950/70 hover:border-ink-700/80 transition-all duration-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${s.reachable ? 'bg-success-500/10 text-success-400 border border-success-500/20' : 'bg-danger-500/10 text-danger-400 border border-danger-500/20'}`}>
+                    {s.id === 'sms_gateway' ? <Smartphone className="w-5 h-5" /> : <Activity className="w-5 h-5" />}
                   </div>
                   <div>
                     <p className="text-xs font-bold text-ink-100">
                       {isRTL && s.name_ar ? s.name_ar : s.name}
                     </p>
-                    <p className="text-3xs text-ink-400 font-mono">
+                    <p className="text-3xs text-ink-400 font-mono mt-0.5">
                       {s.id}
                     </p>
                   </div>
                 </div>
-                <span className={`badge text-2xs px-2 py-0.5 rounded-full ${s.reachable ? 'bg-success-500/15 text-success-400 border border-success-500/30' : 'bg-danger-500/15 text-danger-400 border border-danger-500/30'}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${s.reachable ? 'bg-success-400 animate-pulse' : 'bg-danger-400'} mr-1`} />
+                <span className={`badge text-2xs px-2.5 py-0.5 rounded-full ${s.reachable ? 'bg-success-500/15 text-success-400 border border-success-500/30' : 'bg-danger-500/15 text-danger-400 border border-danger-500/30'}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${s.reachable ? 'bg-success-400 animate-pulse' : 'bg-danger-400'} mr-1.5`} />
                   {s.reachable ? (isRTL ? 'متصل' : 'Operational') : (isRTL ? 'متوقف' : 'Offline')}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 bg-ink-900/50 rounded-lg p-2.5 border border-ink-800/80 text-xs">
+              <div className="grid grid-cols-2 gap-2.5 bg-ink-900/60 rounded-xl p-3 border border-ink-800/80 text-xs">
                 <div>
-                  <p className="text-3xs text-ink-500 uppercase">{isRTL ? 'زمن الاستجابة' : 'Latency'}</p>
-                  <p className="font-mono font-semibold text-ink-200">
+                  <p className="text-3xs text-ink-500 uppercase font-semibold">{isRTL ? 'زمن الاستجابة' : 'Latency'}</p>
+                  <p className="font-mono font-bold text-ink-200 mt-0.5">
                     {s.latency_ms} ms
                   </p>
                 </div>
                 <div>
-                  <p className="text-3xs text-ink-500 uppercase">{isRTL ? 'آخر فحص' : 'Last Sync'}</p>
-                  <p className="text-xs text-ink-300">
+                  <p className="text-3xs text-ink-500 uppercase font-semibold">{isRTL ? 'آخر فحص' : 'Last Sync'}</p>
+                  <p className="text-xs text-ink-300 font-medium mt-0.5">
                     {timeAgo(s.last_sync, locale)}
                   </p>
                 </div>
@@ -1256,46 +1266,46 @@ function HealthTab() {
       </div>
 
       {/* Server Environment & Infrastructure Specifications */}
-      <div className="card p-5 border border-ink-800 bg-ink-900/40">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-ink-400 mb-3 flex items-center gap-1.5">
+      <div className="card p-6 rounded-2xl border border-ink-800/80 bg-ink-900/40 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-ink-400 mb-3.5 flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          {isRTL ? 'المواصفات التقنية وبيئة التشغيل السحابية' : 'Cloud Infrastructure & Runtime Specs'}
+          <span>{isRTL ? 'المواصفات التقنية وبيئة التشغيل السحابية' : 'Cloud Infrastructure & Runtime Specs'}</span>
         </h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
-          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
-            <p className="text-3xs text-ink-500 uppercase mb-1">Operating System</p>
-            <p className="font-medium text-ink-200 truncate" title={metrics?.system.os_name}>
+          <div className="p-3.5 rounded-xl bg-ink-950/60 border border-ink-800/80">
+            <p className="text-3xs text-ink-500 uppercase font-semibold mb-1">Operating System</p>
+            <p className="font-bold text-ink-200 truncate" title={metrics?.system.os_name}>
               {metrics?.system.os_family}
             </p>
           </div>
-          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
-            <p className="text-3xs text-ink-500 uppercase mb-1">PHP Engine</p>
-            <p className="font-medium text-ink-200">
+          <div className="p-3.5 rounded-xl bg-ink-950/60 border border-ink-800/80">
+            <p className="text-3xs text-ink-500 uppercase font-semibold mb-1">PHP Engine</p>
+            <p className="font-bold text-ink-200">
               v{metrics?.system.php_version}
             </p>
           </div>
-          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
-            <p className="text-3xs text-ink-500 uppercase mb-1">Framework Core</p>
-            <p className="font-medium text-ink-200">
+          <div className="p-3.5 rounded-xl bg-ink-950/60 border border-ink-800/80">
+            <p className="text-3xs text-ink-500 uppercase font-semibold mb-1">Framework Core</p>
+            <p className="font-bold text-ink-200">
               Laravel {metrics?.system.laravel_version}
             </p>
           </div>
-          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
-            <p className="text-3xs text-ink-500 uppercase mb-1">Public IP / Host</p>
-            <p className="font-mono font-medium text-ink-200">
+          <div className="p-3.5 rounded-xl bg-ink-950/60 border border-ink-800/80">
+            <p className="text-3xs text-ink-500 uppercase font-semibold mb-1">Public IP / Host</p>
+            <p className="font-mono font-bold text-ink-200">
               {metrics?.system.server_ip}
             </p>
           </div>
-          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
-            <p className="text-3xs text-ink-500 uppercase mb-1">OPcache Accelerator</p>
-            <p className="font-medium text-emerald-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <div className="p-3.5 rounded-xl bg-ink-950/60 border border-ink-800/80">
+            <p className="text-3xs text-ink-500 uppercase font-semibold mb-1">OPcache Accelerator</p>
+            <p className="font-bold text-emerald-400 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
               {metrics?.system.opcache_enabled ? 'Enabled (Fast)' : 'Disabled'}
             </p>
           </div>
-          <div className="p-3 rounded-lg bg-ink-950/60 border border-ink-800">
-            <p className="text-3xs text-ink-500 uppercase mb-1">Memory Limit</p>
-            <p className="font-mono font-medium text-ink-200">
+          <div className="p-3.5 rounded-xl bg-ink-950/60 border border-ink-800/80">
+            <p className="text-3xs text-ink-500 uppercase font-semibold mb-1">Memory Limit</p>
+            <p className="font-mono font-bold text-ink-200">
               {metrics?.memory.php_memory_limit}
             </p>
           </div>
@@ -1439,55 +1449,57 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
   }
 
   return (
-    <div className="max-w-2xl space-y-5">
+    <div className="max-w-2xl space-y-6">
       {/* Auto-save notification banner */}
-      <div className="flex items-center justify-between p-3.5 rounded-xl bg-ink-900/60 border border-ink-800">
-        <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-brand-400 shrink-0" />
-          <span className="text-xs text-ink-300">
+      <div className="flex items-center justify-between p-4 rounded-2xl bg-ink-900/60 border border-ink-800 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0">
+            <Zap className="w-4 h-4" />
+          </div>
+          <span className="text-xs text-ink-300 font-medium">
             الحفظ التلقائي مفعّل: تفعيل أي مفتاح أو تعديل أي قيمة يُحفظ ويُطبق فوراً دون الحاجة للنقر اليدوي.
           </span>
         </div>
         <div className="shrink-0">
           {autoSaveStatus === 'saving' && (
-            <span className="flex items-center gap-1.5 text-xs text-brand-400 bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/20 animate-pulse">
+            <span className="flex items-center gap-1.5 text-xs text-brand-400 bg-brand-500/10 px-3 py-1.5 rounded-full border border-brand-500/20 animate-pulse font-semibold">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span>جاري الحفظ...</span>
             </span>
           )}
           {autoSaveStatus === 'saved' && (
-            <span className="flex items-center gap-1.5 text-xs text-success-400 bg-success-500/10 px-3 py-1 rounded-full border border-success-500/20">
+            <span className="flex items-center gap-1.5 text-xs text-success-400 bg-success-500/10 px-3 py-1.5 rounded-full border border-success-500/20 font-semibold">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>تم الحفظ تلقائياً ✓</span>
             </span>
           )}
           {autoSaveStatus === 'idle' && (
-            <span className="text-2xs text-ink-500">جاهز ومتزامن</span>
+            <span className="text-2xs text-ink-500 font-medium">جاهز ومتزامن</span>
           )}
         </div>
       </div>
 
-      <div className="card p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Building className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">{t('settings.organization')}</h3>
+      <div className="card p-6 rounded-2xl space-y-4 border border-ink-800/80 bg-ink-900/40 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+        <div className="flex items-center gap-2.5 mb-1 pb-3 border-b border-ink-800/60">
+          <Building className="w-4 h-4 text-brand-400" />
+          <h3 className="text-sm font-bold text-ink-100">{t('settings.organization')}</h3>
         </div>
         <div>
-          <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.dashboard_name')}</label>
+          <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{t('settings.dashboard_name')}</label>
           <input
             type="text"
             value={form.dashboard_name}
             onChange={e => updateField('dashboard_name', e.target.value)}
-            className="input w-full"
+            className="input w-full min-h-[42px] rounded-xl text-xs"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.timezone')}</label>
+            <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{t('settings.timezone')}</label>
             <select
               value={form.timezone}
               onChange={e => updateField('timezone', e.target.value)}
-              className="input w-full cursor-pointer"
+              className="input w-full min-h-[42px] rounded-xl text-xs cursor-pointer bg-ink-950"
             >
               <option value="Africa/Cairo">Africa/Cairo (GMT+2)</option>
               <option value="Asia/Dubai">Asia/Dubai (GMT+4)</option>
@@ -1496,11 +1508,11 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.currency')}</label>
+            <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{t('settings.currency')}</label>
             <select
               value={form.currency}
               onChange={e => updateField('currency', e.target.value)}
-              className="input w-full cursor-pointer"
+              className="input w-full min-h-[42px] rounded-xl text-xs cursor-pointer bg-ink-950"
             >
               <option value="EGP">{t('settings.currency_egp')}</option>
               <option value="USD">{t('settings.currency_usd')}</option>
@@ -1512,11 +1524,11 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
       </div>
 
       {/* ── GLOBAL PAYMENT GATEWAYS (الحسابات والروابط الافتراضية العامة لجميع التطبيقات) ── */}
-      <div className="card p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-ink-800 pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-brand-500/10 text-brand-400 border border-brand-500/20">
-              <Wallet className="w-4 h-4" />
+      <div className="card p-6 rounded-2xl space-y-4 border border-ink-800/80 bg-ink-900/40 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+        <div className="flex items-center justify-between border-b border-ink-800/70 pb-3.5">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/20">
+              <Wallet className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
@@ -1536,10 +1548,10 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Vodafone Cash Global Box */}
-          <div className="p-3.5 rounded-xl bg-ink-950/60 border border-rose-500/30 space-y-3">
-            <div className="flex items-center gap-2 pb-2 border-b border-ink-800/60">
-              <div className="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs">
-                <Phone className="w-3.5 h-3.5" />
+          <div className="p-4 rounded-xl bg-ink-950/60 border border-rose-500/30 space-y-3.5">
+            <div className="flex items-center gap-2.5 pb-2.5 border-b border-ink-800/60">
+              <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+                <Phone className="w-4 h-4" />
               </div>
               <span className="text-xs font-bold text-ink-100">
                 {locale === 'ar' ? 'فودافون كاش (Vodafone Cash)' : 'Vodafone Cash'}
@@ -1547,7 +1559,7 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
             </div>
 
             <div>
-              <label className="block text-2xs font-medium text-ink-300 mb-1">
+              <label className="block text-2xs font-semibold text-ink-300 mb-1">
                 {locale === 'ar' ? 'رقم المحفظة الافتراضي' : 'Default Wallet Number'}
               </label>
               <div className="relative">
@@ -1557,14 +1569,14 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
                   value={form.vodafone_cash_number}
                   onChange={e => updateField('vodafone_cash_number', e.target.value)}
                   placeholder="01019603225"
-                  className="input w-full pl-8 pr-3 text-xs font-mono font-bold"
+                  className="input w-full pl-9 pr-3 min-h-[42px] rounded-xl text-xs font-mono font-bold"
                 />
-                <Phone className="w-3.5 h-3.5 text-ink-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Phone className="w-4 h-4 text-ink-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
             <div>
-              <label className="block text-2xs font-medium text-ink-300 mb-1">
+              <label className="block text-2xs font-semibold text-ink-300 mb-1">
                 {locale === 'ar' ? 'رابط الدفع المباشر لفودافون كاش (Direct Link)' : 'Direct Vodafone Cash Link'}
               </label>
               <div className="relative">
@@ -1574,21 +1586,21 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
                   value={form.vodafone_cash_link}
                   onChange={e => updateField('vodafone_cash_link', e.target.value)}
                   placeholder="http://vf.eg/vfcash?id=..."
-                  className="input w-full pl-8 pr-3 text-xs font-mono"
+                  className="input w-full pl-9 pr-3 min-h-[42px] rounded-xl text-xs font-mono"
                 />
-                <Link2 className="w-3.5 h-3.5 text-ink-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Link2 className="w-4 h-4 text-ink-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-              <p className="text-3xs text-ink-500 mt-0.5">
+              <p className="text-3xs text-ink-500 mt-1">
                 {locale === 'ar' ? 'رابط فودافون كاش المباشر الذي يتم فتحه لجميع التطبيقات.' : 'Global direct payment link for Vodafone Cash.'}
               </p>
             </div>
           </div>
 
           {/* InstaPay Global Box */}
-          <div className="p-3.5 rounded-xl bg-ink-950/60 border border-violet-500/30 space-y-3">
-            <div className="flex items-center gap-2 pb-2 border-b border-ink-800/60">
-              <div className="w-7 h-7 rounded-lg bg-violet-500/20 text-violet-400 border border-violet-500/30 flex items-center justify-center font-bold text-xs">
-                <CreditCard className="w-3.5 h-3.5" />
+          <div className="p-4 rounded-xl bg-ink-950/60 border border-violet-500/30 space-y-3.5">
+            <div className="flex items-center gap-2.5 pb-2.5 border-b border-ink-800/60">
+              <div className="w-8 h-8 rounded-lg bg-violet-500/20 text-violet-400 border border-violet-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+                <CreditCard className="w-4 h-4" />
               </div>
               <span className="text-xs font-bold text-ink-100">
                 {locale === 'ar' ? 'انستاباي (InstaPay IPN)' : 'InstaPay'}
@@ -1596,7 +1608,7 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
             </div>
 
             <div>
-              <label className="block text-2xs font-medium text-ink-300 mb-1">
+              <label className="block text-2xs font-semibold text-ink-300 mb-1">
                 {locale === 'ar' ? 'عنوان أو رقم انستاباي الافتراضي (IPA)' : 'Default InstaPay Address (IPA)'}
               </label>
               <div className="relative">
@@ -1606,13 +1618,13 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
                   value={form.instapay_address}
                   onChange={e => updateField('instapay_address', e.target.value)}
                   placeholder="username@instapay"
-                  className="input w-full px-3 text-xs font-mono font-bold"
+                  className="input w-full px-3.5 min-h-[42px] rounded-xl text-xs font-mono font-bold"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-2xs font-medium text-ink-300 mb-1">
+              <label className="block text-2xs font-semibold text-ink-300 mb-1">
                 {locale === 'ar' ? 'رابط الدفع المباشر لانستاباي (Direct Link)' : 'Direct InstaPay Link'}
               </label>
               <div className="relative">
@@ -1622,11 +1634,11 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
                   value={form.instapay_link}
                   onChange={e => updateField('instapay_link', e.target.value)}
                   placeholder="https://ipn.eg/..."
-                  className="input w-full pl-8 pr-3 text-xs font-mono"
+                  className="input w-full pl-9 pr-3 min-h-[42px] rounded-xl text-xs font-mono"
                 />
-                <Link2 className="w-3.5 h-3.5 text-ink-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Link2 className="w-4 h-4 text-ink-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-              <p className="text-3xs text-ink-500 mt-0.5">
+              <p className="text-3xs text-ink-500 mt-1">
                 {locale === 'ar' ? 'رابط انستاباي المباشر الذي يتم فتحه لجميع التطبيقات.' : 'Global direct payment link for InstaPay.'}
               </p>
             </div>
@@ -1635,17 +1647,17 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
       </div>
 
       {/* ── GLOBAL EMERGENCY KILL SWITCH ── */}
-      <div className={`card p-5 space-y-3 border-2 transition-all ${
+      <div className={`card p-5 rounded-2xl space-y-3 border-2 transition-all duration-200 ${
         form.global_emergency_free_mode
-          ? 'bg-rose-950/20 border-rose-500/50'
+          ? 'bg-rose-950/20 border-rose-500/50 shadow-lg shadow-rose-500/10'
           : 'bg-ink-900/60 border-ink-800'
       }`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              form.global_emergency_free_mode ? 'bg-rose-500 text-white' : 'bg-ink-800 text-ink-400'
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              form.global_emergency_free_mode ? 'bg-rose-500 text-white shadow-md' : 'bg-ink-800 text-ink-400'
             }`}>
-              <AlertTriangle className="w-4 h-4" />
+              <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -1664,7 +1676,7 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
           <button
             type="button"
             onClick={() => handleToggle('global_emergency_free_mode')}
-            className={`relative w-12 h-6.5 rounded-full transition-colors shrink-0 ${
+            className={`relative w-12 h-6.5 rounded-full transition-colors shrink-0 cursor-pointer ${
               form.global_emergency_free_mode ? 'bg-rose-600' : 'bg-ink-700'
             }`}
           >
@@ -1675,18 +1687,18 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
         </div>
       </div>
 
-      <div className="card p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Bell className="w-4 h-4 text-ink-400" />
-          <h3 className="text-sm font-semibold text-ink-100">{t('settings.notifications')}</h3>
+      <div className="card p-6 rounded-2xl space-y-4 border border-ink-800/80 bg-ink-900/40 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+        <div className="flex items-center gap-2.5 mb-1 pb-3 border-b border-ink-800/60">
+          <Bell className="w-4 h-4 text-brand-400" />
+          <h3 className="text-sm font-bold text-ink-100">{t('settings.notifications')}</h3>
         </div>
-        <label className="flex items-center justify-between cursor-pointer">
+        <label className="flex items-center justify-between cursor-pointer p-3 rounded-xl bg-ink-950/40 border border-ink-800/60 hover:bg-ink-950/60 transition-colors">
           <div>
-            <p className="text-sm text-ink-200">{t('settings.email_notifications')}</p>
-            <p className="text-xs text-ink-500">{t('settings.email_notifications_desc')}</p>
+            <p className="text-xs font-bold text-ink-100">{t('settings.email_notifications')}</p>
+            <p className="text-2xs text-ink-400 mt-0.5">{t('settings.email_notifications_desc')}</p>
           </div>
           <div className="flex items-center gap-2.5">
-            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-all ${
+            <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full border transition-all ${
               form.email_notifications
                 ? 'bg-brand-500/20 text-brand-300 border-brand-500/40'
                 : 'bg-ink-800 text-ink-400 border-ink-700'
@@ -1696,21 +1708,21 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
             <button
               type="button"
               onClick={() => handleToggle('email_notifications')}
-              className={`relative w-11 h-6 rounded-full transition-colors ${form.email_notifications ? 'bg-brand-600' : 'bg-ink-700'}`}
+              className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${form.email_notifications ? 'bg-brand-600' : 'bg-ink-700'}`}
             >
               <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.email_notifications ? 'translate-x-5' : 'translate-x-0.5'}`} />
             </button>
           </div>
         </label>
         <div>
-          <label className="block text-xs font-medium text-ink-300 mb-1.5">{t('settings.auto_refresh')}</label>
+          <label className="block text-2xs font-semibold uppercase tracking-wider text-ink-300 mb-1.5">{t('settings.auto_refresh')}</label>
           <input
             type="number"
             min={10}
             max={120}
             value={form.auto_refresh_seconds}
             onChange={e => updateField('auto_refresh_seconds', Number(e.target.value))}
-            className="input w-32"
+            className="input w-36 min-h-[42px] rounded-xl text-xs font-mono font-bold"
           />
         </div>
       </div>
@@ -1718,22 +1730,22 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
       <div className="flex items-center justify-between gap-4 pt-2">
         <div className="flex items-center gap-2">
           {autoSaveStatus === 'saving' && (
-            <span className="flex items-center gap-1.5 text-xs text-brand-400 bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/20 animate-pulse">
+            <span className="flex items-center gap-1.5 text-xs text-brand-400 bg-brand-500/10 px-3 py-1.5 rounded-full border border-brand-500/20 animate-pulse font-semibold">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span>جاري الحفظ التلقائي...</span>
             </span>
           )}
           {autoSaveStatus === 'saved' && (
-            <span className="flex items-center gap-1.5 text-xs text-success-400 bg-success-500/10 px-3 py-1 rounded-full border border-success-500/20">
+            <span className="flex items-center gap-1.5 text-xs text-success-400 bg-success-500/10 px-3 py-1.5 rounded-full border border-success-500/20 font-semibold">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>تم الحفظ والتطبيق بنجاح ✓</span>
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handleSave} disabled={saving} className="btn-primary">
+          <button onClick={handleSave} disabled={saving} className="btn-primary min-h-[44px] px-6 rounded-xl font-bold active:scale-95 transition-all shadow-md flex items-center gap-2 cursor-pointer">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? t('common.saving') : t('common.save')}
+            <span>{saving ? t('common.saving') : t('common.save')}</span>
           </button>
         </div>
       </div>

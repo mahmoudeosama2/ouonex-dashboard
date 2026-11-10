@@ -184,47 +184,50 @@ export function UsersPage() {
     <div className="space-y-4">
       <PageHeader title={t('users.title')} description={t('users.description')} icon={<UsersIcon className="w-5 h-5" />} />
 
-      {/* Product Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-ink-800 overflow-x-auto pb-1">
+      {/* Product Filter Tabs (Tactile Segmented Control) */}
+      <div className="flex items-center gap-1.5 p-1.5 mb-6 rounded-2xl bg-ink-900/80 border border-ink-800/80 backdrop-blur-md shadow-inner overflow-x-auto scrollbar-none">
         {[
           { key: 'all', label: t('common.all') },
           { key: 'dawaty', label: t('nav.dawaty') },
           { key: 'digital_menu', label: t('nav.digital_menu') },
           { key: 'cv_maker', label: t('nav.cv_maker') },
           { key: 'qr_me', label: t('nav.qr_me') },
-        ].map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => { setSelectedProduct(tab.key as any); setPage(1); }}
-            className={`px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors shrink-0 ${
-              selectedProduct === tab.key
-                ? 'bg-brand-600/20 text-brand-300 border border-brand-500/40'
-                : 'text-ink-400 hover:text-ink-200 hover:bg-ink-800/40'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+        ].map(tab => {
+          const isActive = selectedProduct === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => { setSelectedProduct(tab.key as any); setPage(1); }}
+              className={`px-4 min-h-[44px] text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 ease-out shrink-0 active:scale-[0.97] ${
+                isActive
+                  ? 'bg-gradient-to-r from-ink-800 to-ink-850 text-brand-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] border border-ink-700/60 ring-1 ring-brand-500/20'
+                  : 'text-ink-400 hover:text-ink-200 hover:bg-ink-800/40 border border-transparent'
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Toolbar: Search, Status Filter, Add User, Export */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-1 max-w-xl">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2.5 flex-1 max-w-xl">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
             <input
               type="text"
               value={query}
               onChange={e => { setQuery(e.target.value); setPage(1); }}
               placeholder={t('users.search_placeholder')}
-              className="input pl-9 w-full"
+              className="input pl-10 w-full min-h-[44px] rounded-xl text-xs font-medium"
             />
           </div>
 
           <select
             value={selectedStatus}
             onChange={e => { setSelectedStatus(e.target.value as any); setPage(1); }}
-            className="input text-xs bg-ink-900 border-ink-700 py-2"
+            className="input text-xs bg-ink-900 border-ink-700/80 min-h-[44px] px-3.5 rounded-xl text-ink-200 cursor-pointer"
           >
             <option value="all">{t('common.all')}</option>
             <option value="active">{t('users.status_active')}</option>
@@ -232,10 +235,10 @@ export function UsersPage() {
           </select>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0">
           <button
             onClick={() => setShowAddModal(true)}
-            className="btn-primary text-xs flex items-center gap-1.5 py-2 px-3"
+            className="btn-primary text-xs font-bold flex items-center gap-2 min-h-[44px] px-4 rounded-xl shadow-md active:scale-95 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>{t('users.add_user')}</span>
@@ -243,7 +246,7 @@ export function UsersPage() {
 
           <button
             onClick={handleExportUsers}
-            className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold bg-ink-900 hover:bg-ink-800 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 shadow-soft transition"
+            className="flex items-center justify-center gap-2 px-4 min-h-[44px] rounded-xl text-xs font-bold bg-ink-900/90 hover:bg-ink-850 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] transition-all duration-200 active:scale-95 cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
             <span>{locale === 'ar' ? 'تصدير إلى Excel (CSV)' : 'Export to Excel (CSV)'}</span>
@@ -279,8 +282,8 @@ export function UsersPage() {
       {/* Add User Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/80 backdrop-blur-sm animate-fade-in">
-          <div className="card max-w-md w-full p-6 space-y-4 shadow-2xl border border-ink-700">
-            <div className="flex items-center justify-between pb-3 border-b border-ink-800">
+          <div className="card max-w-md w-full p-6 space-y-4 shadow-2xl rounded-2xl border border-ink-700/80 bg-ink-900/95 backdrop-blur-md animate-scale-in">
+            <div className="flex items-center justify-between pb-3.5 border-b border-ink-800">
               <h3 className="text-base font-bold text-ink-50 flex items-center gap-2">
                 <Plus className="w-5 h-5 text-brand-400" />
                 <span>{t('users.add_user')}</span>
@@ -290,61 +293,61 @@ export function UsersPage() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateUser} className="space-y-3">
+            <form onSubmit={handleCreateUser} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-ink-300 mb-1">{t('users.th_name')} *</label>
+                <label className="block text-2xs font-semibold text-ink-300 uppercase tracking-wider mb-1.5">{t('users.th_name')} *</label>
                 <input
                   type="text"
                   required
                   value={addForm.name}
                   onChange={e => setAddForm({ ...addForm, name: e.target.value })}
                   placeholder="e.g. Ahmed Ali"
-                  className="input w-full text-xs"
+                  className="input w-full text-xs min-h-[42px] rounded-xl"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-ink-300 mb-1">Email *</label>
+                <label className="block text-2xs font-semibold text-ink-300 uppercase tracking-wider mb-1.5">Email *</label>
                 <input
                   type="email"
                   required
                   value={addForm.email}
                   onChange={e => setAddForm({ ...addForm, email: e.target.value })}
                   placeholder="user@example.com"
-                  className="input w-full text-xs"
+                  className="input w-full text-xs min-h-[42px] rounded-xl"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-ink-300 mb-1">Phone</label>
+                <label className="block text-2xs font-semibold text-ink-300 uppercase tracking-wider mb-1.5">Phone</label>
                 <input
                   type="tel"
                   value={addForm.phone}
                   onChange={e => setAddForm({ ...addForm, phone: e.target.value })}
                   placeholder="+201012345678"
-                  className="input w-full text-xs"
+                  className="input w-full text-xs min-h-[42px] rounded-xl"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-ink-300 mb-1">Password *</label>
+                <label className="block text-2xs font-semibold text-ink-300 uppercase tracking-wider mb-1.5">Password *</label>
                 <input
                   type="password"
                   required
                   value={addForm.password}
                   onChange={e => setAddForm({ ...addForm, password: e.target.value })}
                   placeholder="••••••••"
-                  className="input w-full text-xs"
+                  className="input w-full text-xs min-h-[42px] rounded-xl"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-xs font-semibold text-ink-300 mb-1">{t('users.target_app')}</label>
+                  <label className="block text-2xs font-semibold text-ink-300 uppercase tracking-wider mb-1.5">{t('users.target_app')}</label>
                   <select
                     value={addForm.product}
                     onChange={e => setAddForm({ ...addForm, product: e.target.value as Product })}
-                    className="input w-full text-xs bg-ink-950"
+                    className="input w-full text-xs bg-ink-950 min-h-[42px] rounded-xl"
                   >
                     <option value="dawaty">{t('nav.dawaty')}</option>
                     <option value="digital_menu">{t('nav.digital_menu')}</option>
@@ -354,11 +357,11 @@ export function UsersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-ink-300 mb-1">Role</label>
+                  <label className="block text-2xs font-semibold text-ink-300 uppercase tracking-wider mb-1.5">Role</label>
                   <select
                     value={addForm.role}
                     onChange={e => setAddForm({ ...addForm, role: e.target.value })}
-                    className="input w-full text-xs bg-ink-950"
+                    className="input w-full text-xs bg-ink-950 min-h-[42px] rounded-xl"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -366,20 +369,20 @@ export function UsersPage() {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-ink-800 flex justify-end gap-2">
+              <div className="pt-3.5 border-t border-ink-800 flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-3.5 py-2 text-xs font-medium text-ink-400 hover:text-ink-200"
+                  className="px-4 py-2 min-h-[42px] text-xs font-semibold text-ink-400 hover:text-ink-200 active:scale-95 transition-all"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="btn-primary text-xs py-2 px-4 flex items-center gap-1.5"
+                  className="btn-primary text-xs font-bold py-2 px-5 min-h-[42px] rounded-xl flex items-center gap-2 active:scale-95 transition-all shadow-md cursor-pointer"
                 >
-                  <Save className="w-3.5 h-3.5" />
+                  <Save className="w-4 h-4" />
                   <span>{creating ? t('common.saving') : t('users.add_user')}</span>
                 </button>
               </div>
@@ -496,11 +499,11 @@ function UserDetail({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleImpersonate}
             disabled={impersonating}
-            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-3.5 min-h-[38px] text-xs font-bold rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]"
             title={locale === 'ar' ? 'دخول كالمستخدم' : 'Login as this user'}
           >
             <LogIn className="w-3.5 h-3.5" />
@@ -510,9 +513,9 @@ function UserDetail({
           {onToggleStatus && (
             <button
               onClick={onToggleStatus}
-              className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition ${
+              className={`flex items-center gap-2 px-3.5 min-h-[38px] text-xs font-bold rounded-xl border transition-all duration-200 active:scale-95 cursor-pointer ${
                 !isSuspended 
-                  ? 'bg-ink-800 text-ink-300 hover:text-amber-300 border-ink-700 hover:border-amber-500/40' 
+                  ? 'bg-ink-850 text-ink-300 hover:text-amber-300 border-ink-750 hover:border-amber-500/40 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]' 
                   : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25'
               }`}
               title={!isSuspended ? t('users.suspend_user') : t('users.activate_user')}
@@ -524,7 +527,7 @@ function UserDetail({
 
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-ink-800 text-ink-200 hover:bg-ink-700 hover:text-white transition"
+            className="flex items-center gap-2 px-3.5 min-h-[38px] text-xs font-bold rounded-xl bg-ink-850 text-ink-200 hover:bg-ink-800 hover:text-white border border-ink-750 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] transition-all duration-200 active:scale-95 cursor-pointer"
           >
             {isEditing ? <X className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
             <span>{isEditing ? t('common.cancel') : t('common.edit')}</span>
@@ -533,7 +536,7 @@ function UserDetail({
           {onDelete && (
             <button
               onClick={onDelete}
-              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-danger-500/15 text-danger-300 border border-danger-500/30 hover:bg-danger-500/25 transition"
+              className="flex items-center gap-2 px-3.5 min-h-[38px] text-xs font-bold rounded-xl bg-danger-500/15 text-danger-300 border border-danger-500/30 hover:bg-danger-500/25 transition-all duration-200 active:scale-95 cursor-pointer"
               title={t('users.delete_user')}
             >
               <Trash2 className="w-3.5 h-3.5" />

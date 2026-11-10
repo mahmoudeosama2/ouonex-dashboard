@@ -246,21 +246,21 @@ export function SupportPage() {
         />
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex items-center justify-between border-b border-ink-800 mb-6">
-        <div className="flex items-center gap-2">
+      {/* Navigation Tabs (Tactile Segmented Control) */}
+      <div className="flex items-center justify-between gap-3 p-1.5 rounded-2xl bg-ink-900/80 border border-ink-800/80 backdrop-blur-md shadow-inner mb-6">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab('tickets')}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition ${
+            className={`flex items-center gap-2.5 px-4 min-h-[44px] rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ease-out shrink-0 active:scale-[0.97] ${
               activeTab === 'tickets'
-                ? 'border-brand-500 text-brand-400'
-                : 'border-transparent text-ink-400 hover:text-ink-200'
+                ? 'bg-gradient-to-r from-ink-800 to-ink-850 text-brand-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] border border-ink-700/60 ring-1 ring-brand-500/20'
+                : 'text-ink-400 hover:text-ink-200 hover:bg-ink-800/40 border border-transparent'
             }`}
           >
             <MessageSquare className="w-4 h-4" />
             <span>{t('support.tab_tickets')}</span>
             {overview.open_tickets > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-3xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <span className="px-2 py-0.5 rounded-full text-3xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">
                 {overview.open_tickets}
               </span>
             )}
@@ -268,16 +268,16 @@ export function SupportPage() {
 
           <button
             onClick={() => setActiveTab('deletions')}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition ${
+            className={`flex items-center gap-2.5 px-4 min-h-[44px] rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ease-out shrink-0 active:scale-[0.97] ${
               activeTab === 'deletions'
-                ? 'border-rose-500 text-rose-400'
-                : 'border-transparent text-ink-400 hover:text-ink-200'
+                ? 'bg-gradient-to-r from-ink-800 to-ink-850 text-rose-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] border border-ink-700/60 ring-1 ring-rose-500/20'
+                : 'text-ink-400 hover:text-ink-200 hover:bg-ink-800/40 border border-transparent'
             }`}
           >
             <Trash2 className="w-4 h-4" />
             <span>{t('support.tab_deletions')}</span>
             {overview.pending_deletions > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-3xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+              <span className="px-2 py-0.5 rounded-full text-3xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
                 {overview.pending_deletions}
               </span>
             )}
@@ -286,7 +286,7 @@ export function SupportPage() {
 
         <button
           onClick={loadData}
-          className="p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-800 transition"
+          className="p-2.5 min-h-[40px] min-w-[40px] rounded-xl text-ink-400 hover:text-white hover:bg-ink-800 transition active:scale-95 cursor-pointer"
           title={locale === 'ar' ? 'تحديث البيانات' : 'Refresh Data'}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -299,13 +299,13 @@ export function SupportPage() {
         /* TAB 1: SUPPORT TICKETS */
         <div className="space-y-4">
           {/* Filters */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-ink-900 border border-ink-800 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-ink-900/90 border border-ink-800/80 text-xs shadow-inner">
             <div className="flex items-center gap-3">
-              <span className="text-ink-400 font-medium">{t('finance.th_product')}:</span>
+              <span className="text-ink-400 font-semibold">{t('finance.th_product')}:</span>
               <select
                 value={ticketApp}
                 onChange={e => setTicketApp(e.target.value)}
-                className="input py-1 px-2.5 bg-ink-950 text-xs"
+                className="input py-1.5 px-3 bg-ink-950 text-xs rounded-xl border-ink-750 cursor-pointer"
               >
                 <option value="all">{t('common.all')}</option>
                 <option value="dawaty">{t('nav.dawaty')}</option>
@@ -314,11 +314,11 @@ export function SupportPage() {
                 <option value="qr_me">{t('nav.qr_me')}</option>
               </select>
 
-              <span className="text-ink-400 font-medium ml-2">{t('common.status')}:</span>
+              <span className="text-ink-400 font-semibold ml-2">{t('common.status')}:</span>
               <select
                 value={ticketStatus}
                 onChange={e => setTicketStatus(e.target.value)}
-                className="input py-1 px-2.5 bg-ink-950 text-xs"
+                className="input py-1.5 px-3 bg-ink-950 text-xs rounded-xl border-ink-750 cursor-pointer"
               >
                 <option value="all">{t('common.all')}</option>
                 <option value="open">{t('support.status_open')}</option>
@@ -327,14 +327,14 @@ export function SupportPage() {
               </select>
             </div>
 
-            <span className="text-ink-500 text-2xs">
+            <span className="text-ink-400 font-mono text-2xs bg-ink-800/80 px-2.5 py-1 rounded-lg">
               {t('support.found_tickets', { count: tickets.length })}
             </span>
           </div>
 
           {/* Tickets List */}
           {tickets.length === 0 ? (
-            <div className="card p-8">
+            <div className="card p-8 rounded-2xl border border-ink-800/80">
               <EmptyState
                 icon={<MessageSquare className="w-6 h-6 text-brand-400" />}
                 title="No support tickets"
@@ -342,28 +342,28 @@ export function SupportPage() {
               />
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {tickets.map(t => (
-                <div key={t.id} className="card p-5 border border-ink-800/80 hover:border-ink-700 transition space-y-3">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-2.5 border-b border-ink-800/60">
-                    <div className="flex items-center gap-2.5">
-                      <span className={`px-2 py-0.5 rounded-md text-2xs font-bold uppercase ${
+                <div key={t.id} className="card p-6 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] hover:border-ink-700/80 transition-all duration-200 space-y-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-3 border-b border-ink-800/60">
+                    <div className="flex items-center gap-3">
+                      <span className={`px-2.5 py-1 rounded-lg text-2xs font-bold uppercase ${
                         t.app === 'dawaty'
                           ? 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
                           : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                       }`}>
                         {t.app === 'dawaty' ? '💌 Dawaty' : '🍽️ Digital Menu'}
                       </span>
-                      <h4 className="font-semibold text-sm text-ink-100">{t.subject || (locale === 'ar' ? 'طلب دعم' : 'Support Request')}</h4>
+                      <h4 className="font-bold text-sm text-ink-100">{t.subject || (locale === 'ar' ? 'طلب دعم' : 'Support Request')}</h4>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2.5 py-1 rounded-full text-2xs font-bold ${
+                    <div className="flex items-center gap-2.5">
+                      <span className={`px-3 py-1 rounded-full text-2xs font-bold ${
                         t.status === 'open'
-                          ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                          ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                           : t.status === 'in_progress'
-                          ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
-                          : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                          ? 'bg-blue-500/15 text-blue-300 border border-blue-500/30'
+                          : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
                       }`}>
                         {t.status === 'open' ? (locale === 'ar' ? 'مفتوحة' : 'Open') : t.status === 'in_progress' ? (locale === 'ar' ? 'قيد المتابعة' : 'In Progress') : (locale === 'ar' ? 'تم الحل' : 'Resolved')}
                       </span>

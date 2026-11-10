@@ -264,14 +264,14 @@ export function Finance() {
       </div>
 
       {/* Revenue charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <div className="card p-5 lg:col-span-2">
-          <h3 className="text-sm font-semibold text-ink-100 mb-1">{t('finance.chart_rev_over_time')}</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="card p-6 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] lg:col-span-2">
+          <h3 className="text-sm font-bold text-ink-100 mb-1">{t('finance.chart_rev_over_time')}</h3>
           <p className="text-xs text-ink-400 mb-4">{t('finance.chart_rev_over_time_sub')}</p>
           <LineChart data={revenueHistory} height={200} color={CHART_COLORS.success} format={n => egp(n)} />
         </div>
-        <div className="card p-5">
-          <h3 className="text-sm font-semibold text-ink-100 mb-1">{t('finance.chart_rev_by_product')}</h3>
+        <div className="card p-6 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+          <h3 className="text-sm font-bold text-ink-100 mb-1">{t('finance.chart_rev_by_product')}</h3>
           <p className="text-xs text-ink-400 mb-4">{t('finance.chart_rev_by_product_sub')}</p>
           <BarChart
             data={productRevenue}
@@ -281,30 +281,47 @@ export function Finance() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-1 mb-4 border-b border-ink-800">
+      {/* Tabs (Tactile Segmented Control) */}
+      <div className="flex items-center gap-1.5 p-1.5 mb-6 rounded-2xl bg-ink-900/80 border border-ink-800/80 backdrop-blur-md shadow-inner overflow-x-auto scrollbar-none">
         {([
-          { key: 'pending' as Tab, label: t('finance.tab_pending'), icon: <Clock className="w-3.5 h-3.5" />, badge: kpis.pending },
-          { key: 'all' as Tab, label: t('finance.tab_all'), icon: <Wallet className="w-3.5 h-3.5" />, badge: 0 },
-          { key: 'rejected' as Tab, label: t('finance.tab_rejected'), icon: <XCircle className="w-3.5 h-3.5" />, badge: kpis.rejected },
-        ]).map(tItem => (
-          <button
-            key={tItem.key}
-            onClick={() => { setTab(tItem.key); setPage(1); }}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === tItem.key ? 'border-brand-500 text-brand-300' : 'border-transparent text-ink-400 hover:text-ink-200'
-            }`}
-          >
-            {tItem.icon}
-            {tItem.label}
-            {tItem.badge !== undefined && tItem.badge > 0 && (
-              <span className="inline-flex items-center justify-center min-w-[18px] h-4 px-1 rounded-full bg-warning-500 text-ink-970 text-2xs font-bold">{tItem.badge}</span>
-            )}
-          </button>
-        ))}
+          { key: 'pending' as Tab, label: t('finance.tab_pending'), icon: <Clock className="w-4 h-4" />, badge: kpis.pending },
+          { key: 'all' as Tab, label: t('finance.tab_all'), icon: <Wallet className="w-4 h-4" />, badge: 0 },
+          { key: 'rejected' as Tab, label: t('finance.tab_rejected'), icon: <XCircle className="w-4 h-4" />, badge: kpis.rejected },
+        ]).map(tItem => {
+          const isActive = tab === tItem.key;
+          return (
+            <button
+              key={tItem.key}
+              onClick={() => { setTab(tItem.key); setPage(1); }}
+              className={`flex items-center gap-2.5 px-4 min-h-[44px] rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ease-out shrink-0 active:scale-[0.97] ${
+                isActive
+                  ? 'bg-gradient-to-r from-ink-800 to-ink-850 text-brand-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] border border-ink-700/60 ring-1 ring-brand-500/20'
+                  : 'text-ink-400 hover:text-ink-200 hover:bg-ink-800/40 border border-transparent'
+              }`}
+            >
+              <span className={`transition-transform duration-200 ${isActive ? 'scale-110 text-brand-400' : 'text-ink-400'}`}>
+                {tItem.icon}
+              </span>
+              <span>{tItem.label}</span>
+              {tItem.badge !== undefined && tItem.badge > 0 && (
+                <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-3xs font-bold ${
+                  tItem.key === 'pending'
+                    ? 'bg-amber-400 text-ink-950 shadow-sm animate-pulse'
+                    : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                }`}>
+                  {tItem.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {filters.length > 0 && <FilterBar filters={filters} />}
+      {filters.length > 0 && (
+        <div className="mb-6">
+          <FilterBar filters={filters} />
+        </div>
+      )}
 
       {/* Pending review special view */}
       {tab === 'pending' ? (
@@ -378,10 +395,10 @@ export function Finance() {
         onClose={() => setReceiptModal(null)}
       />
       {receiptModal && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[96]">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[96] animate-scale-in">
           <button
             onClick={() => { setConfirm({ payment: receiptModal.payment, action: receiptModal.action }); setReceiptModal(null); }}
-            className="btn-success shadow-pop"
+            className="btn-success px-6 min-h-[46px] rounded-2xl text-sm font-bold shadow-2xl flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
           >
             <Check className="w-4 h-4" /> {locale === 'ar' ? 'متابعة للاعتماد' : 'Proceed to approve'}
           </button>
@@ -406,19 +423,23 @@ function PendingPaymentRow({ payment, canApprove, onApprove, onReject, onViewRec
     : (payment.user_email || (locale === 'ar' ? 'مشترك (اشتراك شهري)' : 'Monthly Subscriber'));
 
   return (
-    <div className="card card-hover p-4 group">
+    <div className="card p-5 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] hover:border-ink-700/80 transition-all duration-200 group">
       <div className="flex items-start gap-4">
-        <div className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 ${mismatch ? 'bg-warning-500/10 text-warning-400' : 'bg-ink-800 text-ink-300'}`}>
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
+          mismatch
+            ? 'bg-warning-500/15 border-warning-500/30 text-warning-400'
+            : 'bg-ink-850 border-ink-700/60 text-ink-300'
+        }`}>
           <Receipt className="w-5 h-5" />
         </div>
-        <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           <div>
-            <p className="text-sm font-semibold text-ink-100 truncate">{displayName}</p>
+            <p className="text-sm font-bold text-ink-100 truncate">{displayName}</p>
             {payment.user_email && (
               <p className="text-2xs text-brand-400 font-mono tracking-tight mt-0.5 select-all">{payment.user_email}</p>
             )}
             {isMonthlySub && (
-              <span className="inline-flex items-center gap-1 mt-1 text-[10px] px-1.5 py-0.5 rounded-md bg-brand-500/10 text-brand-300 border border-brand-500/20 font-medium">
+              <span className="inline-flex items-center gap-1 mt-1 text-[10px] px-2 py-0.5 rounded-md bg-brand-500/15 text-brand-300 border border-brand-500/25 font-semibold">
                 {locale === 'ar' ? 'اشتراك شهري' : 'Monthly Subscription'}
               </span>
             )}
@@ -426,50 +447,59 @@ function PendingPaymentRow({ payment, canApprove, onApprove, onReject, onViewRec
           </div>
           <div className="flex items-center gap-2">
             <ProductBadge product={payment.product} />
-            <span className="text-2xs text-ink-500">{payment.method}</span>
+            <span className="text-2xs font-medium text-ink-400 bg-ink-900 px-2 py-0.5 rounded-md border border-ink-800">{payment.method}</span>
           </div>
           <div>
             <p className="text-sm font-bold text-ink-100 tabular-nums">{egp(payment.submitted_amount)}</p>
             {mismatch && (
-              <p className="text-2xs text-warning-400">
+              <p className="text-2xs font-medium text-warning-400 mt-0.5">
                 {locale === 'ar' ? `المتوقع ${egp(payment.expected_amount)}` : `expected ${egp(payment.expected_amount)}`}
               </p>
             )}
             {payment.receipt_url && (
-              <button onClick={onViewReceipt} className="text-2xs text-brand-400 hover:text-brand-300 flex items-center gap-1 mt-0.5">
-                <Receipt className="w-3 h-3" /> {t('finance.btn_view_receipt')}
+              <button
+                onClick={onViewReceipt}
+                className="text-2xs font-semibold text-brand-400 hover:text-brand-300 flex items-center gap-1 mt-1 transition-colors active:scale-95"
+              >
+                <Receipt className="w-3.5 h-3.5" /> {t('finance.btn_view_receipt')}
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 sm:justify-end">
+          <div className="flex items-center gap-2.5 sm:justify-end">
             {canApprove ? (
               <>
-                <button onClick={onApprove} className="btn-success text-xs px-3 py-1.5">
+                <button
+                  onClick={onApprove}
+                  className="btn-success text-xs font-bold px-4 min-h-[40px] rounded-xl flex items-center gap-1.5 active:scale-95 transition-all shadow-sm"
+                >
                   <Check className="w-3.5 h-3.5" /> {t('finance.btn_approve')}
                 </button>
-                <button onClick={onReject} className="btn-danger text-xs px-3 py-1.5">
+                <button
+                  onClick={onReject}
+                  className="btn-danger text-xs font-bold px-4 min-h-[40px] rounded-xl flex items-center gap-1.5 active:scale-95 transition-all shadow-sm"
+                >
                   <X className="w-3.5 h-3.5" /> {t('finance.btn_reject')}
                 </button>
               </>
             ) : (
-              <div className="flex items-center gap-1.5 text-2xs text-ink-400 px-2 py-1.5 rounded-lg bg-ink-800/60" title="Requires Owner, Admin, or Finance role">
-                <Lock className="w-3 h-3" />
-                <span>{locale === 'ar' ? 'الاعتماد/الرفض يتطلب صلاحية المالية' : 'Approve/reject requires Finance role'}</span>
+              <div className="flex items-center gap-1.5 text-2xs text-ink-400 px-2.5 py-1.5 rounded-xl bg-ink-850 border border-ink-700/60" title="Requires Owner, Admin, or Finance role">
+                <Lock className="w-3.5 h-3.5" />
+                <span>{locale === 'ar' ? 'الاعتماد يتطلب صلاحية المالية' : 'Requires Finance role'}</span>
               </div>
             )}
           </div>
         </div>
       </div>
       {mismatch && (
-        <div className="mt-3 flex items-start gap-2 rounded-lg bg-warning-500/5 border border-warning-500/20 p-2.5">
-          <AlertCircle className="w-3.5 h-3.5 text-warning-400 mt-0.5 shrink-0" />
+        <div className="mt-3.5 flex items-start gap-2.5 rounded-xl bg-warning-500/10 border border-warning-500/25 p-3">
+          <AlertCircle className="w-4 h-4 text-warning-400 mt-0.5 shrink-0" />
           <p className="text-xs text-ink-300">
             {t('finance.mismatch_warning', { sub: egp(payment.submitted_amount), exp: egp(payment.expected_amount) })}
           </p>
         </div>
       )}
-      <div className="mt-2 flex items-center gap-2 text-2xs text-ink-500">
-        <Clock className="w-3 h-3" /> {locale === 'ar' ? `أرسلت منذ ${timeAgo(payment.created_at)}` : `Submitted ${timeAgo(payment.created_at)}`}
+      <div className="mt-3 flex items-center gap-2 text-2xs text-ink-500">
+        <Clock className="w-3.5 h-3.5" /> {locale === 'ar' ? `أرسلت منذ ${timeAgo(payment.created_at)}` : `Submitted ${timeAgo(payment.created_at)}`}
       </div>
     </div>
   );

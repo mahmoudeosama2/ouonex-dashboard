@@ -113,16 +113,16 @@ export function ServerHealth() {
         </div>
 
         {/* Actions bar */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Auto Refresh Select */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ink-900 border border-ink-800 text-xs text-ink-300">
-            <Clock className="w-3.5 h-3.5 text-ink-400" />
-            <span>{isRTL ? 'تحديث تلقائي:' : 'Auto:'}</span>
+          <div className="flex items-center gap-2 px-3.5 min-h-[42px] rounded-xl bg-ink-950 border border-ink-750 text-xs text-ink-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+            <Clock className="w-4 h-4 text-ink-400" />
+            <span className="font-medium">{isRTL ? 'تحديث تلقائي:' : 'Auto:'}</span>
             <select
               value={autoRefreshInterval}
               onChange={(e) => setAutoRefreshInterval(Number(e.target.value))}
               aria-label={isRTL ? 'معدل التحديث التلقائي' : 'Auto refresh interval'}
-              className="bg-transparent border-0 text-ink-100 font-semibold focus:outline-none cursor-pointer pr-1"
+              className="bg-transparent border-0 text-ink-100 font-bold focus:outline-none cursor-pointer pr-1"
             >
               <option value={10}>10s</option>
               <option value={30}>30s</option>
@@ -135,7 +135,7 @@ export function ServerHealth() {
           <button
             onClick={handleClearCache}
             disabled={clearingCache}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-ink-800/80 hover:bg-ink-700/80 text-ink-200 border border-ink-700 text-xs font-medium transition disabled:opacity-50"
+            className="flex items-center gap-2 px-4 min-h-[42px] rounded-xl bg-ink-850 hover:bg-ink-800 text-ink-200 border border-ink-750 text-xs font-bold transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
           >
             <Trash2 className={`w-3.5 h-3.5 ${clearingCache ? 'animate-spin' : ''}`} />
             <span>{clearingCache ? (isRTL ? 'جارٍ المسح...' : 'Clearing...') : (isRTL ? 'تفريغ الكاش' : 'Clear Cache')}</span>
@@ -145,7 +145,7 @@ export function ServerHealth() {
           <button
             onClick={() => fetchMetrics(true)}
             disabled={refreshing}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-sm transition disabled:opacity-50"
+            className="btn-primary flex items-center gap-2 px-4 min-h-[42px] rounded-xl text-xs font-bold shadow-md transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             <span>{refreshing ? (isRTL ? 'تحديث...' : 'Refreshing...') : (isRTL ? 'تحديث الآن' : 'Refresh')}</span>
@@ -264,134 +264,134 @@ export function ServerHealth() {
       {/* 4 Core Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* CPU */}
-        <div className="bg-ink-900 border border-ink-800 rounded-2xl p-5 space-y-4 shadow-sm hover:border-ink-700 transition">
+        <div className="card p-5 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 hover:border-ink-700/80 transition-all duration-200">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center shrink-0 shadow-soft">
                 <Cpu className="w-4 h-4 text-blue-400" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-ink-200">CPU Usage</p>
-                <p className="text-2xs text-ink-400">{metrics?.cpu.cores} Cores</p>
+                <p className="text-xs font-bold text-ink-100">CPU Usage</p>
+                <p className="text-2xs text-ink-400 mt-0.5">{metrics?.cpu.cores} Cores</p>
               </div>
             </div>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getStatusColor(metrics?.cpu.usage_percent ?? 0)}`}>
+            <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border tabular-nums ${getStatusColor(metrics?.cpu.usage_percent ?? 0)}`}>
               {metrics?.cpu.usage_percent}%
             </span>
           </div>
 
-          <div className="space-y-1.5">
-            <div className="h-2 w-full bg-ink-800 rounded-full overflow-hidden">
+          <div className="space-y-2">
+            <div className="h-2 w-full bg-ink-800/80 rounded-full overflow-hidden p-0.5 border border-ink-750">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${getProgressColor(metrics?.cpu.usage_percent ?? 0)}`}
+                className={`h-full rounded-full transition-all duration-500 ease-out ${getProgressColor(metrics?.cpu.usage_percent ?? 0)}`}
                 style={{ width: `${Math.min(100, metrics?.cpu.usage_percent ?? 0)}%` }}
               />
             </div>
             <div className="flex items-center justify-between text-2xs text-ink-400 pt-1">
-              <span>Load 1m: <b className="text-ink-200">{metrics?.cpu.load_1m}</b></span>
-              <span>5m: <b className="text-ink-200">{metrics?.cpu.load_5m}</b></span>
-              <span>15m: <b className="text-ink-200">{metrics?.cpu.load_15m}</b></span>
+              <span>Load 1m: <b className="text-ink-200 font-mono">{metrics?.cpu.load_1m}</b></span>
+              <span>5m: <b className="text-ink-200 font-mono">{metrics?.cpu.load_5m}</b></span>
+              <span>15m: <b className="text-ink-200 font-mono">{metrics?.cpu.load_15m}</b></span>
             </div>
           </div>
         </div>
 
         {/* RAM */}
-        <div className="bg-ink-900 border border-ink-800 rounded-2xl p-5 space-y-4 shadow-sm hover:border-ink-700 transition">
+        <div className="card p-5 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 hover:border-ink-700/80 transition-all duration-200">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center shrink-0 shadow-soft">
                 <Activity className="w-4 h-4 text-purple-400" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-ink-200">RAM Memory</p>
-                <p className="text-2xs text-ink-400">{metrics?.memory.used_formatted} / {metrics?.memory.total_formatted}</p>
+                <p className="text-xs font-bold text-ink-100">RAM Memory</p>
+                <p className="text-2xs text-ink-400 mt-0.5">{metrics?.memory.used_formatted} / {metrics?.memory.total_formatted}</p>
               </div>
             </div>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getStatusColor(metrics?.memory.usage_percent ?? 0)}`}>
+            <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border tabular-nums ${getStatusColor(metrics?.memory.usage_percent ?? 0)}`}>
               {metrics?.memory.usage_percent}%
             </span>
           </div>
 
-          <div className="space-y-1.5">
-            <div className="h-2 w-full bg-ink-800 rounded-full overflow-hidden">
+          <div className="space-y-2">
+            <div className="h-2 w-full bg-ink-800/80 rounded-full overflow-hidden p-0.5 border border-ink-750">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${getProgressColor(metrics?.memory.usage_percent ?? 0)}`}
+                className={`h-full rounded-full transition-all duration-500 ease-out ${getProgressColor(metrics?.memory.usage_percent ?? 0)}`}
                 style={{ width: `${Math.min(100, metrics?.memory.usage_percent ?? 0)}%` }}
               />
             </div>
             <div className="flex items-center justify-between text-2xs text-ink-400 pt-1">
-              <span>Free: <b className="text-ink-200">{metrics?.memory.free_formatted}</b></span>
-              <span>PHP Peak: <b className="text-ink-200">{metrics?.memory.php_peak_formatted}</b></span>
+              <span>Free: <b className="text-ink-200 font-mono">{metrics?.memory.free_formatted}</b></span>
+              <span>PHP Peak: <b className="text-ink-200 font-mono">{metrics?.memory.php_peak_formatted}</b></span>
             </div>
           </div>
         </div>
 
         {/* Disk Storage */}
-        <div className="bg-ink-900 border border-ink-800 rounded-2xl p-5 space-y-4 shadow-sm hover:border-ink-700 transition">
+        <div className="card p-5 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 hover:border-ink-700/80 transition-all duration-200">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center shrink-0 shadow-soft">
                 <HardDrive className="w-4 h-4 text-amber-400" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-ink-200">Disk Storage</p>
-                <p className="text-2xs text-ink-400">{metrics?.storage.used_formatted} / {metrics?.storage.total_formatted}</p>
+                <p className="text-xs font-bold text-ink-100">Disk Storage</p>
+                <p className="text-2xs text-ink-400 mt-0.5">{metrics?.storage.used_formatted} / {metrics?.storage.total_formatted}</p>
               </div>
             </div>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getStatusColor(metrics?.storage.usage_percent ?? 0)}`}>
+            <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border tabular-nums ${getStatusColor(metrics?.storage.usage_percent ?? 0)}`}>
               {metrics?.storage.usage_percent}%
             </span>
           </div>
 
-          <div className="space-y-1.5">
-            <div className="h-2 w-full bg-ink-800 rounded-full overflow-hidden">
+          <div className="space-y-2">
+            <div className="h-2 w-full bg-ink-800/80 rounded-full overflow-hidden p-0.5 border border-ink-750">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${getProgressColor(metrics?.storage.usage_percent ?? 0)}`}
+                className={`h-full rounded-full transition-all duration-500 ease-out ${getProgressColor(metrics?.storage.usage_percent ?? 0)}`}
                 style={{ width: `${Math.min(100, metrics?.storage.usage_percent ?? 0)}%` }}
               />
             </div>
             <div className="flex items-center justify-between text-2xs text-ink-400 pt-1">
-              <span>Free: <b className="text-ink-200">{metrics?.storage.free_formatted}</b></span>
-              <span>Uploads: <b className="text-ink-200">{metrics?.storage.uploads_formatted}</b></span>
+              <span>Free: <b className="text-ink-200 font-mono">{metrics?.storage.free_formatted}</b></span>
+              <span>Uploads: <b className="text-ink-200 font-mono">{metrics?.storage.uploads_formatted}</b></span>
             </div>
           </div>
         </div>
 
         {/* Database */}
-        <div className="bg-ink-900 border border-ink-800 rounded-2xl p-5 space-y-4 shadow-sm hover:border-ink-700 transition">
+        <div className="card p-5 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 hover:border-ink-700/80 transition-all duration-200">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center shrink-0 shadow-soft">
                 <Database className="w-4 h-4 text-emerald-400" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-ink-200">Database Engine</p>
-                <p className="text-2xs text-ink-400">{metrics?.database.driver.toUpperCase()}</p>
+                <p className="text-xs font-bold text-ink-100">Database Engine</p>
+                <p className="text-2xs text-ink-400 mt-0.5">{metrics?.database.driver.toUpperCase()}</p>
               </div>
             </div>
-            <span className="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-full tabular-nums">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               {metrics?.database.ping_ms} ms
             </span>
           </div>
 
-          <div className="space-y-1.5 pt-1">
+          <div className="space-y-2 pt-1">
             <div className="flex items-center justify-between text-2xs text-ink-400">
               <span>DB Size:</span>
-              <span className="font-semibold text-ink-100">{metrics?.database.size_formatted}</span>
+              <span className="font-bold text-ink-100 font-mono">{metrics?.database.size_formatted}</span>
             </div>
             <div className="flex items-center justify-between text-2xs text-ink-400">
               <span>Connection Status:</span>
-              <span className="font-semibold text-emerald-400">{metrics?.database.connected ? 'Connected' : 'Offline'}</span>
+              <span className="font-bold text-emerald-400">{metrics?.database.connected ? 'Connected' : 'Offline'}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Services Connectivity Table */}
-      <div className="bg-ink-900 border border-ink-800 rounded-2xl overflow-hidden shadow-sm">
-        <div className="px-5 py-4 border-b border-ink-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <div className="card rounded-2xl border border-ink-800/80 overflow-hidden shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+        <div className="px-5 py-4 border-b border-ink-800/80 bg-ink-950/40 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
             <Globe className="w-4 h-4 text-brand-400" />
             <h3 className="text-sm font-bold text-ink-100">
               {isRTL ? 'حالة اتصال واجهات التطبيقات والخدمات' : 'Ecosystem Services & Nodes'}

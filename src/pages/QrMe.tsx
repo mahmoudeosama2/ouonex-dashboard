@@ -91,7 +91,7 @@ export function QrMe() {
       />
 
       {/* ── KPI Grid (100% Real Database Metrics) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KPICard
           label={t('qr.kpi_total_qrs')}
           value={stats.total_qrs}
@@ -120,33 +120,38 @@ export function QrMe() {
         />
       </div>
 
-      {/* ── Navigation SubTabs ── */}
-      <div className="flex items-center gap-2 border-b border-ink-800">
+      {/* ── Navigation SubTabs (Tactile Segmented Control) ── */}
+      <div className="flex items-center gap-1.5 p-1.5 mb-6 rounded-2xl bg-ink-900/80 border border-ink-800/80 backdrop-blur-md shadow-inner overflow-x-auto scrollbar-none">
         {[
           { key: 'stats', label: t('qr.tab_stats'), icon: <BarChart2 className="w-4 h-4" /> },
           { key: 'users', label: t('qr.tab_users'), icon: <Users className="w-4 h-4" /> },
           { key: 'settings', label: locale === 'ar' ? 'إعدادات التطبيق' : 'App Settings', icon: <Settings className="w-4 h-4" /> },
           { key: 'recent', label: t('qr.tab_recent'), icon: <Layers className="w-4 h-4" /> },
-        ].map(tTab => (
-          <button
-            key={tTab.key}
-            onClick={() => setActiveTab(tTab.key as any)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              activeTab === tTab.key
-                ? 'border-brand-500 text-brand-300'
-                : 'border-transparent text-ink-400 hover:text-ink-200'
-            }`}
-          >
-            {tTab.icon}
-            <span>{tTab.label}</span>
-          </button>
-        ))}
+        ].map(tTab => {
+          const isActive = activeTab === tTab.key;
+          return (
+            <button
+              key={tTab.key}
+              onClick={() => setActiveTab(tTab.key as any)}
+              className={`flex items-center gap-2.5 px-4 min-h-[44px] rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ease-out shrink-0 active:scale-[0.97] ${
+                isActive
+                  ? 'bg-gradient-to-r from-ink-800 to-ink-850 text-brand-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] border border-ink-700/60 ring-1 ring-brand-500/20'
+                  : 'text-ink-400 hover:text-ink-200 hover:bg-ink-800/40 border border-transparent'
+              }`}
+            >
+              <span className={`transition-transform duration-200 ${isActive ? 'scale-110 text-brand-400' : 'text-ink-400'}`}>
+                {tTab.icon}
+              </span>
+              <span>{tTab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Tab 1: Stats & Overview ── */}
       {activeTab === 'stats' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="card p-5 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="card p-6 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4">
             <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
               <Layers className="w-4 h-4 text-brand-400" />
               <span>{t('qr.popular_formats')}</span>
@@ -156,15 +161,18 @@ export function QrMe() {
                 {t('qr.no_qrs_yet')}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 {stats.by_type.map(item => (
-                  <div key={item.label}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-ink-200">{item.label}</span>
-                      <span className="font-semibold text-ink-400">{item.count} ({item.pct}%)</span>
+                  <div key={item.label} className="space-y-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-ink-200 font-medium">{item.label}</span>
+                      <span className="font-semibold text-ink-400 tabular-nums">{item.count} ({item.pct}%)</span>
                     </div>
-                    <div className="w-full h-2 bg-ink-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-brand-500 rounded-full" style={{ width: `${item.pct}%` }} />
+                    <div className="w-full h-2 bg-ink-800/80 rounded-full overflow-hidden p-0.5 border border-ink-750">
+                      <div
+                        className="h-full bg-gradient-to-r from-brand-600 to-brand-400 rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${item.pct}%` }}
+                      />
                     </div>
                   </div>
                 ))}
@@ -172,35 +180,35 @@ export function QrMe() {
             )}
           </div>
 
-          <div className="card p-5 space-y-4">
+          <div className="card p-6 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4">
             <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-400" />
               <span>{t('qr.customization_usage')}</span>
             </h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">{t('qr.custom_colors')}</p>
-                <p className="text-lg font-bold text-ink-100 mt-1">{stats.custom_colors_count}</p>
-                <p className="text-2xs text-brand-400 mt-0.5">
+            <div className="grid grid-cols-2 gap-3.5">
+              <div className="p-4 bg-ink-950/60 rounded-xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:border-ink-700/80 transition-all duration-200">
+                <p className="text-2xs font-semibold text-ink-400 uppercase tracking-wider">{t('qr.custom_colors')}</p>
+                <p className="text-xl font-bold text-ink-100 mt-1 tabular-nums">{stats.custom_colors_count}</p>
+                <p className="text-2xs font-medium text-brand-400 mt-1">
                   {stats.total_qrs > 0 ? `${Math.round((stats.custom_colors_count / stats.total_qrs) * 100)}%` : '—'}
                 </p>
               </div>
-              <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">{t('qr.business_cards')}</p>
-                <p className="text-lg font-bold text-ink-100 mt-1">{stats.custom_profiles_count}</p>
-                <p className="text-2xs text-brand-400 mt-0.5">
+              <div className="p-4 bg-ink-950/60 rounded-xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:border-ink-700/80 transition-all duration-200">
+                <p className="text-2xs font-semibold text-ink-400 uppercase tracking-wider">{t('qr.business_cards')}</p>
+                <p className="text-xl font-bold text-ink-100 mt-1 tabular-nums">{stats.custom_profiles_count}</p>
+                <p className="text-2xs font-medium text-brand-400 mt-1">
                   {stats.total_qrs > 0 ? `${Math.round((stats.custom_profiles_count / stats.total_qrs) * 100)}%` : '—'}
                 </p>
               </div>
-              <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">{t('qr.paid_unlocks')}</p>
-                <p className="text-lg font-bold text-ink-100 mt-1">{stats.paid_unlocks}</p>
-                <p className="text-2xs text-amber-400 mt-0.5">{stats.paid_unlocks} VIP</p>
+              <div className="p-4 bg-ink-950/60 rounded-xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:border-ink-700/80 transition-all duration-200">
+                <p className="text-2xs font-semibold text-ink-400 uppercase tracking-wider">{t('qr.paid_unlocks')}</p>
+                <p className="text-xl font-bold text-amber-300 mt-1 tabular-nums">{stats.paid_unlocks}</p>
+                <p className="text-2xs font-medium text-amber-400 mt-1">{stats.paid_unlocks} VIP</p>
               </div>
-              <div className="p-3 bg-ink-900/60 rounded-xl border border-ink-800">
-                <p className="text-xs text-ink-400">{t('qr.kpi_total_scans')}</p>
-                <p className="text-lg font-bold text-ink-100 mt-1">{stats.total_scans}</p>
-                <p className="text-2xs text-success-400 mt-0.5">{stats.scans_today} {t('overview.revenue_sub') ? '' : ''}</p>
+              <div className="p-4 bg-ink-950/60 rounded-xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:border-ink-700/80 transition-all duration-200">
+                <p className="text-2xs font-semibold text-ink-400 uppercase tracking-wider">{t('qr.kpi_total_scans')}</p>
+                <p className="text-xl font-bold text-emerald-300 mt-1 tabular-nums">{stats.total_scans}</p>
+                <p className="text-2xs font-medium text-emerald-400 mt-1">{stats.scans_today} today</p>
               </div>
             </div>
           </div>
@@ -234,28 +242,38 @@ export function QrMe() {
         });
 
         return (
-          <div className="card overflow-hidden">
-            <div className="p-4 border-b border-ink-800 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-ink-100">{t('qr.tab_recent')}</h3>
-                <span className="text-2xs font-mono bg-ink-800 text-ink-300 px-2 py-0.5 rounded-full">
-                  {filteredQrs.length} / {qrs.length}
-                </span>
-              </div>
+          <div className="card rounded-2xl border border-ink-800/80 overflow-hidden shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+            <div className="p-4 sm:p-5 border-b border-ink-800/80 bg-ink-950/40 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="relative min-w-[220px]">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
+                <div className="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/25 flex items-center justify-center shrink-0 shadow-sm">
+                  <QrCode className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-ink-50">{t('qr.tab_recent')}</h3>
+                    <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-300 border border-brand-500/25 tabular-nums">
+                      {filteredQrs.length} / {qrs.length}
+                    </span>
+                  </div>
+                  <p className="text-2xs text-ink-400 mt-0.5">
+                    {locale === 'ar' ? 'سجل الباركودات المنشأة بواسطة المستخدمين' : 'Live stream of user-generated QR codes'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
                   <input
                     type="text"
                     placeholder={locale === 'ar' ? 'بحث في الباركود والروابط...' : 'Search QRs & slugs...'}
                     value={qrSearch}
                     onChange={(e) => setQrSearch(e.target.value)}
-                    className="w-full bg-ink-950/60 border border-ink-800 rounded-xl pl-8 pr-8 py-1.5 text-xs text-ink-100 placeholder-ink-500 focus:outline-none focus:border-brand-500"
+                    className="w-full bg-ink-950 border border-ink-750 rounded-xl pl-9 pr-9 py-2 min-h-[42px] text-xs text-ink-100 placeholder-ink-500 focus:outline-none focus:border-brand-500"
                   />
                   {qrSearch && (
                     <button
                       onClick={() => setQrSearch('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-200"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-200"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -264,47 +282,47 @@ export function QrMe() {
               </div>
             </div>
             {loadingQrs ? (
-              <div className="p-8 text-center text-xs text-ink-400 flex items-center justify-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin text-brand-400" />
-                <span>{t('common.loading')}</span>
+              <div className="p-12 text-center text-xs text-ink-400 flex flex-col items-center justify-center gap-3">
+                <RefreshCw className="w-6 h-6 animate-spin text-brand-400" />
+                <span className="font-medium">{t('common.loading')}</span>
               </div>
             ) : filteredQrs.length === 0 ? (
-              <div className="p-8 text-center">
-                <p className="text-sm font-semibold text-ink-200 mb-1">
+              <div className="p-12 text-center flex flex-col items-center justify-center">
+                <p className="text-sm font-bold text-ink-100 mb-1">
                   {qrSearch ? (locale === 'ar' ? 'لا توجد نتائج مطابقة لبحثك' : 'No matching QR codes') : t('qr.no_qrs_yet')}
                 </p>
-                <p className="text-xs text-ink-500 mb-2">
+                <p className="text-xs text-ink-400 max-w-sm mb-3">
                   {qrSearch ? (locale === 'ar' ? 'جرّب تعديل كلمات البحث' : 'Try adjusting search terms') : t('qr.no_qrs_desc')}
                 </p>
                 {qrSearch && (
-                  <button onClick={() => setQrSearch('')} className="btn-secondary text-xs px-3 py-1">
+                  <button onClick={() => setQrSearch('')} className="btn-secondary text-xs px-3.5 py-1.5 rounded-xl active:scale-95">
                     {locale === 'ar' ? 'إلغاء البحث' : 'Clear search'}
                   </button>
                 )}
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-start text-sm">
-                  <thead className="bg-ink-900/60 text-2xs uppercase tracking-wider text-ink-400 border-b border-ink-800">
+                <table className="w-full text-start text-xs">
+                  <thead className="bg-ink-900/60 text-2xs uppercase tracking-wider text-ink-400 border-b border-ink-800/80">
                     <tr>
-                      <th className="py-3 px-4">{t('qr.th_type')}</th>
-                      <th className="py-3 px-4">{t('qr.th_title')}</th>
-                      <th className="py-3 px-4">{t('qr.th_slug')}</th>
-                      <th className="py-3 px-4">{t('qr.th_scans')}</th>
-                      <th className="py-3 px-4">{t('qr.th_created')}</th>
+                      <th className="py-3.5 px-4">{t('qr.th_type')}</th>
+                      <th className="py-3.5 px-4">{t('qr.th_title')}</th>
+                      <th className="py-3.5 px-4">{t('qr.th_slug')}</th>
+                      <th className="py-3.5 px-4">{t('qr.th_scans')}</th>
+                      <th className="py-3.5 px-4">{t('qr.th_created')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-ink-800/60 text-xs">
+                  <tbody className="divide-y divide-ink-800/50">
                     {filteredQrs.map(q => (
-                      <tr key={q.id} className="hover:bg-ink-900/40 transition-colors">
-                        <td className="py-3 px-4 font-medium text-brand-300 flex items-center gap-2">
+                      <tr key={q.id} className="hover:bg-ink-800/35 transition-colors">
+                        <td className="py-3.5 px-4 font-semibold text-brand-300 flex items-center gap-2">
                           <QrCode className="w-3.5 h-3.5 text-ink-400" />
                           <span>{q.type || 'Text'}</span>
                         </td>
-                        <td className="py-3 px-4 text-ink-200">{q.title || q.profile_name || 'QR Code'}</td>
-                        <td className="py-3 px-4 text-ink-400 font-mono text-2xs">{q.slug || q.id}</td>
-                        <td className="py-3 px-4 text-ink-300 font-mono">{q.scans_count || q.view_count || 0}</td>
-                        <td className="py-3 px-4 text-ink-500">{q.created_at ? timeAgo(q.created_at) : '—'}</td>
+                        <td className="py-3.5 px-4 text-ink-200 font-medium">{q.title || q.profile_name || 'QR Code'}</td>
+                        <td className="py-3.5 px-4 text-ink-400 font-mono text-2xs">{q.slug || q.id}</td>
+                        <td className="py-3.5 px-4 text-ink-200 font-mono font-bold tabular-nums">{q.scans_count || q.view_count || 0}</td>
+                        <td className="py-3.5 px-4 text-ink-400 whitespace-nowrap">{q.created_at ? timeAgo(q.created_at, locale) : '—'}</td>
                       </tr>
                     ))}
                   </tbody>

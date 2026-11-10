@@ -219,7 +219,8 @@ export function Dawaty() {
     <div>
       <PageHeader title={t('dawaty.title')} description={t('dawaty.description')} icon={<Heart className="w-5 h-5" />} />
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+      {/* ── KPI Grid with Smooth Rolling Counters & Concentric Radii ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {loading && !kpis.total ? Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />) : (
           <>
             <KPICard label={locale === 'ar' ? 'عدد المستخدمين' : 'Total Users'} value={usersCount} format="num" icon={<Users className="w-4 h-4" />} accent="default" />
@@ -231,35 +232,35 @@ export function Dawaty() {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 mb-6 border-b border-ink-800 pb-3">
+      {/* ── Tabs Navigation with Tactile Segmented Control (Pillar 2: ≤ 100ms response, 8pt Grid) ── */}
+      <div className="flex flex-wrap items-center gap-2 mb-6 p-1 rounded-2xl bg-gradient-to-b from-ink-900/90 to-ink-950/95 border border-ink-800 shadow-card">
         <button
           onClick={() => setActiveTab('invitations')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
+          className={`flex items-center gap-2 min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 ${
             activeTab === 'invitations'
-              ? 'bg-brand-600 text-white shadow-soft'
-              : 'bg-ink-900 text-ink-400 hover:text-ink-200 border border-ink-800'
+              ? 'bg-gradient-to-b from-brand-500 to-brand-600 text-white shadow-soft border-t border-white/20'
+              : 'text-ink-400 hover:text-white hover:bg-ink-850/60'
           }`}
         >
           <FileText className="w-4 h-4" />
           <span>{locale === 'ar' ? 'دعوات الزفاف' : 'Invitations List'}</span>
-          <span className="text-3xs px-2 py-0.5 rounded-full bg-ink-950/60 font-mono">
+          <span className="text-3xs px-2.5 py-0.5 rounded-full bg-ink-950/80 font-mono font-bold">
             {kpis.total || invitations.length}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('users')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
+          className={`flex items-center gap-2 min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 ${
             activeTab === 'users'
-              ? 'bg-brand-600 text-white shadow-soft'
-              : 'bg-ink-900 text-ink-400 hover:text-ink-200 border border-ink-800'
+              ? 'bg-gradient-to-b from-brand-500 to-brand-600 text-white shadow-soft border-t border-white/20'
+              : 'text-ink-400 hover:text-white hover:bg-ink-850/60'
           }`}
         >
           <Users className="w-4 h-4" />
           <span>{locale === 'ar' ? 'إدارة المستخدمين' : 'Users Management'}</span>
           {usersCount > 0 && (
-            <span className="text-3xs px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono border border-rose-500/30">
+            <span className="text-3xs px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono font-bold border border-rose-500/30">
               {usersCount}
             </span>
           )}
@@ -267,10 +268,10 @@ export function Dawaty() {
 
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
+          className={`flex items-center gap-2 min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 ${
             activeTab === 'settings'
-              ? 'bg-brand-600 text-white shadow-soft'
-              : 'bg-ink-900 text-ink-400 hover:text-ink-200 border border-ink-800'
+              ? 'bg-gradient-to-b from-brand-500 to-brand-600 text-white shadow-soft border-t border-white/20'
+              : 'text-ink-400 hover:text-white hover:bg-ink-850/60'
           }`}
         >
           <Settings className="w-4 h-4" />
@@ -290,25 +291,30 @@ export function Dawaty() {
         />
       ) : (
         <>
-      {/* Funnel widget */}
-      <div className="card p-5 mb-6">
-        <h3 className="text-sm font-semibold text-ink-100 mb-4">{t('dawaty.funnel_title')}</h3>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* ── Funnel widget: Concentric Radius Law (Outer 16px - Padding 16px = Inner 12px) ── */}
+      <div className="card p-6 rounded-2xl mb-6">
+        <h3 className="text-sm font-bold text-ink-100 mb-4 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-brand-400" />
+          {t('dawaty.funnel_title')}
+        </h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: t('dawaty.funnel_created'), value: kpis.total || 0, icon: <FileText className="w-4 h-4" />, color: 'bg-ink-700' },
-            { label: t('dawaty.funnel_published'), value: kpis.published || 0, icon: <Heart className="w-4 h-4" />, color: 'bg-accent-600' },
-            { label: t('dawaty.funnel_viewed'), value: kpis.visits || 0, icon: <Eye className="w-4 h-4" />, color: 'bg-brand-600' },
-            { label: t('dawaty.funnel_rsvp'), value: kpis.rsvp || 0, icon: <Users className="w-4 h-4" />, color: 'bg-success-600' },
+            { label: t('dawaty.funnel_created'), value: kpis.total || 0, icon: <FileText className="w-4 h-4" />, color: 'bg-ink-800 text-ink-200' },
+            { label: t('dawaty.funnel_published'), value: kpis.published || 0, icon: <Heart className="w-4 h-4" />, color: 'bg-rose-500/20 text-rose-300' },
+            { label: t('dawaty.funnel_viewed'), value: kpis.visits || 0, icon: <Eye className="w-4 h-4" />, color: 'bg-brand-500/20 text-brand-300' },
+            { label: t('dawaty.funnel_rsvp'), value: kpis.rsvp || 0, icon: <Users className="w-4 h-4" />, color: 'bg-emerald-500/20 text-emerald-300' },
           ].map((s, i) => (
-            <div key={i} className="relative">
-              <div className="rounded-xl2 border border-ink-800 p-4 bg-ink-950/50">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-7 h-7 rounded-lg ${s.color} flex items-center justify-center text-white`}>{s.icon}</div>
-                  <span className="text-xs text-ink-400">{s.label}</span>
+            <div key={i} className="relative group">
+              <div className="rounded-xl border border-ink-800/80 p-4 bg-ink-950/60 hover:bg-ink-900/80 hover:border-ink-700/80 hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-soft">
+                <div className="flex items-center gap-2.5 mb-2.5">
+                  <div className={`w-8 h-8 rounded-lg ${s.color} border border-white/5 flex items-center justify-center shrink-0`}>
+                    {s.icon}
+                  </div>
+                  <span className="text-xs font-semibold text-ink-400 truncate">{s.label}</span>
                 </div>
-                <p className="text-2xl font-bold text-ink-50 tabular-nums">{num(s.value)}</p>
+                <p className="text-2xl font-extrabold text-ink-50 tabular-nums tracking-tight">{num(s.value)}</p>
               </div>
-              {i < 3 && <ChevronRight className="hidden lg:block absolute top-1/2 -right-2.5 -translate-y-1/2 w-4 h-4 text-ink-600" />}
+              {i < 3 && <ChevronRight className="hidden lg:block absolute top-1/2 -right-3 -translate-y-1/2 w-4 h-4 text-ink-600 group-hover:text-ink-400 transition-colors pointer-events-none" />}
             </div>
           ))}
         </div>
@@ -319,7 +325,7 @@ export function Dawaty() {
 
         <button
           onClick={handleExportInvitations}
-          className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-ink-900 hover:bg-ink-800 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 shadow-soft transition self-end sm:self-auto"
+          className="btn-secondary min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 shadow-soft active:scale-95 transition-all self-end sm:self-auto flex items-center gap-2"
         >
           <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
           <span>{t('dawaty.export_excel')}</span>

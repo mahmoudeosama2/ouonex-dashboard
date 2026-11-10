@@ -28,25 +28,33 @@ export function DigitalMenu() {
   return (
     <div>
       <PageHeader title={t('menu.title')} description={t('menu.description')} icon={<UtensilsCrossed className="w-5 h-5" />} />
-      <div className="flex items-center gap-1 mb-4 border-b border-ink-800">
+      {/* SubTab Segmented Control with Motion UI & Tactile Feedback */}
+      <div className="flex items-center gap-1.5 p-1.5 mb-6 rounded-2xl bg-ink-900/80 border border-ink-800/80 backdrop-blur-md shadow-inner overflow-x-auto scrollbar-none">
         {([
-          { key: 'restaurants', label: t('menu.tab_restaurants'), icon: <Store className="w-3.5 h-3.5" /> },
-          { key: 'users', label: locale === 'ar' ? 'إدارة المستخدمين' : 'Users Management', icon: <Users className="w-3.5 h-3.5" /> },
-          { key: 'ai', label: t('menu.tab_ai'), icon: <Sparkles className="w-3.5 h-3.5" /> },
-          { key: 'orders', label: t('menu.tab_orders'), icon: <ShoppingBag className="w-3.5 h-3.5" /> },
-          { key: 'settings', label: locale === 'ar' ? 'إعدادات التطبيق' : 'App Settings', icon: <Settings className="w-3.5 h-3.5" /> },
-        ] as const).map(tItem => (
-          <button
-            key={tItem.key}
-            onClick={() => setTab(tItem.key)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === tItem.key ? 'border-brand-500 text-brand-300' : 'border-transparent text-ink-400 hover:text-ink-200'
-            }`}
-          >
-            {tItem.icon}
-            {tItem.label}
-          </button>
-        ))}
+          { key: 'restaurants', label: t('menu.tab_restaurants'), icon: <Store className="w-4 h-4" /> },
+          { key: 'users', label: locale === 'ar' ? 'إدارة المستخدمين' : 'Users Management', icon: <Users className="w-4 h-4" /> },
+          { key: 'ai', label: t('menu.tab_ai'), icon: <Sparkles className="w-4 h-4" /> },
+          { key: 'orders', label: t('menu.tab_orders'), icon: <ShoppingBag className="w-4 h-4" /> },
+          { key: 'settings', label: locale === 'ar' ? 'إعدادات التطبيق' : 'App Settings', icon: <Settings className="w-4 h-4" /> },
+        ] as const).map(tItem => {
+          const isActive = tab === tItem.key;
+          return (
+            <button
+              key={tItem.key}
+              onClick={() => setTab(tItem.key)}
+              className={`flex items-center gap-2.5 px-4 min-h-[44px] rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ease-out shrink-0 active:scale-[0.97] ${
+                isActive
+                  ? 'bg-gradient-to-r from-ink-800 to-ink-850 text-brand-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] border border-ink-700/60 ring-1 ring-brand-500/20'
+                  : 'text-ink-400 hover:text-ink-200 hover:bg-ink-800/40 border border-transparent'
+              }`}
+            >
+              <span className={`transition-transform duration-200 ${isActive ? 'scale-110 text-brand-400' : 'text-ink-400'}`}>
+                {tItem.icon}
+              </span>
+              <span>{tItem.label}</span>
+            </button>
+          );
+        })}
       </div>
       {tab === 'restaurants' && <RestaurantsTab />}
       {tab === 'users' && <AppUsersManager product="digital_menu" productNameAr="المنيو الرقمي" productNameEn="Digital Menu" icon={<UtensilsCrossed className="w-4 h-4 text-amber-400" />} />}
@@ -331,7 +339,7 @@ function RestaurantsTab() {
 
   return (
     <>
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {loading && !kpis.total ? Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />) : (
           <>
             <KPICard label={locale === 'ar' ? 'عدد المستخدمين' : 'Total Users'} value={usersCount} format="num" icon={<Users className="w-4 h-4" />} />
@@ -343,12 +351,12 @@ function RestaurantsTab() {
         )}
       </div>
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
         <FilterBar filters={filters} />
 
         <button
           onClick={handleExportRestaurants}
-          className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-ink-900 hover:bg-ink-800 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 shadow-soft transition self-end sm:self-auto"
+          className="flex items-center justify-center gap-2 px-4 min-h-[44px] rounded-xl text-xs font-bold bg-ink-900/90 hover:bg-ink-850 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] transition-all duration-200 ease-out active:scale-[0.97] self-end sm:self-auto cursor-pointer"
         >
           <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
           <span>{locale === 'ar' ? 'تصدير إلى Excel (CSV)' : 'Export to Excel (CSV)'}</span>
@@ -357,25 +365,25 @@ function RestaurantsTab() {
 
       {/* Floating Bulk Action Bar */}
       {selectedIds.length > 0 && (
-        <div className="flex items-center justify-between p-3.5 mb-4 rounded-xl bg-ink-900 border border-brand-500/40 shadow-soft animate-fade-in">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-xs font-semibold text-ink-100">
+        <div className="flex items-center justify-between p-4 mb-6 rounded-2xl bg-ink-900/95 border border-brand-500/40 shadow-xl backdrop-blur-md animate-scale-in">
+          <div className="flex items-center gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-radar-ping" />
+            <span className="text-xs sm:text-sm font-semibold text-ink-100">
               {locale === 'ar' ? `تم تحديد ${selectedIds.length} مطعم` : `${selectedIds.length} ${selectedIds.length === 1 ? 'restaurant' : 'restaurants'} selected`}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => setSelectedIds([])}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-white transition"
+              className="px-4 min-h-[40px] rounded-xl text-xs font-semibold text-ink-400 hover:text-white hover:bg-ink-800/60 transition-all duration-150 active:scale-95"
             >
               {t('common.cancel')}
             </button>
             <button
               onClick={handleBulkDelete}
               disabled={deleting}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition shadow-sm disabled:opacity-50"
+              className="flex items-center gap-2 px-4 min-h-[40px] rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white transition-all duration-200 shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               {deleting ? (locale === 'ar' ? 'جاري الحذف...' : 'Deleting...') : (locale === 'ar' ? `حذف المحدد (${selectedIds.length})` : `Delete Selected (${selectedIds.length})`)}
@@ -615,23 +623,23 @@ function RestaurantDetail({
   return (
     <div className="space-y-5">
       {/* Action Bar */}
-      <div className="flex items-center justify-between gap-2 pb-3 border-b border-ink-800">
+      <div className="flex items-center justify-between gap-2.5 pb-4 border-b border-ink-800/80">
         <a
           href={liveUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600/15 text-brand-400 border border-brand-500/30 hover:bg-brand-600/25 transition"
+          className="flex items-center gap-2 px-3.5 min-h-[40px] rounded-xl text-xs font-bold bg-brand-600/15 text-brand-300 border border-brand-500/30 hover:bg-brand-600/25 hover:border-brand-500/50 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] transition-all duration-200 active:scale-95"
         >
           <Globe2 className="w-3.5 h-3.5" />
           <span>View Live Menu</span>
-          <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+          <ExternalLink className="w-3 h-3 opacity-70" />
         </a>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleImpersonate}
             disabled={impersonating || !r.id}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-3.5 min-h-[40px] text-xs font-bold rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 hover:border-amber-500/50 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer"
             title="Login as restaurant owner"
           >
             <LogIn className="w-3.5 h-3.5" />
@@ -640,30 +648,33 @@ function RestaurantDetail({
 
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-ink-800 text-ink-200 hover:bg-ink-700 hover:text-white transition"
+            className="flex items-center gap-2 px-3.5 min-h-[40px] text-xs font-bold rounded-xl bg-ink-850 text-ink-200 hover:bg-ink-800 hover:text-white border border-ink-700/60 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] transition-all duration-200 active:scale-95 cursor-pointer"
           >
             {isEditing ? <X className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
-            {isEditing ? 'Cancel' : 'Edit Restaurant'}
+            <span>{isEditing ? 'Cancel' : 'Edit Restaurant'}</span>
           </button>
-
         </div>
       </div>
 
       {/* Quick Subscription & Payment Activation Banner */}
-      <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 ${
+      <div className={`p-4 rounded-2xl border flex items-center justify-between gap-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] transition-all duration-300 ${
         r.status === 'active'
-          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-          : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+          ? 'bg-gradient-to-r from-emerald-950/40 to-ink-900 border-emerald-500/30 text-emerald-300'
+          : 'bg-gradient-to-r from-amber-950/40 to-ink-900 border-amber-500/30 text-amber-300'
       }`}>
-        <div className="flex items-center gap-2.5">
-          <Zap className="w-4 h-4 shrink-0 text-amber-400" />
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+            r.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400 animate-pulse'
+          }`}>
+            <Zap className="w-4 h-4" />
+          </div>
           <div className="text-xs">
-            <span className="font-bold">
+            <span className="font-bold text-ink-100 block">
               {r.status === 'active'
                 ? (locale === 'ar' ? 'الاشتراك والدفع مفعّل ونشط' : 'Active Subscription')
                 : (locale === 'ar' ? 'حساب المطعم غير مفعل أو بانتظار الدفع' : 'Subscription Inactive / Pending Payment')}
             </span>
-            <p className="text-2xs text-ink-400">
+            <p className="text-2xs text-ink-400 mt-0.5">
               {r.status === 'active'
                 ? (locale === 'ar' ? 'المنيو منشور ومتاح للجمهور والطلبات نشطة.' : 'Public menu is online.')
                 : (locale === 'ar' ? 'يمكنك تفعيل الاشتراك يدوياً وتأكيد الدفع بنقرة واحدة.' : 'Manually approve payment & activate.')}
@@ -675,10 +686,10 @@ function RestaurantDetail({
             type="button"
             onClick={handleActivateSubscription}
             disabled={activatingSub}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-all shrink-0 disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 px-4 min-h-[42px] rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-all duration-200 shrink-0 active:scale-95 disabled:opacity-50 cursor-pointer"
           >
             {activatingSub ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
-            <span>{locale === 'ar' ? '⚡ تفعيل الاشتراك والدفع الآن' : '⚡ Activate Now'}</span>
+            <span>{locale === 'ar' ? '⚡ تفعيل الاشتراك الآن' : '⚡ Activate Now'}</span>
           </button>
         )}
       </div>
@@ -821,27 +832,27 @@ function RestaurantDetail({
       </div>
 
       {/* Owner Profile Management Card */}
-      <div className="p-4 rounded-xl bg-ink-900/80 border border-ink-800 space-y-3">
+      <div className="p-5 rounded-2xl bg-ink-900/80 border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-sm shadow-soft">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-500/20 text-brand-400 border border-brand-500/30 flex items-center justify-center font-bold text-sm shadow-soft">
               {(r.owner || 'U').charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-ink-100">{r.owner}</span>
-                <span className="text-3xs font-mono px-1.5 py-0.5 rounded bg-ink-800 text-ink-400">UID: {r.owner_id}</span>
+                <span className="text-sm font-bold text-ink-100">{r.owner}</span>
+                <span className="text-3xs font-mono px-2 py-0.5 rounded-md bg-ink-800/90 text-ink-400 border border-ink-700/40">UID: {r.owner_id}</span>
               </div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-2xs text-ink-400 mt-0.5">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-2xs text-ink-400 mt-1">
                 {r.owner_email && (
-                  <span className="flex items-center gap-1 text-ink-300">
-                    <Mail className="w-3 h-3 text-brand-400" />
+                  <span className="flex items-center gap-1.5 text-ink-300">
+                    <Mail className="w-3.5 h-3.5 text-brand-400" />
                     {r.owner_email}
                   </span>
                 )}
                 {r.owner_phone && (
-                  <span className="flex items-center gap-1 text-ink-300">
-                    <Phone className="w-3 h-3 text-emerald-400" />
+                  <span className="flex items-center gap-1.5 text-ink-300">
+                    <Phone className="w-3.5 h-3.5 text-emerald-400" />
                     {r.owner_phone}
                   </span>
                 )}
@@ -849,14 +860,14 @@ function RestaurantDetail({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 self-end sm:self-auto">
+          <div className="flex items-center gap-2 self-end sm:self-auto">
             <button
               type="button"
               onClick={() => setIsEditingOwner(!isEditingOwner)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-2xs font-semibold bg-ink-800 hover:bg-ink-700 text-ink-200 transition"
+              className="flex items-center gap-1.5 px-3 min-h-[38px] rounded-xl text-2xs font-semibold bg-ink-850 hover:bg-ink-800 text-ink-200 border border-ink-700/60 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] transition-all duration-200 active:scale-95 cursor-pointer"
               title={locale === 'ar' ? 'تعديل بيانات بروفايل المالك' : 'Edit Owner Profile'}
             >
-              {isEditingOwner ? <X className="w-3 h-3" /> : <Edit3 className="w-3 h-3" />}
+              {isEditingOwner ? <X className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
               <span>{isEditingOwner ? (locale === 'ar' ? 'إلغاء' : 'Cancel') : (locale === 'ar' ? 'تعديل الحساب' : 'Edit Account')}</span>
             </button>
 
@@ -864,10 +875,10 @@ function RestaurantDetail({
               type="button"
               onClick={handleDeleteOwner}
               disabled={deletingOwner}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-2xs font-semibold bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 transition disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 min-h-[38px] rounded-xl text-2xs font-semibold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition-all duration-200 active:scale-95 disabled:opacity-50 cursor-pointer"
               title={locale === 'ar' ? 'حذف حساب المالك نهائياً' : 'Delete Owner Account'}
             >
-              <Trash2 className="w-3 h-3" />
+              <Trash2 className="w-3.5 h-3.5" />
               <span>{deletingOwner ? (locale === 'ar' ? 'جاري الحذف...' : 'Deleting...') : (locale === 'ar' ? 'حذف الحساب' : 'Delete Account')}</span>
             </button>
           </div>
@@ -947,9 +958,9 @@ function RestaurantDetail({
 
 function DetailStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-ink-800 bg-ink-950/50 p-3">
-      <p className="text-2xs text-ink-400 uppercase tracking-wide mb-1">{label}</p>
-      <p className="text-lg font-semibold text-ink-100 tabular-nums">{value}</p>
+    <div className="rounded-xl border border-ink-800/80 bg-ink-950/60 p-3.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:border-ink-700/80 transition-all duration-200">
+      <p className="text-2xs font-semibold text-ink-400 uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-base sm:text-lg font-bold text-ink-100 tabular-nums">{value}</p>
     </div>
   );
 }
@@ -977,21 +988,27 @@ function AITab() {
         <KPICard label="Total Cost" value={summary.totalCost} format="egp" icon={<UtensilsCrossed className="w-4 h-4" />} accent="warning" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="card p-5">
-          <h3 className="text-sm font-semibold text-ink-100 mb-4">Cost Over Time</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="card p-6 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+          <h3 className="text-sm font-bold text-ink-100 mb-4 flex items-center justify-between">
+            <span>Cost Over Time</span>
+            <span className="text-2xs font-medium text-amber-400/80 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">EGP Billing</span>
+          </h3>
           <LineChart data={summary.costOverTime.map(c => ({ date: c.date, value: c.cost }))} height={200} color={CHART_COLORS.warning} format={n => `EGP ${n}`} />
         </div>
-        <div className="card p-5">
-          <h3 className="text-sm font-semibold text-ink-100 mb-4">Top Errors</h3>
-          <div className="space-y-2">
+        <div className="card p-6 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+          <h3 className="text-sm font-bold text-ink-100 mb-4">Top Errors</h3>
+          <div className="space-y-3">
             {summary.topErrors.map((e, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <span className="text-xs text-ink-400 w-5">{i + 1}.</span>
-                <span className="text-sm text-ink-200 flex-1">{e.error}</span>
-                <span className="text-sm font-semibold text-ink-100 tabular-nums">{num(e.count)}</span>
-                <div className="w-20 h-1.5 bg-ink-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-danger-500 rounded-full" style={{ width: `${(e.count / summary.topErrors[0].count) * 100}%` }} />
+              <div key={i} className="flex items-center gap-3 group">
+                <span className="text-xs font-mono text-ink-400 w-5">{i + 1}.</span>
+                <span className="text-sm text-ink-200 flex-1 truncate group-hover:text-ink-100 transition-colors">{e.error}</span>
+                <span className="text-sm font-bold text-ink-100 tabular-nums">{num(e.count)}</span>
+                <div className="w-24 h-2 bg-ink-800/80 rounded-full overflow-hidden p-0.5 border border-ink-750">
+                  <div
+                    className="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${Math.max(4, (e.count / (summary.topErrors[0]?.count || 1)) * 100)}%` }}
+                  />
                 </div>
               </div>
             ))}
@@ -999,8 +1016,8 @@ function AITab() {
         </div>
       </div>
 
-      <div className="card p-5">
-        <h3 className="text-sm font-semibold text-ink-100 mb-4">Scans by Restaurant</h3>
+      <div className="card p-6 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+        <h3 className="text-sm font-bold text-ink-100 mb-4">Scans by Restaurant</h3>
         <BarChart
           data={summary.byRestaurant.map((r, i) => ({ label: r.name.split(' ').slice(0, 2).join(' '), value: r.scans, color: i % 2 === 0 ? CHART_COLORS.brand : CHART_COLORS.accent }))}
           height={220}
@@ -1074,7 +1091,9 @@ function OrdersTab() {
 
   return (
     <>
-      <FilterBar filters={filters} />
+      <div className="mb-6">
+        <FilterBar filters={filters} />
+      </div>
       <DataTable
         columns={columns}
         rows={rows}

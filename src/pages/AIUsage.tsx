@@ -250,16 +250,18 @@ export function AIUsage() {
       </div>
 
       {/* GEMINI MULTI-ACCOUNT API KEY POOL & FAILOVER SECTION */}
-      <div className="card p-5 mb-6 border border-ink-800">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-ink-800">
+      <div className="card p-6 rounded-2xl mb-6 border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-5 border-b border-ink-800/80">
           <div>
-            <div className="flex items-center gap-2">
-              <Key className="w-5 h-5 text-amber-400" />
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center shadow-soft">
+                <Key className="w-4 h-4" />
+              </div>
               <h3 className="text-base font-bold text-ink-100">
                 {locale === 'ar' ? 'مصفوفة مفاتيح Gemini (Multi-Account Fallback Pool)' : 'Gemini Multi-Account Fallback Pool'}
               </h3>
             </div>
-            <p className="text-xs text-ink-400 mt-1">
+            <p className="text-xs text-ink-400 mt-1.5 leading-relaxed">
               {locale === 'ar' 
                 ? 'نظام التبديل التلقائي الذكي: عند وصول أي حساب إلى حد الكوتة (429 / ResourceExhausted)، يتحول النظام فوراً للمفتاح التالي دون توقف الخدمة.'
                 : 'Zero-downtime failover: when one Google account reaches rate limit (429), requests instantly route to the backup keys.'}
@@ -272,7 +274,7 @@ export function AIUsage() {
                 setNewPriority(keys.length + 1);
                 setModalOpen(true);
               }}
-              className="btn-primary flex items-center gap-2 text-xs"
+              className="btn-primary flex items-center gap-2 min-h-[42px] px-4 rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>{locale === 'ar' ? 'إضافة API Key جديد' : 'Add Gemini Key'}</span>
@@ -282,13 +284,13 @@ export function AIUsage() {
 
         {/* Keys List */}
         {keys.length === 0 ? (
-          <div className="text-center py-6 text-ink-400 text-sm">
+          <div className="text-center py-8 text-ink-400 text-sm">
             {locale === 'ar' 
               ? 'لم يتم العثور على مفاتيح مخصصة. النظام يستخدم حالياً المفتاح الأساسي من ملف البيئة (.env).'
               : 'No custom keys found. System is using primary key from .env file.'}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {keys.map((k, index) => {
               const isFallback = index > 0;
               const isRateLimited = k.status === 'rate_limited';
@@ -299,7 +301,7 @@ export function AIUsage() {
               return (
                 <div 
                   key={k.id} 
-                  className={`card p-4 rounded-xl border transition flex flex-col justify-between ${
+                  className={`card p-5 rounded-2xl border shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] transition-all flex flex-col justify-between ${
                     isActive ? 'border-success-500/30 bg-success-500/[0.02]' : 
                     isRateLimited ? 'border-amber-500/40 bg-amber-500/[0.03]' : 
                     isQuotaExceeded ? 'border-orange-500/40 bg-orange-500/[0.03]' : 
@@ -308,9 +310,9 @@ export function AIUsage() {
                 >
                   <div>
                     {/* Header */}
-                    <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">
-                        <span className={`text-[11px] font-mono px-2 py-0.5 rounded-md font-semibold ${
+                        <span className={`text-[11px] font-mono px-2 py-0.5 rounded-lg font-semibold ${
                           index === 0 ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30' : 'bg-ink-800 text-ink-300'
                         }`}>
                           #{k.priority} {index === 0 ? (locale === 'ar' ? 'أساسي' : 'Primary') : (locale === 'ar' ? `بديل ${index}` : `Fallback ${index}`)}
@@ -333,43 +335,43 @@ export function AIUsage() {
                     </div>
 
                     {/* Masked Key */}
-                    <div className="font-mono text-xs text-ink-400 bg-ink-900/60 px-2.5 py-1.5 rounded-lg mb-3 flex items-center justify-between border border-ink-800/80">
+                    <div className="font-mono text-xs text-ink-400 bg-ink-950/70 px-3 py-2 rounded-xl mb-3 flex items-center justify-between border border-ink-800/80 shadow-inner">
                       <span>{k.masked_key}</span>
-                      <span className="text-[10px] text-ink-500 uppercase">{k.provider}</span>
+                      <span className="text-[10px] text-ink-500 uppercase font-bold">{k.provider}</span>
                     </div>
 
                     {/* Usage Stats */}
-                    <div className="grid grid-cols-3 gap-2 text-center py-2 bg-ink-800/30 rounded-lg mb-3 text-xs">
+                    <div className="grid grid-cols-3 gap-2 text-center py-2.5 bg-ink-950/50 border border-ink-800/60 rounded-xl mb-3 text-xs">
                       <div>
-                        <span className="text-ink-400 text-[10px] block">{locale === 'ar' ? 'الطلبات' : 'Requests'}</span>
-                        <span className="font-semibold text-ink-100 tabular-nums">{num(k.total_requests)}</span>
+                        <span className="text-ink-400 text-[10px] block font-semibold">{locale === 'ar' ? 'الطلبات' : 'Requests'}</span>
+                        <span className="font-bold text-ink-100 tabular-nums">{num(k.total_requests)}</span>
                       </div>
                       <div>
-                        <span className="text-ink-400 text-[10px] block">{locale === 'ar' ? 'التوكنات' : 'Tokens'}</span>
-                        <span className="font-semibold text-ink-100 tabular-nums">{num(k.total_tokens)}</span>
+                        <span className="text-ink-400 text-[10px] block font-semibold">{locale === 'ar' ? 'التوكنات' : 'Tokens'}</span>
+                        <span className="font-bold text-ink-100 tabular-nums">{num(k.total_tokens)}</span>
                       </div>
                       <div>
-                        <span className="text-ink-400 text-[10px] block">{locale === 'ar' ? 'الأخطاء' : 'Errors'}</span>
-                        <span className={`font-semibold tabular-nums ${k.failed_requests > 0 ? 'text-amber-400' : 'text-ink-300'}`}>
+                        <span className="text-ink-400 text-[10px] block font-semibold">{locale === 'ar' ? 'الأخطاء' : 'Errors'}</span>
+                        <span className={`font-bold tabular-nums ${k.failed_requests > 0 ? 'text-amber-400' : 'text-ink-300'}`}>
                           {num(k.failed_requests)}
                         </span>
                       </div>
                     </div>
 
                     {k.last_error && (
-                      <p className="text-[11px] text-danger-400 bg-danger-500/10 p-2 rounded mb-3 truncate" title={k.last_error}>
+                      <p className="text-[11px] text-danger-400 bg-danger-500/10 p-2.5 rounded-xl border border-danger-500/20 mb-3 truncate" title={k.last_error}>
                         {k.last_error}
                       </p>
                     )}
                   </div>
 
                   {/* Actions Row */}
-                  <div className="flex items-center justify-between pt-2 border-t border-ink-800/60 text-xs">
+                  <div className="flex items-center justify-between pt-3 border-t border-ink-800/60 text-xs">
                     {(isRateLimited || isQuotaExceeded) ? (
                       <button 
                         onClick={() => handleResetCooldown(k.id)}
                         disabled={keyActionId === k.id}
-                        className="text-amber-400 hover:text-amber-300 flex items-center gap-1 font-medium"
+                        className="text-amber-400 hover:text-amber-300 flex items-center gap-1.5 font-bold active:scale-95 transition-all"
                       >
                         <RefreshCw className={`w-3.5 h-3.5 ${keyActionId === k.id ? 'animate-spin' : ''}`} />
                         <span>{locale === 'ar' ? 'إلغاء التبريد' : 'Clear Cooldown'}</span>
@@ -378,7 +380,7 @@ export function AIUsage() {
                       <button 
                         onClick={() => handleToggleKeyStatus(k)}
                         disabled={keyActionId === k.id}
-                        className={`flex items-center gap-1 font-medium ${k.is_active ? 'text-ink-400 hover:text-amber-400' : 'text-success-400 hover:text-success-300'}`}
+                        className={`flex items-center gap-1.5 font-bold active:scale-95 transition-all ${k.is_active ? 'text-ink-400 hover:text-amber-400' : 'text-success-400 hover:text-success-300'}`}
                       >
                         <Power className="w-3.5 h-3.5" />
                         <span>{k.is_active ? (locale === 'ar' ? 'إيقاف' : 'Disable') : (locale === 'ar' ? 'تفعيل' : 'Enable')}</span>
@@ -388,7 +390,7 @@ export function AIUsage() {
                     <button 
                       onClick={() => handleDeleteKey(k.id)}
                       disabled={keyActionId === k.id}
-                      className="text-ink-500 hover:text-danger-400 p-1 transition"
+                      className="text-ink-500 hover:text-danger-400 p-1.5 rounded-lg hover:bg-rose-500/10 transition active:scale-95"
                       title={locale === 'ar' ? 'حذف من المصفوفة' : 'Delete'}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -402,21 +404,21 @@ export function AIUsage() {
       </div>
 
       {/* Analytics Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div className="card p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="card p-6 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-semibold text-ink-100">{locale === 'ar' ? 'التكلفة عبر الوقت' : 'Cost Over Time'}</h3>
+              <h3 className="text-sm font-bold text-ink-100">{locale === 'ar' ? 'التكلفة عبر الوقت' : 'Cost Over Time'}</h3>
               <p className="text-xs text-ink-400">{locale === 'ar' ? 'آخر 30 يوماً' : 'Last 30 days'}</p>
             </div>
             <TrendingUp className="w-4 h-4 text-ink-400" />
           </div>
           <LineChart data={summary.costOverTime.map(c => ({ date: c.date, value: c.cost }))} height={200} color={CHART_COLORS.warning} format={n => `EGP ${n}`} />
         </div>
-        <div className="card p-5">
+        <div className="card p-6 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-semibold text-ink-100">{locale === 'ar' ? 'أكثر الأخطاء تكراراً وتشخيصها' : 'Top Errors & Diagnostics'}</h3>
+              <h3 className="text-sm font-bold text-ink-100">{locale === 'ar' ? 'أكثر الأخطاء تكراراً وتشخيصها' : 'Top Errors & Diagnostics'}</h3>
               <p className="text-xs text-ink-400">{locale === 'ar' ? 'سجل تفصيلي بالتواريخ والموديلات المتأثرة (اضغط على الخطأ لعرض كامل التفاصيل)' : 'Detailed log with timestamps and models (click to view details)'}</p>
             </div>
             <AlertCircle className="w-4 h-4 text-danger-400" />
@@ -430,18 +432,18 @@ export function AIUsage() {
                 <div 
                   key={i} 
                   onClick={() => setSelectedError(e)}
-                  className="p-3 rounded-xl bg-ink-900/40 border border-ink-800 hover:border-ink-700 hover:bg-ink-900/80 transition cursor-pointer flex flex-col gap-2"
+                  className="p-3.5 rounded-xl bg-ink-950/60 border border-ink-800/80 hover:border-ink-700/80 hover:bg-ink-900/60 transition-all duration-150 cursor-pointer flex flex-col gap-2.5 active:scale-[0.98]"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-xs font-bold text-ink-400 w-5">#{i + 1}</span>
                       {e.category && (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-danger-500/15 text-danger-300 border border-danger-500/30">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-danger-500/15 text-danger-300 border border-danger-500/30">
                           {e.category}
                         </span>
                       )}
                       {e.model && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-ink-800 text-ink-300">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-ink-800 text-ink-300">
                           {e.model}
                         </span>
                       )}
@@ -451,7 +453,7 @@ export function AIUsage() {
                     </div>
                   </div>
 
-                  <p className="text-xs text-ink-200 line-clamp-2 font-mono leading-relaxed bg-ink-950/40 p-2 rounded border border-ink-800/60" dir="ltr">
+                  <p className="text-xs text-ink-200 line-clamp-2 font-mono leading-relaxed bg-ink-950/80 p-2.5 rounded-lg border border-ink-800/60" dir="ltr">
                     {e.error}
                   </p>
 
@@ -483,8 +485,8 @@ export function AIUsage() {
         </div>
       </div>
 
-      <div className="card p-5 mb-6">
-        <h3 className="text-sm font-semibold text-ink-100 mb-4">{locale === 'ar' ? 'المسح حسب المطعم' : 'Scans by Restaurant'}</h3>
+      <div className="card p-6 rounded-2xl mb-6 border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+        <h3 className="text-sm font-bold text-ink-100 mb-4">{locale === 'ar' ? 'المسح حسب المطعم' : 'Scans by Restaurant'}</h3>
         <BarChart
           data={summary.byRestaurant.map((r, i) => ({ label: r.name.split(' ').slice(0, 2).join(' '), value: r.scans, color: i % 2 === 0 ? CHART_COLORS.brand : CHART_COLORS.accent }))}
           height={220}
@@ -492,7 +494,9 @@ export function AIUsage() {
         />
       </div>
 
-      <FilterBar filters={filters} />
+      <div className="mb-6">
+        <FilterBar filters={filters} />
+      </div>
 
       <DataTable
         columns={columns}

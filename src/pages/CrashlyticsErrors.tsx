@@ -293,67 +293,70 @@ export function CrashlyticsErrors() {
 
       {/* 4 Summary Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-ink-900 border border-ink-800 rounded-2xl p-4 shadow-sm">
-          <p className="text-2xs text-ink-400">{isRTL ? 'إجمالي الاستثناءات' : 'Total Issues'}</p>
-          <p className="text-2xl font-black text-ink-50 mt-1">{stats.total}</p>
-          <p className="text-2xs text-ink-500 mt-1">{stats.openCount} {isRTL ? 'مشكلة مفتوحة' : 'unresolved'}</p>
+        <div className="card p-5 rounded-2xl border border-ink-800/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+          <p className="text-2xs font-semibold text-ink-400 uppercase tracking-wider">{isRTL ? 'إجمالي الاستثناءات' : 'Total Issues'}</p>
+          <p className="text-2xl font-black text-ink-50 mt-1 tabular-nums">{stats.total}</p>
+          <p className="text-2xs font-medium text-ink-500 mt-1">{stats.openCount} {isRTL ? 'مشكلة مفتوحة' : 'unresolved'}</p>
         </div>
 
-        <div className="bg-ink-900 border border-ink-800 rounded-2xl p-4 shadow-sm">
-          <p className="text-2xs text-ink-400">{isRTL ? 'حالات حرجة / حوادث' : 'Fatal / High'}</p>
-          <p className="text-2xl font-black text-rose-400 mt-1">{stats.fatalCount}</p>
-          <p className="text-2xs text-rose-400/80 mt-1">{isRTL ? 'تتطلب انتباه فوري' : 'Requires immediate fix'}</p>
+        <div className="card p-5 rounded-2xl border border-rose-500/25 bg-rose-950/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+          <p className="text-2xs font-semibold text-rose-300 uppercase tracking-wider">{isRTL ? 'حالات حرجة / حوادث' : 'Fatal / High'}</p>
+          <p className="text-2xl font-black text-rose-400 mt-1 tabular-nums">{stats.fatalCount}</p>
+          <p className="text-2xs font-medium text-rose-400/80 mt-1">{isRTL ? 'تتطلب انتباه فوري' : 'Requires immediate fix'}</p>
         </div>
 
-        <div className="bg-ink-900 border border-ink-800 rounded-2xl p-4 shadow-sm">
-          <p className="text-2xs text-ink-400">{isRTL ? 'مرات التكرار الكلية' : 'Total Occurrences'}</p>
-          <p className="text-2xl font-black text-amber-400 mt-1">{stats.totalOccurrences}</p>
-          <p className="text-2xs text-ink-500 mt-1">{isRTL ? 'خلال الـ 7 أيام الأخيرة' : 'Last 7 days'}</p>
+        <div className="card p-5 rounded-2xl border border-amber-500/25 bg-amber-950/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+          <p className="text-2xs font-semibold text-amber-300 uppercase tracking-wider">{isRTL ? 'مرات التكرار الكلية' : 'Total Occurrences'}</p>
+          <p className="text-2xl font-black text-amber-400 mt-1 tabular-nums">{stats.totalOccurrences}</p>
+          <p className="text-2xs font-medium text-ink-500 mt-1">{isRTL ? 'خلال الـ 7 أيام الأخيرة' : 'Last 7 days'}</p>
         </div>
 
-        <div className="bg-ink-900 border border-ink-800 rounded-2xl p-4 shadow-sm">
-          <p className="text-2xs text-ink-400">{isRTL ? 'المستخدمين المتأثرين' : 'Impacted Users'}</p>
-          <p className="text-2xl font-black text-brand-400 mt-1">{stats.totalUsers}</p>
-          <p className="text-2xs text-ink-500 mt-1">{isRTL ? 'عبر جميع المنصات' : 'Across all platforms'}</p>
+        <div className="card p-5 rounded-2xl border border-brand-500/25 bg-brand-950/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+          <p className="text-2xs font-semibold text-brand-300 uppercase tracking-wider">{isRTL ? 'المستخدمين المتأثرين' : 'Impacted Users'}</p>
+          <p className="text-2xl font-black text-brand-400 mt-1 tabular-nums">{stats.totalUsers}</p>
+          <p className="text-2xs font-medium text-ink-500 mt-1">{isRTL ? 'عبر جميع المنصات' : 'Across all platforms'}</p>
         </div>
       </div>
 
       {/* Filter and App Selector Tabs */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-ink-900 border border-ink-800 rounded-2xl p-3">
-        {/* App Switcher Tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1 md:pb-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-2 rounded-2xl bg-ink-900/80 border border-ink-800/80 backdrop-blur-md shadow-inner">
+        {/* App Switcher Tabs (Tactile Segmented Control) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 md:pb-0">
           {[
             { id: 'all', label: isRTL ? 'الكل' : 'All Apps' },
             { id: 'digital_menu', label: isRTL ? 'المنيو' : 'Digital Menu' },
             { id: 'dawaty', label: isRTL ? 'دعواتي' : 'Dawaty' },
             { id: 'cv_maker', label: isRTL ? 'السيرة' : 'CV Maker' },
             { id: 'qr_me', label: isRTL ? 'كيو آر' : 'QR Me' },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setSelectedApp(tab.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition shrink-0 ${
-                selectedApp === tab.id
-                  ? 'bg-brand-600 text-white shadow-sm'
-                  : 'text-ink-400 hover:text-ink-200 hover:bg-ink-800/60'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          ].map(tab => {
+            const isActive = selectedApp === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedApp(tab.id)}
+                className={`px-4 min-h-[44px] rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ease-out shrink-0 active:scale-[0.97] ${
+                  isActive
+                    ? 'bg-gradient-to-r from-ink-800 to-ink-850 text-brand-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] border border-ink-700/60 ring-1 ring-brand-500/20'
+                    : 'text-ink-400 hover:text-ink-200 hover:bg-ink-800/40 border border-transparent'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Secondary filters */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Search */}
-          <div className="relative min-w-[200px]">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
+          <div className="relative min-w-[220px]">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
             <input
               type="text"
               placeholder={isRTL ? 'بحث في الأخطاء...' : 'Search errors...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-ink-950/60 border border-ink-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-ink-100 placeholder-ink-500 focus:outline-none focus:border-brand-500"
+              className="w-full bg-ink-950 border border-ink-750 rounded-xl pl-9 pr-3 min-h-[42px] text-xs text-ink-100 placeholder-ink-500 focus:outline-none focus:border-brand-500"
             />
           </div>
 
@@ -362,7 +365,7 @@ export function CrashlyticsErrors() {
             value={selectedSeverity}
             onChange={(e) => setSelectedSeverity(e.target.value)}
             aria-label={isRTL ? 'تصفية حسب الخطورة' : 'Filter by severity'}
-            className="bg-ink-950/60 border border-ink-800 rounded-xl px-2.5 py-1.5 text-xs text-ink-300 focus:outline-none focus:border-brand-500 cursor-pointer"
+            className="bg-ink-950 border border-ink-750 rounded-xl px-3.5 min-h-[42px] text-xs text-ink-200 focus:outline-none focus:border-brand-500 cursor-pointer"
           >
             <option value="all">{isRTL ? 'كل الدرجات' : 'All Severities'}</option>
             <option value="fatal">Fatal</option>
@@ -376,7 +379,7 @@ export function CrashlyticsErrors() {
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
             aria-label={isRTL ? 'تصفية حسب الحالة' : 'Filter by status'}
-            className="bg-ink-950/60 border border-ink-800 rounded-xl px-2.5 py-1.5 text-xs text-ink-300 focus:outline-none focus:border-brand-500 cursor-pointer"
+            className="bg-ink-950 border border-ink-750 rounded-xl px-3.5 min-h-[42px] text-xs text-ink-200 focus:outline-none focus:border-brand-500 cursor-pointer"
           >
             <option value="all">{isRTL ? 'كل الحالات' : 'All Statuses'}</option>
             <option value="open">{isRTL ? 'مفتوح' : 'Open'}</option>
@@ -387,17 +390,17 @@ export function CrashlyticsErrors() {
       </div>
 
       {/* Errors Table */}
-      <div className="bg-ink-900 border border-ink-800 rounded-2xl overflow-hidden shadow-sm">
+      <div className="card rounded-2xl border border-ink-800/80 overflow-hidden shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-ink-800/80 bg-ink-950/40 text-2xs font-semibold text-ink-400 uppercase tracking-wider">
-                <th className="px-5 py-3">{isRTL ? 'التطبيق والخطأ' : 'App & Error Issue'}</th>
-                <th className="px-5 py-3">{isRTL ? 'الخطورة' : 'Severity'}</th>
-                <th className="px-5 py-3">{isRTL ? 'المنصة' : 'Platform & OS'}</th>
-                <th className="px-5 py-3">{isRTL ? 'التكرار / المستخدمين' : 'Events / Users'}</th>
-                <th className="px-5 py-3">{isRTL ? 'الحالة' : 'Status'}</th>
-                <th className="px-5 py-3 text-right">{isRTL ? 'الإجراء' : 'Actions'}</th>
+                <th className="px-5 py-3.5">{isRTL ? 'التطبيق والخطأ' : 'App & Error Issue'}</th>
+                <th className="px-5 py-3.5">{isRTL ? 'الخطورة' : 'Severity'}</th>
+                <th className="px-5 py-3.5">{isRTL ? 'المنصة' : 'Platform & OS'}</th>
+                <th className="px-5 py-3.5">{isRTL ? 'التكرار / المستخدمين' : 'Events / Users'}</th>
+                <th className="px-5 py-3.5">{isRTL ? 'الحالة' : 'Status'}</th>
+                <th className="px-5 py-3.5 text-right">{isRTL ? 'الإجراء' : 'Actions'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-800/60 text-xs">
@@ -416,7 +419,7 @@ export function CrashlyticsErrors() {
                     <tr
                       key={err.id}
                       onClick={() => setActiveModalError(err)}
-                      className="hover:bg-ink-850/50 transition cursor-pointer group"
+                      className="hover:bg-ink-800/40 transition-colors duration-150 cursor-pointer group"
                     >
                       {/* App & Issue Title */}
                       <td className="px-5 py-4">
