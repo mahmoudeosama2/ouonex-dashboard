@@ -57,54 +57,54 @@ export function RecentActivityModal({ open, onClose, activities, onNavigate }: P
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="card w-full max-w-2xl max-h-[85vh] flex flex-col bg-ink-950 border border-ink-800 shadow-2xl overflow-hidden rounded-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-970/80 backdrop-blur-md animate-fade-in">
+      <div className="card w-full max-w-2xl max-h-[85vh] flex flex-col bg-gradient-to-b from-ink-900 via-ink-950 to-ink-970 border border-ink-800 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.75),inset_0_1px_0_0_rgba(255,255,255,0.1)] overflow-hidden rounded-2xl animate-scale-in">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-ink-800 bg-ink-900/50">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-brand-600/20 text-brand-400 flex items-center justify-center">
+        <div className="flex items-center justify-between p-5 border-b border-ink-800/80 bg-ink-900/60 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-brand-600/20 text-brand-400 border border-brand-500/30 flex items-center justify-center shadow-soft">
               <Activity className="w-4 h-4" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-ink-50">
                 {locale === 'ar' ? 'سجل أحدث النشاطات والعمليات' : 'Recent Activities & System Log'}
               </h3>
-              <p className="text-2xs text-ink-400">
+              <p className="text-2xs text-ink-400 mt-0.5">
                 {locale === 'ar' ? `عرض ${filtered.length} من إجمالي ${activities.length} نشاط` : `Showing ${filtered.length} of ${activities.length} total events`}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-800 transition"
+            className="w-8 h-8 rounded-lg text-ink-400 hover:text-white hover:bg-ink-800 active:scale-90 flex items-center justify-center transition-all duration-150"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Filters & Search */}
-        <div className="p-4 border-b border-ink-800/80 space-y-3 bg-ink-950/80">
+        <div className="p-4 border-b border-ink-800/80 space-y-3 bg-ink-950/90 shrink-0">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={locale === 'ar' ? 'بحث في النشاطات أو أسماء المستخدمين...' : 'Search activity logs or user names...'}
-              className="input pl-9 w-full text-xs"
+              className="input pl-10 w-full text-xs min-h-[42px]"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-ink-400 text-2xs mr-1">{locale === 'ar' ? 'المنتج:' : 'Product:'}</span>
+            <span className="text-ink-400 text-2xs mr-1 font-medium">{locale === 'ar' ? 'المنتج:' : 'Product:'}</span>
             {(['all', 'dawaty', 'digital_menu', 'cv_maker', 'qr_me'] as const).map(p => (
               <button
                 key={p}
                 onClick={() => setSelectedProduct(p)}
-                className={`px-2.5 py-1 rounded-lg text-2xs font-medium transition ${
+                className={`min-h-[32px] px-3 py-1 rounded-lg text-2xs font-semibold active:scale-95 transition-all duration-150 ${
                   selectedProduct === p
-                    ? 'bg-brand-600 text-white shadow-soft'
-                    : 'bg-ink-900 text-ink-400 hover:text-ink-200 border border-ink-800'
+                    ? 'bg-brand-600 text-white shadow-soft border border-brand-400/30'
+                    : 'bg-ink-900 text-ink-300 hover:text-white border border-ink-800 hover:border-ink-700'
                 }`}
               >
                 {p === 'all'
@@ -115,7 +115,7 @@ export function RecentActivityModal({ open, onClose, activities, onNavigate }: P
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-ink-400 text-2xs mr-1">{locale === 'ar' ? 'النوع:' : 'Type:'}</span>
+            <span className="text-ink-400 text-2xs mr-1 font-medium">{locale === 'ar' ? 'النوع:' : 'Type:'}</span>
             {[
               { key: 'all', ar: 'كافة الأنشطة', en: 'All Events' },
               { key: 'registration', ar: 'تسجيل مستخدمين', en: 'Registrations' },
@@ -126,9 +126,9 @@ export function RecentActivityModal({ open, onClose, activities, onNavigate }: P
               <button
                 key={tItem.key}
                 onClick={() => setSelectedType(tItem.key)}
-                className={`px-2.5 py-1 rounded-lg text-2xs font-medium transition ${
+                className={`min-h-[32px] px-3 py-1 rounded-lg text-2xs font-semibold active:scale-95 transition-all duration-150 ${
                   selectedType === tItem.key
-                    ? 'bg-ink-700 text-white'
+                    ? 'bg-ink-700 text-white border border-ink-600'
                     : 'bg-ink-900/60 text-ink-400 hover:text-ink-200 border border-ink-800/60'
                 }`}
               >
@@ -145,7 +145,7 @@ export function RecentActivityModal({ open, onClose, activities, onNavigate }: P
               {locale === 'ar' ? 'لا توجد أنشطة مطابقة للبحث أو التصفية.' : 'No activities match the current filters.'}
             </div>
           ) : (
-            filtered.map(a => {
+            filtered.map((a, idx) => {
               const pBadge = PRODUCT_BADGES[a.product] || {
                 labelAr: a.product,
                 labelEn: a.product,
@@ -153,14 +153,18 @@ export function RecentActivityModal({ open, onClose, activities, onNavigate }: P
               };
 
               return (
-                <div key={a.id} className="pt-2.5 first:pt-0 flex items-start gap-3 group">
-                  <div className="mt-1 w-8 h-8 rounded-lg bg-ink-900 border border-ink-800 flex items-center justify-center shrink-0">
+                <div
+                  key={a.id}
+                  style={{ animationDelay: `${idx * 30}ms` }}
+                  className="pt-2.5 first:pt-0 flex items-start gap-3 p-2 rounded-xl hover:bg-ink-850/60 transition-all duration-200 group"
+                >
+                  <div className="mt-1 w-8 h-8 rounded-lg bg-ink-900 border border-ink-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                     {TYPE_ICONS[a.type] || <Activity className="w-4 h-4 text-brand-400" />}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-ink-100 truncate">{a.message}</p>
+                      <p className="text-xs font-semibold text-ink-100 truncate group-hover:text-white transition-colors">{a.message}</p>
                       <span className={`text-3xs px-2 py-0.5 rounded-full border shrink-0 font-medium ${pBadge.color}`}>
                         {locale === 'ar' ? pBadge.labelAr : pBadge.labelEn}
                       </span>
@@ -188,10 +192,10 @@ export function RecentActivityModal({ open, onClose, activities, onNavigate }: P
                         else if (a.product === 'qr_me') onNavigate('qr_me');
                         else onNavigate('users');
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-ink-400 hover:text-white hover:bg-ink-800 transition shrink-0"
+                      className="opacity-0 group-hover:opacity-100 p-2 rounded-lg text-ink-400 hover:text-white hover:bg-ink-800 active:scale-90 transition-all shrink-0"
                       title={locale === 'ar' ? 'الانتقال للشاشة المعنية' : 'Go to screen'}
                     >
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <ExternalLink className="w-4 h-4" />
                     </button>
                   )}
                 </div>
@@ -201,12 +205,12 @@ export function RecentActivityModal({ open, onClose, activities, onNavigate }: P
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-ink-800 bg-ink-900/50 flex justify-end">
+        <div className="p-4 border-t border-ink-800/80 bg-ink-900/60 flex justify-end shrink-0">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-ink-800 hover:bg-ink-700 text-xs font-semibold text-ink-200 transition"
+            className="btn-secondary min-h-[44px] px-6 text-xs font-bold rounded-xl"
           >
-            {locale === 'ar' ? 'إغلاق' : 'Close'}
+            {locale === 'ar' ? 'إغلاق السجل' : 'Close Log'}
           </button>
         </div>
       </div>
