@@ -337,8 +337,8 @@ export function SupportPage() {
             <div className="card p-8 rounded-2xl border border-ink-800/80">
               <EmptyState
                 icon={<MessageSquare className="w-6 h-6 text-brand-400" />}
-                title="No support tickets"
-                message="No tickets have been submitted matching your filter."
+                title={locale === 'ar' ? 'لا توجد تذاكر دعم' : 'No support tickets'}
+                message={locale === 'ar' ? 'لم يتم إرسال أي تذاكر مطابقة للفلتر المحدد.' : 'No tickets have been submitted matching your filter.'}
               />
             </div>
           ) : (

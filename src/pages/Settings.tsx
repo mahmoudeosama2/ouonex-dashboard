@@ -1532,9 +1532,9 @@ function GeneralTab({ onNavigate }: { onNavigate?: (p: PageKey) => void }) {
             </div>
             <div>
               <h3 className="text-sm font-bold text-ink-100 flex items-center gap-2">
-                <span>{locale === 'ar' ? 'حسابات وروابط الدفع الافتراضية للنظام' : 'Global Payment Gateways'}</span>
+                <span>{locale === 'ar' ? 'حسابات وروابط الدفع الافتراضية' : 'Global Payment Gateways'}</span>
                 <span className="text-3xs font-semibold px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-300 border border-brand-500/20">
-                  {locale === 'ar' ? 'افتراضي للنظام' : 'System Wide'}
+                  {locale === 'ar' ? 'عام للنظام' : 'System Wide'}
                 </span>
               </h3>
               <p className="text-2xs text-ink-400 mt-0.5">

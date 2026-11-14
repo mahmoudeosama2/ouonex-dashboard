@@ -146,7 +146,7 @@ export function Layout({ current, onNavigate, children, pendingCount = 0, suppor
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search users, payments, restaurants..."
+                placeholder={t('topbar.search')}
                 onFocus={() => onNavigate('users')}
                 className="input pl-9 min-h-[42px] rounded-xl w-72 lg:w-80 cursor-pointer bg-ink-950/60 border border-ink-800 focus:border-brand-500/50 text-xs text-ink-200 hover:bg-ink-950/90 transition-all"
                 readOnly

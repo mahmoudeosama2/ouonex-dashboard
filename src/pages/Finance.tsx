@@ -499,7 +499,7 @@ function PendingPaymentRow({ payment, canApprove, onApprove, onReject, onViewRec
         </div>
       )}
       <div className="mt-3 flex items-center gap-2 text-2xs text-ink-500">
-        <Clock className="w-3.5 h-3.5" /> {locale === 'ar' ? `أرسلت منذ ${timeAgo(payment.created_at)}` : `Submitted ${timeAgo(payment.created_at)}`}
+        <Clock className="w-3.5 h-3.5" /> {locale === 'ar' ? `أرسلت ${timeAgo(payment.created_at)}` : `Submitted ${timeAgo(payment.created_at)}`}
       </div>
     </div>
   );
